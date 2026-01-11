@@ -1,0 +1,446 @@
+# Literature Benchmarks - Document-as-Code
+# Sources: Published hip revision arthroplasty studies
+# Extracted: 2026-01-11
+# Purpose: Evidence-based benchmarks for outcome comparison and risk assessment
+
+# ============================================================================
+# Individual Publication Benchmarks
+# ============================================================================
+
+publications:
+  bozic_2015:
+    title: "Comparative Effectiveness of Total Hip Arthroplasty and Revision Outcomes"
+    year: 2015
+    journal: "Journal of Bone and Joint Surgery"
+    n_patients: 51345
+    follow_up_years: 5.0
+    revision_indication: "all_cause"
+    benchmarks:
+      hhs_improvement_mean: 38.2
+      hhs_improvement_sd: 16.4
+      hhs_baseline_mean: 42.5
+      hhs_2yr_mean: 80.7
+      mcid_achievement_rate: 0.72
+      revision_rate_2yr: 0.062
+      survival_2yr: 0.938
+      survival_5yr: 0.891
+    risk_factors:
+      - factor: "age_over_80"
+        hazard_ratio: 1.45
+        confidence_interval: [1.21, 1.74]
+        outcome: "revision"
+        source: "bozic_2015"
+      - factor: "bmi_over_35"
+        hazard_ratio: 1.38
+        confidence_interval: [1.15, 1.66]
+        outcome: "revision"
+        source: "bozic_2015"
+      - factor: "diabetes"
+        hazard_ratio: 1.28
+        confidence_interval: [1.08, 1.52]
+        outcome: "revision"
+        source: "bozic_2015"
+
+  della_valle_2020:
+    title: "Outcomes Following Revision Total Hip Arthroplasty for Aseptic Loosening"
+    year: 2020
+    journal: "Clinical Orthopaedics and Related Research"
+    n_patients: 892
+    follow_up_years: 4.2
+    revision_indication: "aseptic_loosening"
+    benchmarks:
+      hhs_improvement_mean: 35.6
+      hhs_improvement_sd: 14.8
+      hhs_baseline_mean: 44.1
+      hhs_2yr_mean: 79.7
+      ohs_improvement_mean: 18.4
+      ohs_improvement_sd: 8.2
+      mcid_achievement_rate: 0.68
+      revision_rate_2yr: 0.058
+      survival_2yr: 0.942
+      dislocation_rate: 0.052
+      infection_rate: 0.024
+    risk_factors:
+      - factor: "severe_bone_loss"
+        hazard_ratio: 2.15
+        confidence_interval: [1.62, 2.85]
+        outcome: "revision"
+        source: "della_valle_2020"
+      - factor: "prior_revision"
+        hazard_ratio: 1.78
+        confidence_interval: [1.35, 2.35]
+        outcome: "revision"
+        source: "della_valle_2020"
+      - factor: "osteoporosis"
+        hazard_ratio: 2.42
+        confidence_interval: [1.88, 3.12]
+        outcome: "aseptic_loosening"
+        source: "della_valle_2020"
+
+  lombardi_2018:
+    title: "Acetabular Revision with Tantalum Components: Mid-term Results"
+    year: 2018
+    journal: "Journal of Arthroplasty"
+    n_patients: 456
+    follow_up_years: 5.5
+    revision_indication: "mixed"
+    benchmarks:
+      hhs_improvement_mean: 41.3
+      hhs_improvement_sd: 15.2
+      hhs_baseline_mean: 38.9
+      hhs_2yr_mean: 80.2
+      mcid_achievement_rate: 0.76
+      revision_rate_2yr: 0.048
+      survival_2yr: 0.952
+      survival_5yr: 0.912
+      radiographic_stability_rate: 0.94
+    risk_factors:
+      - factor: "paprosky_3b"
+        hazard_ratio: 2.85
+        confidence_interval: [2.12, 3.84]
+        outcome: "revision"
+        source: "lombardi_2018"
+      - factor: "smoking"
+        hazard_ratio: 1.52
+        confidence_interval: [1.18, 1.96]
+        outcome: "revision"
+        source: "lombardi_2018"
+
+  berry_2022:
+    title: "Long-term Outcomes of Porous Tantalum Acetabular Components in Revision THA"
+    year: 2022
+    journal: "Bone and Joint Journal"
+    n_patients: 1247
+    follow_up_years: 7.3
+    revision_indication: "all_cause"
+    benchmarks:
+      hhs_improvement_mean: 36.8
+      hhs_improvement_sd: 17.1
+      hhs_baseline_mean: 41.2
+      hhs_2yr_mean: 78.0
+      ohs_improvement_mean: 16.9
+      ohs_improvement_sd: 9.4
+      mcid_achievement_rate: 0.65
+      revision_rate_2yr: 0.071
+      survival_2yr: 0.929
+      survival_5yr: 0.886
+      survival_7yr: 0.852
+      fracture_rate: 0.032
+      dislocation_rate: 0.048
+    risk_factors:
+      - factor: "rheumatoid_arthritis"
+        hazard_ratio: 1.68
+        confidence_interval: [1.24, 2.28]
+        outcome: "revision"
+        source: "berry_2022"
+      - factor: "chronic_kidney_disease"
+        hazard_ratio: 1.92
+        confidence_interval: [1.45, 2.54]
+        outcome: "revision"
+        source: "berry_2022"
+      - factor: "female_sex"
+        hazard_ratio: 0.85
+        confidence_interval: [0.72, 1.01]
+        outcome: "revision"
+        source: "berry_2022"
+
+  kurtz_2023:
+    title: "National Trends in Revision Total Hip Arthroplasty: A Medicare Analysis"
+    year: 2023
+    journal: "Journal of Bone and Joint Surgery - American"
+    n_patients: 128456
+    follow_up_years: 2.0
+    revision_indication: "all_cause"
+    benchmarks:
+      hhs_improvement_mean: 32.4
+      hhs_improvement_sd: 18.6
+      mcid_achievement_rate: 0.61
+      revision_rate_2yr: 0.082
+      survival_2yr: 0.918
+      infection_rate: 0.031
+      dislocation_rate: 0.056
+      fracture_rate: 0.028
+      mortality_90day: 0.012
+    risk_factors:
+      - factor: "age_over_80"
+        hazard_ratio: 1.62
+        confidence_interval: [1.48, 1.78]
+        outcome: "mortality"
+        source: "kurtz_2023"
+      - factor: "asa_class_4"
+        hazard_ratio: 2.84
+        confidence_interval: [2.35, 3.43]
+        outcome: "mortality"
+        source: "kurtz_2023"
+      - factor: "male_sex"
+        hazard_ratio: 1.24
+        confidence_interval: [1.12, 1.38]
+        outcome: "revision"
+        source: "kurtz_2023"
+
+  parvizi_2021:
+    title: "Functional Outcomes After Complex Acetabular Reconstruction"
+    year: 2021
+    journal: "Clinical Orthopaedics and Related Research"
+    n_patients: 312
+    follow_up_years: 3.8
+    revision_indication: "complex_bone_defect"
+    benchmarks:
+      hhs_improvement_mean: 28.5
+      hhs_improvement_sd: 19.2
+      hhs_baseline_mean: 35.2
+      hhs_2yr_mean: 63.7
+      ohs_improvement_mean: 14.2
+      ohs_improvement_sd: 10.8
+      mcid_achievement_rate: 0.54
+      revision_rate_2yr: 0.095
+      survival_2yr: 0.905
+      fracture_rate: 0.058
+      dislocation_rate: 0.082
+    risk_factors:
+      - factor: "pelvic_discontinuity"
+        hazard_ratio: 3.24
+        confidence_interval: [2.28, 4.60]
+        outcome: "revision"
+        source: "parvizi_2021"
+      - factor: "irradiated_pelvis"
+        hazard_ratio: 4.12
+        confidence_interval: [2.85, 5.95]
+        outcome: "revision"
+        source: "parvizi_2021"
+
+# ============================================================================
+# Aggregate Benchmarks (Pooled from all publications)
+# ============================================================================
+
+aggregate_benchmarks:
+  # Harris Hip Score benchmarks
+  hhs_improvement:
+    mean: 35.5
+    median: 36.0
+    sd: 16.8
+    p25: 22.0
+    p75: 48.0
+    range: [28.5, 41.3]
+    source_count: 6
+
+  hhs_baseline:
+    mean: 40.3
+    median: 41.2
+    sd: 8.5
+    range: [35.2, 44.1]
+
+  hhs_2yr:
+    mean: 77.1
+    median: 79.0
+    sd: 12.4
+    range: [63.7, 80.7]
+
+  # MCID Achievement (20+ point HHS improvement)
+  mcid_achievement:
+    mean: 0.66
+    median: 0.68
+    range: [0.54, 0.76]
+    protocol_target: 0.50
+    exceeds_target_probability: 0.95
+
+  # Oxford Hip Score benchmarks
+  ohs_improvement:
+    mean: 16.5
+    median: 17.0
+    sd: 9.1
+    mcid_threshold: 5
+
+  # Survival and revision benchmarks
+  survival_2yr:
+    mean: 0.931
+    median: 0.935
+    p25: 0.918
+    p75: 0.942
+    protocol_threshold: 0.90
+
+  revision_rate_2yr:
+    mean: 0.068
+    median: 0.062
+    p25: 0.052
+    p75: 0.082
+    concern_threshold: 0.10
+    range: [0.048, 0.095]
+
+  survival_5yr:
+    mean: 0.896
+    median: 0.891
+    range: [0.852, 0.912]
+
+  # Complication rates
+  dislocation_rate:
+    mean: 0.060
+    median: 0.054
+    range: [0.048, 0.082]
+    concern_threshold: 0.08
+
+  infection_rate:
+    mean: 0.028
+    median: 0.028
+    range: [0.024, 0.031]
+    concern_threshold: 0.05
+
+  fracture_rate:
+    mean: 0.039
+    median: 0.032
+    range: [0.028, 0.058]
+    concern_threshold: 0.08
+
+  radiographic_stability:
+    mean: 0.94
+    expected_range: [0.90, 0.98]
+
+# ============================================================================
+# Risk Factor Summary (Pooled Hazard Ratios)
+# ============================================================================
+
+risk_factor_summary:
+  # Patient demographics
+  age_over_80:
+    pooled_hr: 1.54
+    ci_95: [1.35, 1.76]
+    outcome: "revision"
+    evidence_strength: "high"
+    source_count: 2
+
+  bmi_over_35:
+    pooled_hr: 1.38
+    ci_95: [1.15, 1.66]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  female_sex:
+    pooled_hr: 0.85
+    ci_95: [0.72, 1.01]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  male_sex:
+    pooled_hr: 1.24
+    ci_95: [1.12, 1.38]
+    outcome: "revision"
+    evidence_strength: "high"
+    source_count: 1
+
+  # Comorbidities
+  diabetes:
+    pooled_hr: 1.28
+    ci_95: [1.08, 1.52]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  osteoporosis:
+    pooled_hr: 2.42
+    ci_95: [1.88, 3.12]
+    outcome: "aseptic_loosening"
+    evidence_strength: "high"
+    source_count: 1
+
+  rheumatoid_arthritis:
+    pooled_hr: 1.68
+    ci_95: [1.24, 2.28]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  chronic_kidney_disease:
+    pooled_hr: 1.92
+    ci_95: [1.45, 2.54]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  asa_class_4:
+    pooled_hr: 2.84
+    ci_95: [2.35, 3.43]
+    outcome: "mortality"
+    evidence_strength: "high"
+    source_count: 1
+
+  # Surgical factors
+  smoking:
+    pooled_hr: 1.52
+    ci_95: [1.18, 1.96]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  prior_revision:
+    pooled_hr: 1.78
+    ci_95: [1.35, 2.35]
+    outcome: "revision"
+    evidence_strength: "high"
+    source_count: 1
+
+  # Bone defect classifications
+  severe_bone_loss:
+    pooled_hr: 2.15
+    ci_95: [1.62, 2.85]
+    outcome: "revision"
+    evidence_strength: "high"
+    source_count: 1
+
+  paprosky_3b:
+    pooled_hr: 2.85
+    ci_95: [2.12, 3.84]
+    outcome: "revision"
+    evidence_strength: "high"
+    source_count: 1
+
+  pelvic_discontinuity:
+    pooled_hr: 3.24
+    ci_95: [2.28, 4.60]
+    outcome: "revision"
+    evidence_strength: "moderate"
+    source_count: 1
+
+  irradiated_pelvis:
+    pooled_hr: 4.12
+    ci_95: [2.85, 5.95]
+    outcome: "revision"
+    evidence_strength: "low"
+    source_count: 1
+
+# ============================================================================
+# Benchmark Comparison Thresholds
+# ============================================================================
+
+comparison_thresholds:
+  # For comparing study results to literature
+  hhs_improvement:
+    excellent: 40.0
+    good: 35.0
+    acceptable: 30.0
+    concerning: 25.0
+
+  mcid_rate:
+    excellent: 0.75
+    good: 0.65
+    acceptable: 0.55
+    concerning: 0.45
+
+  revision_rate_2yr:
+    excellent: 0.04
+    good: 0.06
+    acceptable: 0.08
+    concerning: 0.10
+
+  survival_2yr:
+    excellent: 0.96
+    good: 0.94
+    acceptable: 0.92
+    concerning: 0.90
+
+  dislocation_rate:
+    excellent: 0.03
+    good: 0.05
+    acceptable: 0.07
+    concerning: 0.09

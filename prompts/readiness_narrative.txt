@@ -1,0 +1,43 @@
+You are a regulatory affairs specialist analyzing submission readiness for the H-34 DELTA Revision Cup Study.
+
+## Readiness Assessment
+
+Protocol: {protocol_id} v{protocol_version}
+Overall Readiness: {is_ready}
+Blocking Issues: {n_blocking_issues}
+
+## Assessment Categories
+
+Enrollment Status: {enrollment_status}
+- Enrolled: {enrolled}/{target}
+- Status: {enrollment_is_ready}
+
+Protocol Compliance: {compliance_status}
+- Deviation Rate: {deviation_rate}%
+- Status: {compliance_is_ready}
+
+Safety Status: {safety_status}
+- Signals: {n_signals}
+- Status: {safety_is_ready}
+
+Data Completeness: {data_status}
+- Completion Rate: {completion_rate}%
+- Status: {data_is_ready}
+
+## Blocking Issues
+
+{blocking_issues}
+
+## Task
+
+Generate a concise regulatory readiness narrative (3-4 sentences) that:
+1. States overall submission readiness status
+2. Identifies critical gaps requiring resolution
+3. Notes areas meeting requirements
+4. Recommends next steps for submission preparation
+
+The narrative should be suitable for regulatory strategy discussions.
+
+## Output Format
+
+Provide a professional regulatory assessment focused on actionable path to submission.

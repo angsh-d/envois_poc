@@ -1,0 +1,79 @@
+{
+  "trained_at": "2026-01-11T19:56:33.913022",
+  "feature_columns": [
+    "age",
+    "bmi",
+    "is_female",
+    "is_smoker",
+    "is_former_smoker",
+    "has_osteoporosis",
+    "has_prior_surgery",
+    "bmi_over_30",
+    "bmi_over_35",
+    "age_over_70",
+    "age_over_80",
+    "poor_bone_quality",
+    "surgery_duration_long"
+  ],
+  "metrics": {
+    "roc_auc": 0.5405609492988134,
+    "cv_auc_mean": 0.5127045066746964,
+    "cv_auc_std": 0.07260617919444282,
+    "classification_report": {
+      "0": {
+        "precision": 0.7252747252747253,
+        "recall": 0.6407766990291263,
+        "f1-score": 0.6804123711340206,
+        "support": 103.0
+      },
+      "1": {
+        "precision": 0.3508771929824561,
+        "recall": 0.4444444444444444,
+        "f1-score": 0.39215686274509803,
+        "support": 45.0
+      },
+      "accuracy": 0.581081081081081,
+      "macro avg": {
+        "precision": 0.5380759591285906,
+        "recall": 0.5426105717367853,
+        "f1-score": 0.5362846169395593,
+        "support": 148.0
+      },
+      "weighted avg": {
+        "precision": 0.6114376377534272,
+        "recall": 0.581081081081081,
+        "f1-score": 0.5927671152049564,
+        "support": 148.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        66,
+        37
+      ],
+      [
+        25,
+        20
+      ]
+    ],
+    "n_train": 589,
+    "n_test": 148,
+    "n_positive_train": 181,
+    "n_positive_test": 45,
+    "feature_importance": {
+      "age_over_80": 0.11744564771652222,
+      "bmi": 0.11522693932056427,
+      "is_smoker": 0.1134546771645546,
+      "age": 0.11191479861736298,
+      "poor_bone_quality": 0.09833674132823944,
+      "surgery_duration_long": 0.09519095718860626,
+      "has_prior_surgery": 0.08093667030334473,
+      "bmi_over_35": 0.07692267000675201,
+      "is_female": 0.07024981826543808,
+      "age_over_70": 0.0682365894317627,
+      "bmi_over_30": 0.05208451673388481,
+      "is_former_smoker": 0.0,
+      "has_osteoporosis": 0.0
+    }
+  }
+}

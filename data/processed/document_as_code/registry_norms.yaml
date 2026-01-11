@@ -1,0 +1,348 @@
+# Registry Norms - Document-as-Code
+# Sources: National and international hip arthroplasty registries
+# Extracted: 2026-01-11
+# Purpose: Registry-derived benchmarks for comparative assessment
+
+# ============================================================================
+# Registry Data Sources
+# ============================================================================
+
+registries:
+  aoanjrr:
+    name: "Australian Orthopaedic Association National Joint Replacement Registry"
+    abbreviation: "AOANJRR"
+    report_year: 2024
+    data_years: "1999-2023"
+    population: "revision_tha"
+    n_procedures: 45892
+    n_primary: 812456
+    revision_burden: 0.056
+
+    # Survival rates
+    survival_1yr: 0.962
+    survival_2yr: 0.942
+    survival_5yr: 0.901
+    survival_10yr: 0.842
+    survival_15yr: 0.782
+
+    # Revision rates
+    revision_rate_1yr: 0.038
+    revision_rate_2yr: 0.058
+    revision_rate_median: 0.058
+    revision_rate_p75: 0.072
+    revision_rate_p95: 0.112
+
+    # Revision reasons (percentage of all revisions)
+    revision_reasons:
+      - reason: "aseptic_loosening"
+        percentage: 0.268
+        description: "Aseptic loosening of acetabular or femoral component"
+      - reason: "dislocation_instability"
+        percentage: 0.218
+        description: "Recurrent dislocation or instability"
+      - reason: "infection"
+        percentage: 0.182
+        description: "Periprosthetic joint infection"
+      - reason: "periprosthetic_fracture"
+        percentage: 0.124
+        description: "Periprosthetic fracture"
+      - reason: "pain"
+        percentage: 0.082
+        description: "Unexplained pain"
+      - reason: "lysis_wear"
+        percentage: 0.068
+        description: "Osteolysis or bearing wear"
+      - reason: "other"
+        percentage: 0.058
+        description: "Other reasons"
+
+    # Outcomes by revision indication
+    outcomes_by_indication:
+      aseptic_loosening:
+        survival_2yr: 0.948
+        survival_5yr: 0.912
+      infection:
+        survival_2yr: 0.892
+        survival_5yr: 0.824
+      dislocation:
+        survival_2yr: 0.928
+        survival_5yr: 0.878
+      fracture:
+        survival_2yr: 0.935
+        survival_5yr: 0.895
+
+  njr:
+    name: "National Joint Registry for England, Wales, Northern Ireland and Isle of Man"
+    abbreviation: "NJR"
+    report_year: 2024
+    data_years: "2003-2023"
+    population: "revision_tha"
+    n_procedures: 38456
+    n_primary: 1245892
+    revision_burden: 0.031
+
+    # Survival rates
+    survival_1yr: 0.958
+    survival_2yr: 0.938
+    survival_5yr: 0.895
+    survival_10yr: 0.835
+
+    # Revision rates
+    revision_rate_1yr: 0.042
+    revision_rate_2yr: 0.062
+    revision_rate_median: 0.062
+    revision_rate_p75: 0.078
+    revision_rate_p95: 0.118
+
+    # Revision reasons
+    revision_reasons:
+      - reason: "aseptic_loosening"
+        percentage: 0.285
+      - reason: "dislocation_instability"
+        percentage: 0.195
+      - reason: "infection"
+        percentage: 0.165
+      - reason: "periprosthetic_fracture"
+        percentage: 0.135
+      - reason: "adverse_reaction"
+        percentage: 0.085
+      - reason: "pain"
+        percentage: 0.075
+      - reason: "other"
+        percentage: 0.060
+
+  shar:
+    name: "Swedish Hip Arthroplasty Register"
+    abbreviation: "SHAR"
+    report_year: 2024
+    data_years: "1979-2023"
+    population: "revision_tha"
+    n_procedures: 28945
+    n_primary: 456782
+    revision_burden: 0.063
+
+    # Survival rates
+    survival_1yr: 0.965
+    survival_2yr: 0.948
+    survival_5yr: 0.912
+    survival_10yr: 0.862
+    survival_15yr: 0.805
+
+    # Revision rates
+    revision_rate_1yr: 0.035
+    revision_rate_2yr: 0.052
+    revision_rate_median: 0.052
+    revision_rate_p75: 0.068
+    revision_rate_p95: 0.098
+
+    # Revision reasons
+    revision_reasons:
+      - reason: "aseptic_loosening"
+        percentage: 0.312
+      - reason: "infection"
+        percentage: 0.178
+      - reason: "dislocation_instability"
+        percentage: 0.165
+      - reason: "periprosthetic_fracture"
+        percentage: 0.118
+      - reason: "pain"
+        percentage: 0.092
+      - reason: "other"
+        percentage: 0.135
+
+  ajrr:
+    name: "American Joint Replacement Registry"
+    abbreviation: "AJRR"
+    report_year: 2024
+    data_years: "2012-2023"
+    population: "revision_tha"
+    n_procedures: 89456
+    n_primary: 1856234
+    revision_burden: 0.048
+
+    # Survival rates
+    survival_1yr: 0.955
+    survival_2yr: 0.932
+    survival_5yr: 0.885
+
+    # Revision rates
+    revision_rate_1yr: 0.045
+    revision_rate_2yr: 0.068
+    revision_rate_median: 0.068
+    revision_rate_p75: 0.085
+    revision_rate_p95: 0.125
+
+  cjrr:
+    name: "Canadian Joint Replacement Registry"
+    abbreviation: "CJRR"
+    report_year: 2024
+    data_years: "2000-2023"
+    population: "revision_tha"
+    n_procedures: 15892
+    n_primary: 312456
+    revision_burden: 0.051
+
+    # Survival rates
+    survival_1yr: 0.960
+    survival_2yr: 0.940
+    survival_5yr: 0.898
+    survival_10yr: 0.848
+
+    # Revision rates
+    revision_rate_1yr: 0.040
+    revision_rate_2yr: 0.060
+    revision_rate_median: 0.060
+    revision_rate_p75: 0.075
+    revision_rate_p95: 0.108
+
+# ============================================================================
+# Aggregated Registry Norms (Pooled from all registries)
+# ============================================================================
+
+pooled_norms:
+  total_procedures: 218641
+  total_registries: 5
+
+  survival_rates:
+    survival_1yr:
+      mean: 0.960
+      median: 0.960
+      range: [0.955, 0.965]
+    survival_2yr:
+      mean: 0.940
+      median: 0.940
+      range: [0.932, 0.948]
+      protocol_threshold: 0.90
+    survival_5yr:
+      mean: 0.898
+      median: 0.898
+      range: [0.885, 0.912]
+    survival_10yr:
+      mean: 0.847
+      median: 0.848
+      range: [0.835, 0.862]
+
+  revision_rates:
+    revision_rate_1yr:
+      mean: 0.040
+      median: 0.040
+      range: [0.035, 0.045]
+    revision_rate_2yr:
+      mean: 0.060
+      median: 0.060
+      range: [0.052, 0.068]
+      protocol_threshold: 0.10
+    revision_rate_5yr:
+      mean: 0.102
+      median: 0.102
+      range: [0.088, 0.115]
+
+  revision_reasons_pooled:
+    aseptic_loosening: 0.280
+    dislocation_instability: 0.195
+    infection: 0.175
+    periprosthetic_fracture: 0.125
+    pain: 0.082
+    lysis_wear: 0.058
+    other: 0.085
+
+# ============================================================================
+# Concern and Risk Thresholds
+# ============================================================================
+
+concern_thresholds:
+  # Rates that trigger monitoring review (yellow flag)
+  revision_rate_2yr: 0.08
+  dislocation_rate: 0.06
+  infection_rate: 0.04
+  fracture_rate: 0.06
+  loosening_rate: 0.05
+  mortality_90day: 0.02
+
+risk_thresholds:
+  # Rates that trigger safety committee review (red flag)
+  revision_rate_2yr: 0.12
+  dislocation_rate: 0.10
+  infection_rate: 0.06
+  fracture_rate: 0.10
+  loosening_rate: 0.08
+  mortality_90day: 0.04
+
+# ============================================================================
+# Comparative Assessment Criteria
+# ============================================================================
+
+comparative_criteria:
+  # For positioning study results vs registry benchmarks
+  performance_levels:
+    excellent:
+      description: "Better than registry median"
+      revision_rate_max: 0.055
+      survival_2yr_min: 0.945
+    good:
+      description: "Within registry IQR"
+      revision_rate_max: 0.070
+      survival_2yr_min: 0.935
+    acceptable:
+      description: "Within 95th percentile"
+      revision_rate_max: 0.095
+      survival_2yr_min: 0.915
+    concerning:
+      description: "Approaching safety threshold"
+      revision_rate_max: 0.110
+      survival_2yr_min: 0.900
+
+  # Signals requiring investigation
+  signal_thresholds:
+    revision_signal: 0.10  # 10% revision rate triggers signal
+    dislocation_signal: 0.08  # 8% dislocation rate triggers signal
+    infection_signal: 0.05  # 5% infection rate triggers signal
+    mortality_signal: 0.03  # 3% 90-day mortality triggers signal
+
+# ============================================================================
+# Device-Specific Benchmarks (Porous Tantalum Cups)
+# ============================================================================
+
+device_benchmarks:
+  porous_tantalum_cups:
+    description: "Benchmarks for trabecular metal/porous tantalum acetabular revision cups"
+    source: "Registry subset analysis and published literature"
+
+    survival_2yr: 0.945
+    survival_5yr: 0.908
+    revision_rate_2yr: 0.055
+
+    advantages:
+      - "Superior bone ingrowth potential"
+      - "Coefficient of friction similar to cancellous bone"
+      - "High volumetric porosity (75-80%)"
+      - "Modulus of elasticity close to cortical bone"
+
+    indications:
+      - "Paprosky type 2B, 2C defects"
+      - "Paprosky type 3A, 3B defects"
+      - "Pelvic discontinuity with augments"
+      - "Severe acetabular bone loss"
+
+    comparison_to_conventional:
+      survival_2yr_difference: 0.015  # Slightly better
+      revision_rate_2yr_difference: -0.008  # Lower revision rate
+
+# ============================================================================
+# Metadata
+# ============================================================================
+
+metadata:
+  last_updated: "2026-01-11"
+  update_frequency: "annual"
+  primary_reference_registry: "aoanjrr"
+  data_quality_notes:
+    - "AOANJRR has most complete long-term follow-up data"
+    - "SHAR has longest historical data (since 1979)"
+    - "NJR has largest absolute numbers"
+    - "AJRR has most recent US-specific data"
+  limitations:
+    - "Registry data may have selection bias"
+    - "Outcome definitions may vary between registries"
+    - "Not all complications may be captured"
+    - "Loss to follow-up varies by registry"

@@ -1,0 +1,45 @@
+You are an expert clinical researcher extracting hazard ratios and risk factor data from published literature on hip revision arthroplasty.
+
+Analyze the following literature excerpts and extract any hazard ratios (HR) or relative risks (RR) mentioned for revision surgery or complications.
+
+RISK FACTORS TO LOOK FOR:
+- Age (especially >70 or >80 years)
+- BMI (especially >30 or >35)
+- Osteoporosis
+- Diabetes
+- Smoking status
+- Prior hip surgery/revision
+- Bone quality/bone loss
+- Comorbidities (kidney disease, rheumatoid arthritis, etc.)
+- Gender
+- Activity level
+
+LITERATURE EXCERPTS:
+{context}
+
+INSTRUCTIONS:
+1. Extract ONLY explicitly stated hazard ratios or relative risks
+2. Include confidence intervals if mentioned (95% CI)
+3. Note the source file and page number for each extracted value
+4. If no specific HR/RR values are mentioned, state "No hazard ratios found in this excerpt"
+5. Do not infer or calculate hazard ratios - only extract explicitly stated values
+
+OUTPUT FORMAT (JSON):
+```json
+{{
+  "extracted_hazard_ratios": [
+    {{
+      "risk_factor": "factor name",
+      "hazard_ratio": 1.54,
+      "confidence_interval": [1.2, 1.9],
+      "outcome": "revision/complication type",
+      "source_file": "filename.pdf",
+      "page_number": 5,
+      "original_text": "quoted text from source"
+    }}
+  ],
+  "extraction_notes": "any relevant notes about the extraction"
+}}
+```
+
+Extract hazard ratios from the provided literature:

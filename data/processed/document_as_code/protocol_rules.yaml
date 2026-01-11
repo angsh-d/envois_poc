@@ -1,0 +1,238 @@
+# Protocol Rules - Document-as-Code
+# Source: CIP_H-34_v.2.0_05Nov2024_fully signed.pdf
+# Extracted: 2026-01-11
+# Purpose: Executable protocol rules for automated compliance checking
+
+protocol:
+  id: "H-34"
+  version: "2.0"
+  effective_date: "2024-11-05"
+  title: "Clinical Investigation of DELTA Revision TT Cup"
+  sponsor: "Lima Corporate"
+  phase: "Post-market"
+
+# Schedule of Assessments - Visit Windows
+# Each visit has a target day (from surgery) and allowed window
+schedule_of_assessments:
+  reference_point: "surgery_date"  # Day 0 = surgery date
+  visits:
+    - id: "screening"
+      name: "Screening"
+      target_day: -30
+      window_minus: 60
+      window_plus: 0
+      required_assessments:
+        - "informed_consent"
+        - "demographics"
+        - "medical_history"
+        - "ie_criteria"
+      is_primary_endpoint: false
+
+    - id: "preoperative"
+      name: "Preoperative"
+      target_day: -1
+      window_minus: 30
+      window_plus: 0
+      required_assessments:
+        - "hhs"
+        - "ohs"
+        - "radiology_baseline"
+        - "physical_exam"
+      is_primary_endpoint: false
+
+    - id: "surgery"
+      name: "Surgery"
+      target_day: 0
+      window_minus: 0
+      window_plus: 0
+      required_assessments:
+        - "surgical_data"
+        - "implant_details"
+        - "intraop_complications"
+      is_primary_endpoint: false
+
+    - id: "discharge"
+      name: "Discharge"
+      target_day: 3
+      window_minus: 2
+      window_plus: 4
+      required_assessments:
+        - "wound_assessment"
+        - "mobility_check"
+        - "ae_review"
+      is_primary_endpoint: false
+
+    - id: "fu_2mo"
+      name: "2 Month Follow-up"
+      target_day: 60
+      window_minus: 14
+      window_plus: 28
+      required_assessments:
+        - "hhs"
+        - "ohs"
+        - "radiology"
+        - "ae_review"
+        - "physical_exam"
+      is_primary_endpoint: false
+
+    - id: "fu_6mo"
+      name: "6 Month Follow-up"
+      target_day: 180
+      window_minus: 30
+      window_plus: 30
+      required_assessments:
+        - "hhs"
+        - "ohs"
+        - "radiology"
+        - "ae_review"
+        - "physical_exam"
+      is_primary_endpoint: false
+
+    - id: "fu_1yr"
+      name: "1 Year Follow-up"
+      target_day: 365
+      window_minus: 30
+      window_plus: 60
+      required_assessments:
+        - "hhs"
+        - "ohs"
+        - "radiology"
+        - "ae_review"
+        - "physical_exam"
+      is_primary_endpoint: false
+
+    - id: "fu_2yr"
+      name: "2 Year Follow-up"
+      target_day: 730
+      window_minus: 60
+      window_plus: 60
+      required_assessments:
+        - "hhs"
+        - "ohs"
+        - "radiology"
+        - "ae_review"
+        - "physical_exam"
+      is_primary_endpoint: true
+
+# Endpoint Definitions
+endpoints:
+  primary:
+    id: "hhs_improvement"
+    name: "Harris Hip Score Improvement"
+    timepoint: "fu_2yr"
+    calculation: "hhs_2yr - hhs_baseline"
+    success_threshold: 20
+    mcid_threshold: 20
+    success_criterion: ">=50% of evaluable patients achieve MCID (20+ point improvement)"
+    evaluable_definition: "Patients with both baseline and 2-year HHS assessments"
+
+  secondary:
+    - id: "ohs_improvement"
+      name: "Oxford Hip Score Improvement"
+      timepoint: "fu_2yr"
+      calculation: "ohs_2yr - ohs_baseline"
+      mcid_threshold: 5
+
+    - id: "revision_free_survival"
+      name: "Revision-Free Survival at 2 Years"
+      timepoint: "fu_2yr"
+      calculation: "kaplan_meier"
+      success_threshold: 0.90
+
+    - id: "radiographic_stability"
+      name: "Radiographic Component Stability"
+      timepoint: "fu_2yr"
+      calculation: "absence_of_progressive_radiolucencies"
+
+    - id: "safety_profile"
+      name: "Overall Safety Profile"
+      timepoint: "fu_2yr"
+      calculation: "ae_rate_comparison"
+
+# Sample Size Requirements
+sample_size:
+  target_enrollment: 50
+  interim_analysis: 25
+  evaluable_definition: "Complete 2-year HHS assessment"
+  dropout_allowance: 0.20
+  power_calculation:
+    expected_improvement: 35
+    sd: 15
+    effect_size: 0.8
+    power: 0.80
+    alpha: 0.05
+
+# Safety Monitoring Thresholds
+# Rates above these trigger review/escalation
+safety_thresholds:
+  revision_rate_concern: 0.10
+  fracture_rate_concern: 0.08
+  dislocation_rate_concern: 0.08
+  infection_rate_concern: 0.05
+  ae_rate_concern: 0.40
+  sae_rate_concern: 0.15
+
+# Adverse Event Handling
+adverse_events:
+  sae_narrative_required: true
+  sae_reporting_window_days: 24
+  device_relationship_required: true
+  causality_assessment_required: true
+  classifications:
+    - "Device-related"
+    - "Procedure-related"
+    - "Unrelated"
+  severity_grades:
+    - "Mild"
+    - "Moderate"
+    - "Severe"
+
+# Deviation Classification Rules
+deviation_classification:
+  minor:
+    description: "Visit occurs within 1.5x the allowed window extension"
+    max_extension_factor: 1.5
+    action: "Document only - no impact on data usability"
+    requires_explanation: false
+
+  major:
+    description: "Visit occurs beyond 1.5x window OR missing non-critical assessment"
+    max_extension_factor: 2.0
+    action: "Document with explanation - data may still be usable"
+    requires_explanation: true
+
+  critical:
+    description: "Missing visit OR missing primary endpoint assessment"
+    action: "Patient may not be evaluable - PI notification required"
+    requires_explanation: true
+    requires_pi_notification: true
+    affects_evaluability: true
+
+# Inclusion/Exclusion Criteria
+ie_criteria:
+  inclusion:
+    - "Age >= 21 years"
+    - "Candidate for primary or revision total hip arthroplasty"
+    - "DELTA Revision TT Cup selected by operating surgeon"
+    - "Able to provide informed consent"
+    - "Willing to comply with follow-up schedule"
+    - "Life expectancy > 2 years"
+
+  exclusion:
+    - "Active local or systemic infection"
+    - "Pregnancy or planned pregnancy during study"
+    - "Severe bone loss precluding stable cup fixation"
+    - "Known allergy to implant materials"
+    - "Participation in another clinical investigation"
+    - "Immunosuppressive therapy"
+    - "Metabolic bone disease (uncontrolled)"
+    - "BMD T-score < -3.5 (severe osteoporosis without treatment)"
+
+# Data Quality Requirements
+data_quality:
+  query_resolution_days: 14
+  source_data_verification: true
+  100_percent_sdv_for:
+    - "primary_endpoint"
+    - "serious_adverse_events"
+    - "ie_criteria"
