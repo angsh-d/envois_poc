@@ -3,7 +3,6 @@ import { CheckCircle2, XCircle, AlertTriangle, Clock, FileText, Download, Mail, 
 import { Card } from '../components/Card'
 import { ProgressBar } from '../components/ProgressBar'
 import { Badge } from '../components/Badge'
-import { Button } from '../components/Button'
 import { fetchAPI, cn } from '../lib/utils'
 
 interface ReadinessData {
@@ -21,9 +20,9 @@ interface ReadinessData {
 }
 
 export default function Readiness() {
-  const { data, isLoading, error } = useQuery({
+  const { data } = useQuery({
     queryKey: ['readiness'],
-    queryFn: () => fetchAPI<ReadinessData>('/api/v1/readiness'),
+    queryFn: () => fetchAPI<ReadinessData>('/api/v1/uc1/readiness'),
     retry: false,
   })
 

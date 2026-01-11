@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Activity, Shield, AlertTriangle, Users, TrendingUp, FileCheck, Clock, CheckCircle2 } from 'lucide-react'
+import { Shield, AlertTriangle, Users, TrendingUp, FileCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { Card, StatCard } from '../components/Card'
 import { ProgressBar } from '../components/ProgressBar'
 import { Badge } from '../components/Badge'

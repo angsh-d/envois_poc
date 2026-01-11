@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Shield, AlertTriangle, CheckCircle2, BookOpen, Database, FileText, Stethoscope } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, BookOpen, Database, FileText, Stethoscope } from 'lucide-react'
 import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
-import { Button } from '../components/Button'
 import { fetchAPI, cn } from '../lib/utils'
 
 interface SafetySignal {
@@ -32,9 +31,9 @@ interface SafetyData {
 }
 
 export default function Safety() {
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['safety'],
-    queryFn: () => fetchAPI<SafetyData>('/api/v1/safety'),
+    queryFn: () => fetchAPI<SafetyData>('/api/v1/uc2/safety/overview'),
     retry: false,
   })
 

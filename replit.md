@@ -1,7 +1,7 @@
 # H-34 Clinical Intelligence Platform
 
 ## Overview
-A multi-agent AI system for clinical data analysis, risk assessment, and regulatory compliance for the H-34 DELTA Revision Cup post-market clinical study.
+A multi-agent AI system for clinical data analysis, risk assessment, and regulatory compliance for the H-34 DELTA Revision Cup post-market clinical study. Features an Apple-inspired React frontend with comprehensive dashboards for all 5 use cases.
 
 ## Project Structure
 ```
@@ -11,6 +11,13 @@ A multi-agent AI system for clinical data analysis, risk assessment, and regulat
 │   ├── services/        # Business logic services
 │   ├── config.py        # Configuration settings
 │   └── main.py          # FastAPI application entry point
+├── client/              # React + Vite + Tailwind frontend
+│   ├── src/
+│   │   ├── components/  # Reusable UI components (Card, Button, Badge, etc.)
+│   │   ├── pages/       # Page components for each use case
+│   │   ├── lib/         # Utility functions
+│   │   └── App.tsx      # Main application with routing
+│   └── vite.config.ts   # Vite configuration
 ├── data/
 │   ├── loaders/         # Data loading utilities
 │   ├── ml/              # Machine learning models
@@ -22,10 +29,16 @@ A multi-agent AI system for clinical data analysis, risk assessment, and regulat
 ```
 
 ## Running the Application
-The API server runs on port 5000 using uvicorn:
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
-```
+Two workflows run concurrently:
+- **Frontend** (port 5000): `cd client && npm run dev` - React frontend with Apple-inspired UI
+- **API Server** (port 8000): `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload` - FastAPI backend
+
+## Frontend Pages
+- `/` - Executive Dashboard (UC5) with KPIs, readiness, safety signals
+- `/readiness` - Regulatory Readiness (UC1) with gap analysis
+- `/safety` - Safety Signals (UC2) with cross-source contextualization
+- `/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
+- `/risk` - Patient Risk (UC4) with ML-powered stratification
 
 ## API Endpoints
 - `/health` - Health check
@@ -40,15 +53,32 @@ uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
 ## Environment Variables
 The application uses the following environment variables (optional):
 - `GEMINI_API_KEY` - Google Gemini API key for LLM features
-- `AZURE_OPENAI_API_KEY` - Azure OpenAI API key (alternative)
-- `AZURE_OPENAI_ENDPOINT` - Azure OpenAI endpoint URL
 
 ## Tech Stack
+### Backend
 - Python 3.11
 - FastAPI (web framework)
 - LangChain (LLM orchestration)
 - ChromaDB (vector store)
-- Google Gemini / Azure OpenAI (LLM providers)
+- Google Gemini (LLM provider)
+
+### Frontend
+- React 18 + TypeScript
+- Vite 7 (build tool)
+- Tailwind CSS 4 (styling)
+- React Query (data fetching)
+- Wouter (routing)
+- Lucide React (icons)
+
+## Design System
+Apple-inspired design with:
+- Clean, minimal aesthetic with generous whitespace
+- SF Pro / Inter typography
+- Black/white/gray color palette with semantic accents
+- Rounded corners (2xl) and subtle shadows
+- Smooth transitions and hover states
 
 ## Recent Changes
-- 2026-01-11: Initial setup in Replit environment, configured to run on port 5000
+- 2026-01-11: Built complete Apple-inspired React frontend with 5 use case pages
+- 2026-01-11: Configured frontend on port 5000, backend on port 8000
+- 2026-01-11: Initial setup in Replit environment

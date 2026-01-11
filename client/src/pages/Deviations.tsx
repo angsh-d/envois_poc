@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, User, FileText, CheckCircle2, XCircle } from 'lucide-react'
+import { AlertTriangle, Clock, User, FileText, CheckCircle2 } from 'lucide-react'
 import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
