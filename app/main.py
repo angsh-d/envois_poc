@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health
+from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -33,6 +33,7 @@ app.include_router(uc2_safety.router, prefix="/api/v1/uc2", tags=["UC2: Safety S
 app.include_router(uc3_deviations.router, prefix="/api/v1/uc3", tags=["UC3: Protocol Deviations"])
 app.include_router(uc4_risk.router, prefix="/api/v1/uc4", tags=["UC4: Risk Stratification"])
 app.include_router(uc5_dashboard.router, prefix="/api/v1/uc5", tags=["UC5: Executive Dashboard"])
+app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 
 
 @app.on_event("startup")
