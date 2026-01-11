@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, CheckCircle2, BookOpen, Database, FileText, Stethoscope } from 'lucide-react'
 import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
+import { Button } from '../components/Button'
 import { fetchAPI, cn } from '../lib/utils'
 
 interface SafetySignal {
@@ -49,228 +49,214 @@ export default function Safety() {
       studyFindings: [
         '5 periprosthetic fractures in 37 patients (13%)',
         '4/5 occurred within 90 days (intraop or early postop)',
-        '100% (5/5) occurred in patients with osteoporosis diagnosis',
+        '100% (5/5) occurred in patients with osteoporosis',
       ],
       literatureCorrelation: [
-        'Osteoporosis identified as primary risk factor (Dixon et al 2025, Harris et al 2025)',
-        'Expected rate in osteoporotic patients: 15-20% (vs 4% in non-osteoporotic)',
-        'H-34 osteoporosis prevalence: 32% (12/37)—higher than typical study population',
+        'Osteoporosis identified as primary risk factor',
+        'Expected rate in osteoporotic patients: 15-20%',
+        'H-34 osteoporosis prevalence: 32% (12/37)',
       ],
       registryContext: [
-        'Overall fracture rate threshold for concern: >10% (AOANJRR 2024)',
-        'Risk-adjusted expectation for high-osteoporosis cohort: 10-15%',
-        'H-34 rate (13%) is WITHIN risk-adjusted expectation',
+        'Overall fracture rate threshold: >10%',
+        'Risk-adjusted expectation for cohort: 10-15%',
+        'H-34 rate (13%) within risk-adjusted range',
       ],
       protocolCheck: [
-        'Osteoporosis is NOT an exclusion criterion (CIP v2.0 Section 5.2)',
-        'No enhanced monitoring protocol specified for bone quality',
+        'Osteoporosis is NOT an exclusion criterion',
+        'No enhanced monitoring for bone quality specified',
       ],
     },
     interpretation: {
       confidence: 'HIGH (3 corroborating sources)',
-      conclusion: 'Elevated fracture rate is EXPLAINED by patient population characteristics (high osteoporosis prevalence), NOT implant failure. Rate is within literature-predicted range for this risk profile.',
-      regulatoryImplication: 'Signal requires documentation but does not indicate device defect. Recommend enhanced labeling for osteoporotic patients.',
+      conclusion: 'Elevated fracture rate is EXPLAINED by patient population characteristics (high osteoporosis prevalence), NOT implant failure.',
+      regulatoryImplication: 'Signal requires documentation but does not indicate device defect.',
     },
     recommendedActions: [
-      'Generate Safety Narrative for regulatory submission',
-      'Draft Protocol Amendment for enhanced bone density screening',
-      'Create IFU Update with osteoporosis precaution language',
-      'Flag 7 remaining patients with osteoporosis for enhanced monitoring',
+      'Generate Safety Narrative',
+      'Draft Protocol Amendment',
+      'Create IFU Update',
+      'Flag Similar Patients',
     ],
     provenance: [
       'Study AEs (Sheet 17)',
-      'Patient diagnoses (Sheet 2)',
-      'Literature (Dixon 2025, Harris 2025)',
+      'Patient Diagnoses (Sheet 2)',
+      'Literature (Dixon 2025)',
       'Registry (AOANJRR 2024)',
-      'Protocol (CIP v2.0 Section 5.2)',
     ],
   }
 
   const displayData = data || mockData
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
       case 'elevated':
-        return 'text-red-600 bg-red-50'
+        return 'bg-[#ff3b30]/10 text-[#d70015]'
       case 'watch':
-        return 'text-yellow-600 bg-yellow-50'
+        return 'bg-[#ff9500]/10 text-[#c77700]'
       default:
-        return 'text-green-600 bg-green-50'
+        return 'bg-[#34c759]/10 text-[#248a3d]'
     }
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="info">UC2</Badge>
-            <Badge>Cross-Source Analysis</Badge>
+    <div className="min-h-screen">
+      <section className="pt-24 pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto text-center">
+          <div className="animate-fade-in-up opacity-0">
+            <Badge variant="info" size="sm">UC2 · Cross-Source Analysis</Badge>
           </div>
-          <h1 className="text-5xl font-semibold text-black tracking-tight mb-3">
+          <h1 className="text-display-lg mt-4 animate-fade-in-up opacity-0 stagger-1">
             Safety Signal Detection
           </h1>
-          <p className="text-xl text-gray-500 font-light max-w-3xl">
-            Proactive safety monitoring with cross-source contextualization. AI agents correlate study data 
-            with literature and registry benchmarks to interpret signals with full provenance.
+          <p className="text-body-lg text-neutral-500 mt-4 max-w-[700px] mx-auto animate-fade-in-up opacity-0 stagger-2">
+            Proactive safety monitoring with cross-source contextualization. 
+            AI correlates study data with literature and registry benchmarks.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <Card className="mb-8 border-l-4 border-l-red-500">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+      <section className="pb-12 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto">
+          <Card className="p-6 border-l-4 border-l-[#ff3b30] animate-fade-in-up opacity-0 stagger-3" variant="elevated">
+            <div className="flex items-center gap-3">
+              <Badge variant="danger" size="sm">Signal Detected</Badge>
+              <p className="text-headline text-neutral-900">{displayData.analysis.title}</p>
             </div>
-            <div>
-              <Badge variant="danger">Safety Signal Detected</Badge>
-              <h2 className="text-xl font-semibold text-black mt-1">{displayData.analysis.title}</h2>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="mb-8">
-          <h2 className="text-xl font-semibold text-black mb-6">Signal Comparison Matrix</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Metric</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">H-34 Study</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Literature</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Registry</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayData.signals.map((signal, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-4 px-4 font-medium text-black">{signal.name}</td>
-                    <td className="py-4 px-4 text-sm text-gray-600">{signal.studyRate}</td>
-                    <td className="py-4 px-4 text-sm text-gray-600">{signal.literatureRate}</td>
-                    <td className="py-4 px-4 text-sm text-gray-600">{signal.registryRate}</td>
-                    <td className="py-4 px-4">
-                      <span className={cn('px-3 py-1 rounded-full text-xs font-medium uppercase', getStatusColor(signal.status))}>
-                        {signal.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <Stethoscope className="w-5 h-5 text-blue-600" />
-              <h2 className="text-xl font-semibold text-black">Study Data Analysis</h2>
-            </div>
-            <ul className="space-y-3">
-              {displayData.analysis.studyFindings.map((finding, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-gray-700">{finding}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <BookOpen className="w-5 h-5 text-purple-600" />
-              <h2 className="text-xl font-semibold text-black">Literature Correlation</h2>
-            </div>
-            <ul className="space-y-3">
-              {displayData.analysis.literatureCorrelation.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <Database className="w-5 h-5 text-green-600" />
-              <h2 className="text-xl font-semibold text-black">Registry Context</h2>
-            </div>
-            <ul className="space-y-3">
-              {displayData.analysis.registryContext.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <FileText className="w-5 h-5 text-orange-600" />
-              <h2 className="text-xl font-semibold text-black">Protocol Check</h2>
-            </div>
-            <ul className="space-y-3">
-              {displayData.analysis.protocolCheck.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
-                  <span className="text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
           </Card>
         </div>
+      </section>
 
-        <Card className="mb-8 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200">
-          <h2 className="text-xl font-semibold text-black mb-6">Signal Interpretation</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">Confidence Level</p>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-black">{displayData.interpretation.confidence}</span>
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card variant="elevated" className="overflow-hidden">
+            <div className="p-6 border-b border-neutral-100">
+              <p className="text-headline text-neutral-900">Signal Comparison</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-neutral-50">
+                    <th className="text-left py-4 px-6 text-caption text-neutral-500 uppercase tracking-wider font-medium">Metric</th>
+                    <th className="text-left py-4 px-6 text-caption text-neutral-500 uppercase tracking-wider font-medium">H-34 Study</th>
+                    <th className="text-left py-4 px-6 text-caption text-neutral-500 uppercase tracking-wider font-medium">Literature</th>
+                    <th className="text-left py-4 px-6 text-caption text-neutral-500 uppercase tracking-wider font-medium">Registry</th>
+                    <th className="text-left py-4 px-6 text-caption text-neutral-500 uppercase tracking-wider font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {displayData.signals.map((s, i) => (
+                    <tr key={i} className="hover:bg-neutral-50 transition-colors">
+                      <td className="py-4 px-6 text-body font-medium text-neutral-900">{s.name}</td>
+                      <td className="py-4 px-6 text-body-sm text-neutral-600">{s.studyRate}</td>
+                      <td className="py-4 px-6 text-body-sm text-neutral-600">{s.literatureRate}</td>
+                      <td className="py-4 px-6 text-body-sm text-neutral-600">{s.registryRate}</td>
+                      <td className="py-4 px-6">
+                        <span className={cn('px-3 py-1 rounded-full text-[11px] font-semibold uppercase', getStatusStyles(s.status))}>
+                          {s.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-6" variant="elevated">
+              <p className="text-body font-semibold text-[#0071e3] mb-4">Study Data Analysis</p>
+              <ul className="space-y-3">
+                {displayData.analysis.studyFindings.map((f, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-[#0071e3] rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-body-sm text-neutral-700">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-6" variant="elevated">
+              <p className="text-body font-semibold text-purple-600 mb-4">Literature Correlation</p>
+              <ul className="space-y-3">
+                {displayData.analysis.literatureCorrelation.map((l, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-body-sm text-neutral-700">{l}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-6" variant="elevated">
+              <p className="text-body font-semibold text-[#34c759] mb-4">Registry Context</p>
+              <ul className="space-y-3">
+                {displayData.analysis.registryContext.map((r, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-[#34c759] rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-body-sm text-neutral-700">{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="p-6" variant="elevated">
+              <p className="text-body font-semibold text-[#ff9500] mb-4">Protocol Check</p>
+              <ul className="space-y-3">
+                {displayData.analysis.protocolCheck.map((p, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-[#ff9500] rounded-full mt-2 flex-shrink-0" />
+                    <span className="text-body-sm text-neutral-700">{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card className="p-8" variant="elevated">
+            <p className="text-headline text-neutral-900 mb-6">Signal Interpretation</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <p className="text-caption text-neutral-500 uppercase tracking-wider mb-2">Confidence</p>
+                <p className="text-body font-medium text-[#248a3d]">{displayData.interpretation.confidence}</p>
+              </div>
+              <div className="md:col-span-2">
+                <p className="text-caption text-neutral-500 uppercase tracking-wider mb-2">Conclusion</p>
+                <p className="text-body text-neutral-700">{displayData.interpretation.conclusion}</p>
               </div>
             </div>
-            <div className="md:col-span-2">
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">Conclusion</p>
-              <p className="text-gray-700">{displayData.interpretation.conclusion}</p>
+            <div className="mt-6 p-4 rounded-xl bg-[#0071e3]/5 border border-[#0071e3]/10">
+              <p className="text-caption text-neutral-500 uppercase tracking-wider mb-2">Regulatory Implication</p>
+              <p className="text-body text-[#0071e3]">{displayData.interpretation.regulatoryImplication}</p>
             </div>
-          </div>
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">Regulatory Implication</p>
-            <p className="text-blue-800">{displayData.interpretation.regulatoryImplication}</p>
-          </div>
-        </Card>
+          </Card>
+        </div>
+      </section>
 
-        <Card className="mb-8">
-          <h2 className="text-xl font-semibold text-black mb-6">Recommended Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {displayData.recommendedActions.map((action, index) => (
-              <button
-                key={index}
-                className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors text-left"
-              >
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">{index + 1}</span>
-                </div>
-                <span className="text-gray-700">{action}</span>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="text-lg font-semibold text-black mb-4">Provenance</h2>
-          <div className="flex flex-wrap gap-2">
-            {displayData.provenance.map((source, index) => (
-              <Badge key={index} variant="default">{source}</Badge>
-            ))}
-          </div>
-        </Card>
-      </div>
+      <section className="pb-20 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card className="p-8" variant="elevated">
+            <p className="text-headline text-neutral-900 mb-6">Recommended Actions</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {displayData.recommendedActions.map((a, i) => (
+                <button key={i} className="p-4 rounded-xl bg-neutral-50 hover:bg-neutral-100 transition-all text-left group">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center mb-3">
+                    <span className="text-white text-body-sm font-semibold">{i + 1}</span>
+                  </div>
+                  <p className="text-body-sm text-neutral-900">{a}</p>
+                </button>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </section>
     </div>
   )
 }

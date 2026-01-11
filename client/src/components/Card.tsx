@@ -3,16 +3,20 @@ import { cn } from '../lib/utils'
 interface CardProps {
   children: React.ReactNode
   className?: string
+  variant?: 'default' | 'glass' | 'elevated'
   hover?: boolean
   onClick?: () => void
 }
 
-export function Card({ children, className, hover = false, onClick }: CardProps) {
+export function Card({ children, className, variant = 'default', hover = false, onClick }: CardProps) {
   return (
     <div
       className={cn(
-        'bg-white rounded-2xl border border-gray-200 p-8 shadow-sm',
-        hover && 'hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer',
+        'rounded-2xl transition-all duration-300',
+        variant === 'default' && 'bg-white border border-black/[0.04] shadow-[0_2px_8px_rgba(0,0,0,0.04)]',
+        variant === 'glass' && 'glass-card',
+        variant === 'elevated' && 'bg-white shadow-[0_4px_16px_rgba(0,0,0,0.08),0_2px_4px_rgba(0,0,0,0.04)]',
+        hover && 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 cursor-pointer',
         className
       )}
       onClick={onClick}
@@ -26,38 +30,26 @@ interface StatCardProps {
   title: string
   value: string | number
   subtitle?: string
-  trend?: 'up' | 'down' | 'neutral'
-  trendValue?: string
-  icon?: React.ReactNode
+  trend?: { value: string; positive: boolean }
+  className?: string
 }
 
-export function StatCard({ title, value, subtitle, trend, trendValue, icon }: StatCardProps) {
+export function StatCard({ title, value, subtitle, trend, className }: StatCardProps) {
   return (
-    <Card className="p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 font-medium">{title}</p>
-          <p className="text-4xl font-semibold text-black mt-2 tracking-tight">{value}</p>
-          {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-          )}
-          {trend && trendValue && (
-            <p className={cn(
-              'text-sm mt-2 font-medium',
-              trend === 'up' && 'text-green-600',
-              trend === 'down' && 'text-red-600',
-              trend === 'neutral' && 'text-gray-500'
-            )}>
-              {trend === 'up' && '↑'} {trend === 'down' && '↓'} {trendValue}
-            </p>
-          )}
-        </div>
-        {icon && (
-          <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-            {icon}
-          </div>
-        )}
-      </div>
+    <Card className={cn('p-6', className)}>
+      <p className="text-caption text-neutral-500 uppercase tracking-wide mb-2">{title}</p>
+      <p className="text-display-md text-neutral-900">{value}</p>
+      {subtitle && (
+        <p className="text-body-sm text-neutral-500 mt-1">{subtitle}</p>
+      )}
+      {trend && (
+        <p className={cn(
+          'text-body-sm mt-2 font-medium',
+          trend.positive ? 'text-[#34c759]' : 'text-[#ff3b30]'
+        )}>
+          {trend.positive ? '↑' : '↓'} {trend.value}
+        </p>
+      )}
     </Card>
   )
 }

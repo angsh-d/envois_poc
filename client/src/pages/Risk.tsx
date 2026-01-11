@@ -1,4 +1,3 @@
-import { Users, AlertTriangle, TrendingUp, Activity, Eye, Calendar, FileText } from 'lucide-react'
 import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -21,28 +20,28 @@ export default function Risk() {
       id: 'H34-008',
       riskScore: 87,
       riskLevel: 'high',
-      riskFactors: ['Osteoporosis diagnosis', 'BMI > 35', 'Prior revision', 'Age > 75'],
+      riskFactors: ['Osteoporosis', 'BMI > 35', 'Prior revision', 'Age > 75'],
       lastVisit: '2025-10-15',
       nextVisit: '2026-01-15',
-      recommendations: ['Enhanced bone density monitoring', 'Fall prevention counseling', 'Quarterly imaging'],
+      recommendations: ['Enhanced bone density monitoring', 'Fall prevention', 'Quarterly imaging'],
     },
     {
       id: 'H34-014',
       riskScore: 82,
       riskLevel: 'high',
-      riskFactors: ['Osteoporosis diagnosis', 'Diabetes', 'Smoking history'],
+      riskFactors: ['Osteoporosis', 'Diabetes', 'Smoking history'],
       lastVisit: '2025-11-20',
       nextVisit: '2026-02-20',
-      recommendations: ['HbA1c monitoring', 'Smoking cessation support', 'Enhanced wound surveillance'],
+      recommendations: ['HbA1c monitoring', 'Smoking cessation', 'Enhanced wound care'],
     },
     {
       id: 'H34-023',
       riskScore: 78,
       riskLevel: 'high',
-      riskFactors: ['Rheumatoid arthritis', 'Immunosuppressant therapy', 'Prior infection'],
+      riskFactors: ['Rheumatoid arthritis', 'Immunosuppressant', 'Prior infection'],
       lastVisit: '2025-12-01',
       nextVisit: '2026-03-01',
-      recommendations: ['Infection screening protocol', 'Immunosuppressant review', 'Monthly labs'],
+      recommendations: ['Infection screening', 'Immunosuppressant review', 'Monthly labs'],
     },
     {
       id: 'H34-031',
@@ -51,7 +50,7 @@ export default function Risk() {
       riskFactors: ['BMI > 30', 'Hypertension'],
       lastVisit: '2025-11-05',
       nextVisit: '2026-02-05',
-      recommendations: ['Weight management program', 'Blood pressure monitoring'],
+      recommendations: ['Weight management', 'BP monitoring'],
     },
     {
       id: 'H34-007',
@@ -60,276 +59,189 @@ export default function Risk() {
       riskFactors: ['Age > 70', 'Mild bone loss'],
       lastVisit: '2025-10-28',
       nextVisit: '2026-01-28',
-      recommendations: ['Standard bone health protocol', 'Annual DEXA scan'],
-    },
-    {
-      id: 'H34-019',
-      riskScore: 52,
-      riskLevel: 'medium',
-      riskFactors: ['Previous contralateral THA', 'Activity level concerns'],
-      lastVisit: '2025-09-15',
-      nextVisit: '2025-12-15',
-      recommendations: ['Activity modification counseling', 'Gait analysis'],
-    },
-    {
-      id: 'H34-002',
-      riskScore: 25,
-      riskLevel: 'low',
-      riskFactors: ['None identified'],
-      lastVisit: '2025-11-10',
-      nextVisit: '2026-02-10',
-      recommendations: ['Standard follow-up protocol'],
+      recommendations: ['Standard bone health protocol'],
     },
   ]
 
   const stats = {
+    total: 37,
     high: patients.filter(p => p.riskLevel === 'high').length,
     medium: patients.filter(p => p.riskLevel === 'medium').length,
-    low: patients.filter(p => p.riskLevel === 'low').length,
+    low: 37 - patients.filter(p => p.riskLevel === 'high').length - patients.filter(p => p.riskLevel === 'medium').length,
   }
 
-  const getRiskColor = (level: string) => {
+  const getRiskStyles = (level: string) => {
     switch (level) {
       case 'high':
-        return 'text-red-600'
+        return { text: 'text-[#ff3b30]', bg: 'bg-[#ff3b30]/10', border: 'border-[#ff3b30]/20' }
       case 'medium':
-        return 'text-yellow-600'
+        return { text: 'text-[#ff9500]', bg: 'bg-[#ff9500]/10', border: 'border-[#ff9500]/20' }
       default:
-        return 'text-green-600'
+        return { text: 'text-[#34c759]', bg: 'bg-[#34c759]/10', border: 'border-[#34c759]/20' }
     }
-  }
-
-  const getRiskBadge = (level: string) => {
-    switch (level) {
-      case 'high':
-        return <Badge variant="danger">High Risk</Badge>
-      case 'medium':
-        return <Badge variant="warning">Medium Risk</Badge>
-      default:
-        return <Badge variant="success">Low Risk</Badge>
-    }
-  }
-
-  const getProgressColor = (score: number): 'danger' | 'warning' | 'success' => {
-    if (score >= 70) return 'danger'
-    if (score >= 50) return 'warning'
-    return 'success'
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="info">UC4</Badge>
-            <Badge>ML + Literature</Badge>
+    <div className="min-h-screen">
+      <section className="pt-24 pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto text-center">
+          <div className="animate-fade-in-up opacity-0">
+            <Badge variant="info" size="sm">UC4 · ML + Literature</Badge>
           </div>
-          <h1 className="text-5xl font-semibold text-black tracking-tight mb-3">
+          <h1 className="text-display-lg mt-4 animate-fade-in-up opacity-0 stagger-1">
             Patient Risk Stratification
           </h1>
-          <p className="text-xl text-gray-500 font-light max-w-3xl">
+          <p className="text-body-lg text-neutral-500 mt-4 max-w-[700px] mx-auto animate-fade-in-up opacity-0 stagger-2">
             ML-powered risk scoring combined with literature-grounded factors. 
-            Prioritized patient lists with explainable risk factors and actionable monitoring recommendations.
+            Prioritized patient lists with explainable recommendations.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Total Patients</p>
-            <p className="text-4xl font-bold text-black">37</p>
-          </Card>
-          <Card className="p-6 border-l-4 border-l-red-500">
-            <p className="text-sm text-gray-500 mb-1">High Risk</p>
-            <p className="text-4xl font-bold text-red-600">{stats.high}</p>
-            <p className="text-sm text-gray-500 mt-1">Enhanced monitoring</p>
-          </Card>
-          <Card className="p-6 border-l-4 border-l-yellow-500">
-            <p className="text-sm text-gray-500 mb-1">Medium Risk</p>
-            <p className="text-4xl font-bold text-yellow-600">{stats.medium}</p>
-            <p className="text-sm text-gray-500 mt-1">Watch list</p>
-          </Card>
-          <Card className="p-6 border-l-4 border-l-green-500">
-            <p className="text-sm text-gray-500 mb-1">Low Risk</p>
-            <p className="text-4xl font-bold text-green-600">{stats.low}</p>
-            <p className="text-sm text-gray-500 mt-1">Standard protocol</p>
-          </Card>
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 animate-fade-in-up opacity-0 stagger-3">
+            <Card className="p-6 text-center" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Total</p>
+              <p className="text-display-md mt-1">{stats.total}</p>
+            </Card>
+            <Card className="p-6 text-center border-l-4 border-l-[#ff3b30]" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">High Risk</p>
+              <p className="text-display-md mt-1 text-[#ff3b30]">{stats.high}</p>
+            </Card>
+            <Card className="p-6 text-center border-l-4 border-l-[#ff9500]" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Medium</p>
+              <p className="text-display-md mt-1 text-[#ff9500]">{stats.medium}</p>
+            </Card>
+            <Card className="p-6 text-center border-l-4 border-l-[#34c759]" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Low Risk</p>
+              <p className="text-display-md mt-1 text-[#34c759]">{stats.low}</p>
+            </Card>
+          </div>
         </div>
+      </section>
 
-        <Card className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-black">Patient Risk Registry</h2>
-              <p className="text-sm text-gray-500 mt-1">Sorted by risk score (highest first)</p>
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card variant="elevated" className="overflow-hidden">
+            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+              <div>
+                <p className="text-headline text-neutral-900">Patient Risk Registry</p>
+                <p className="text-body-sm text-neutral-500 mt-1">Sorted by risk score (highest first)</p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="secondary" size="sm">Export</Button>
+                <Button variant="primary" size="sm">Generate Reports</Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm">Export List</Button>
-              <Button variant="primary" size="sm">Generate Reports</Button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {patients.map((patient) => (
-              <div
-                key={patient.id}
-                className={cn(
-                  'p-6 rounded-xl border-2 transition-all hover:shadow-md',
-                  patient.riskLevel === 'high' && 'border-red-200 bg-red-50',
-                  patient.riskLevel === 'medium' && 'border-yellow-200 bg-yellow-50',
-                  patient.riskLevel === 'low' && 'border-green-200 bg-green-50'
-                )}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      'w-14 h-14 rounded-xl flex items-center justify-center',
-                      patient.riskLevel === 'high' && 'bg-red-100',
-                      patient.riskLevel === 'medium' && 'bg-yellow-100',
-                      patient.riskLevel === 'low' && 'bg-green-100'
-                    )}>
-                      <span className={cn('text-2xl font-bold', getRiskColor(patient.riskLevel))}>
-                        {patient.riskScore}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-black text-lg">{patient.id}</span>
-                        {getRiskBadge(patient.riskLevel)}
+            <div className="divide-y divide-neutral-100">
+              {patients.map((p) => {
+                const styles = getRiskStyles(p.riskLevel)
+                return (
+                  <div key={p.id} className={cn('p-6 hover:bg-neutral-50 transition-colors', styles.bg.replace('/10', '/[0.02]'))}>
+                    <div className="flex flex-wrap items-start gap-6">
+                      <div className={cn('w-16 h-16 rounded-2xl flex items-center justify-center', styles.bg)}>
+                        <span className={cn('text-display-sm', styles.text)}>{p.riskScore}</span>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Last: {patient.lastVisit}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-body font-semibold text-neutral-900">{p.id}</span>
+                          <Badge variant={p.riskLevel === 'high' ? 'danger' : p.riskLevel === 'medium' ? 'warning' : 'success'} size="sm">
+                            {p.riskLevel} risk
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Next: {patient.nextVisit}</span>
+                        <div className="flex items-center gap-4 text-body-sm text-neutral-400 mb-3">
+                          <span>Last: {p.lastVisit}</span>
+                          <span>Next: {p.nextVisit}</span>
                         </div>
+                        <div className="w-full max-w-xs mb-4">
+                          <ProgressBar 
+                            value={p.riskScore} 
+                            size="sm" 
+                            variant={p.riskLevel === 'high' ? 'danger' : p.riskLevel === 'medium' ? 'warning' : 'success'}
+                            showLabel={false}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-caption text-neutral-500 uppercase tracking-wider mb-2">Risk Factors</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {p.riskFactors.map((f, i) => (
+                                <Badge key={i} variant="default" size="sm">{f}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-caption text-neutral-500 uppercase tracking-wider mb-2">Recommendations</p>
+                            <ul className="space-y-1">
+                              {p.recommendations.slice(0, 2).map((r, i) => (
+                                <li key={i} className="text-body-sm text-neutral-600 flex items-start gap-2">
+                                  <span className="w-1 h-1 bg-neutral-400 rounded-full mt-2 flex-shrink-0" />
+                                  {r}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm">View</Button>
+                        <Button variant="secondary" size="sm">Care Plan</Button>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4 mr-1" /> View Profile
-                    </Button>
-                    <Button variant="secondary" size="sm">
-                      <FileText className="w-4 h-4 mr-1" /> Care Plan
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="w-full max-w-md">
-                    <ProgressBar 
-                      value={patient.riskScore} 
-                      size="sm" 
-                      color={getProgressColor(patient.riskScore)}
-                      showLabel={false}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Risk Factors</p>
-                    <div className="flex flex-wrap gap-2">
-                      {patient.riskFactors.map((factor, index) => (
-                        <Badge key={index} variant="default" size="sm">{factor}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Recommendations</p>
-                    <ul className="space-y-1">
-                      {patient.recommendations.map((rec, index) => (
-                        <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-1.5 flex-shrink-0"></span>
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <h2 className="text-xl font-semibold text-black mb-6">Risk Scoring Model</h2>
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-5 h-5 text-purple-600" />
-                  <span className="font-medium text-black">ML Component (40%)</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Trained on historical revision outcomes. Features: BMI, age, bone density, 
-                  comorbidity index, surgical complexity.
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-black">Literature Factors (35%)</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Evidence-based risk factors from Dixon 2025, Harris 2025, Meding 2025. 
-                  Osteoporosis, prior revision, immunosuppression.
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-black">Registry Benchmarks (25%)</span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Population-specific adjustments from AOANJRR 2024. Age-sex-BMI stratified 
-                  revision probabilities.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <h2 className="text-xl font-semibold text-black mb-6">Key Insights</h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-red-200 bg-red-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <span className="font-medium text-red-800">High-Risk Pattern</span>
-                </div>
-                <p className="text-sm text-red-700">
-                  100% of high-risk patients have osteoporosis. Consider enhanced bone health 
-                  protocol for all osteoporotic patients.
-                </p>
-              </div>
-              <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                  <span className="font-medium text-yellow-800">Emerging Concern</span>
-                </div>
-                <p className="text-sm text-yellow-700">
-                  3 medium-risk patients trending upward. BMI increase detected at last visit. 
-                  Consider early intervention.
-                </p>
-              </div>
-              <div className="p-4 border border-green-200 bg-green-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-800">Positive Trend</span>
-                </div>
-                <p className="text-sm text-green-700">
-                  81% of patients (30/37) maintaining or improving risk scores. 
-                  Intervention protocols showing effectiveness.
-                </p>
-              </div>
+                )
+              })}
             </div>
           </Card>
         </div>
-      </div>
+      </section>
+
+      <section className="pb-20 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">Risk Scoring Model</p>
+              <div className="space-y-4">
+                {[
+                  { title: 'ML Component (40%)', desc: 'Trained on revision outcomes. BMI, age, bone density, comorbidities.', color: 'purple-500' },
+                  { title: 'Literature Factors (35%)', desc: 'Evidence-based from Dixon, Harris, Meding 2025.', color: '[#0071e3]' },
+                  { title: 'Registry Benchmarks (25%)', desc: 'Population-specific adjustments from AOANJRR 2024.', color: '[#34c759]' },
+                ].map((item, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-neutral-50">
+                    <p className={cn('text-body font-medium', `text-${item.color}`)}>{item.title}</p>
+                    <p className="text-body-sm text-neutral-600 mt-1">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">Key Insights</p>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-[#ff3b30]/5 border border-[#ff3b30]/10">
+                  <p className="text-body font-medium text-[#d70015]">High-Risk Pattern</p>
+                  <p className="text-body-sm text-neutral-600 mt-1">
+                    100% of high-risk patients have osteoporosis. Consider enhanced bone health protocol.
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-[#ff9500]/5 border border-[#ff9500]/10">
+                  <p className="text-body font-medium text-[#c77700]">Emerging Concern</p>
+                  <p className="text-body-sm text-neutral-600 mt-1">
+                    3 medium-risk patients trending upward. BMI increase detected.
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-[#34c759]/5 border border-[#34c759]/10">
+                  <p className="text-body font-medium text-[#248a3d]">Positive Trend</p>
+                  <p className="text-body-sm text-neutral-600 mt-1">
+                    81% of patients (30/37) maintaining or improving scores.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

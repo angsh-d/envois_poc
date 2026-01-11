@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle2, XCircle, AlertTriangle, Clock, FileText, Download, Mail, ArrowRight } from 'lucide-react'
 import { Card } from '../components/Card'
 import { ProgressBar } from '../components/ProgressBar'
 import { Badge } from '../components/Badge'
+import { Button } from '../components/Button'
 import { fetchAPI, cn } from '../lib/utils'
 
 interface ReadinessData {
@@ -42,7 +42,7 @@ export default function Readiness() {
       'Patients 12, 19, 27 missing 1-year imaging',
     ],
     warnings: [
-      'Revision rate narrative: Explain 8.1% vs registry 6.2% (early failure cluster)',
+      'Revision rate narrative: Explain 8.1% vs registry 6.2%',
       'Protocol deviations: Document 4 timing deviations in CSR',
     ],
     timeline: [
@@ -52,234 +52,179 @@ export default function Readiness() {
       { days: 180, readiness: 92, milestone: 'Target n=25' },
     ],
     provenance: [
-      'Protocol (CIP v2.0 Sections 8, 10)',
+      'Protocol (CIP v2.0)',
       'Study Data (Sheets 1, 17, 18, 20)',
-      'Literature (Meding 2025, Vasios et al)',
+      'Literature (Meding 2025)',
       'Registry (AOANJRR 2024)',
     ],
   }
 
   const displayData = data || mockData
 
-  const getStatusIcon = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
       case 'pass':
-        return <CheckCircle2 className="w-5 h-5 text-green-600" />
+        return { bg: 'bg-[#34c759]/10', text: 'text-[#248a3d]', label: 'Pass' }
       case 'gap':
-        return <XCircle className="w-5 h-5 text-red-600" />
+        return { bg: 'bg-[#ff3b30]/10', text: 'text-[#d70015]', label: 'Gap' }
       case 'watch':
-        return <AlertTriangle className="w-5 h-5 text-yellow-600" />
+        return { bg: 'bg-[#ff9500]/10', text: 'text-[#c77700]', label: 'Watch' }
       default:
-        return null
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pass':
-        return <Badge variant="success">PASS</Badge>
-      case 'gap':
-        return <Badge variant="danger">GAP</Badge>
-      case 'watch':
-        return <Badge variant="warning">WATCH</Badge>
-      default:
-        return null
+        return { bg: 'bg-neutral-100', text: 'text-neutral-600', label: status }
     }
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="info">UC1</Badge>
-            <Badge>Multi-Agent Analysis</Badge>
+    <div className="min-h-screen">
+      <section className="pt-24 pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto text-center">
+          <div className="animate-fade-in-up opacity-0">
+            <Badge variant="info" size="sm">UC1 · Multi-Agent Analysis</Badge>
           </div>
-          <h1 className="text-5xl font-semibold text-black tracking-tight mb-3">
-            Regulatory Submission Readiness
+          <h1 className="text-display-lg mt-4 animate-fade-in-up opacity-0 stagger-1">
+            Regulatory Readiness
           </h1>
-          <p className="text-xl text-gray-500 font-light max-w-3xl">
-            Comprehensive gap analysis across Protocol, Study Data, Literature Benchmarks, and Registry Norms. 
-            5 specialized AI agents collaborate to produce actionable remediation checklist.
+          <p className="text-body-lg text-neutral-500 mt-4 max-w-[700px] mx-auto animate-fade-in-up opacity-0 stagger-2">
+            Comprehensive gap analysis across Protocol, Study Data, Literature, and Registry. 
+            5 AI agents collaborate to produce actionable remediation.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <Card className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">Overall Readiness</p>
-              <div className="flex items-baseline gap-4">
-                <span className="text-7xl font-bold text-black tracking-tight">{displayData.overall_readiness}%</span>
-                <span className="text-xl text-gray-500">Target: 90% for submission</span>
-              </div>
-            </div>
-            <div className="flex-1 max-w-md">
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto">
+          <Card className="p-10 text-center animate-fade-in-up opacity-0 stagger-3" variant="elevated">
+            <p className="text-caption text-neutral-500 uppercase tracking-wider">Overall Readiness</p>
+            <p className="text-display-xl mt-2">{displayData.overall_readiness}%</p>
+            <p className="text-body text-neutral-500 mt-2">Target: 90% for submission</p>
+            <div className="max-w-md mx-auto mt-6">
               <ProgressBar 
                 value={displayData.overall_readiness} 
                 size="lg" 
+                variant={displayData.overall_readiness >= 90 ? 'success' : displayData.overall_readiness >= 70 ? 'warning' : 'danger'}
                 showLabel={false}
-                color={displayData.overall_readiness >= 90 ? 'success' : displayData.overall_readiness >= 70 ? 'warning' : 'danger'}
               />
             </div>
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2">
-            <h2 className="text-2xl font-semibold text-black mb-6">Category Status</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Category</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Finding</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Action Required</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayData.categories.map((category, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          {getStatusIcon(category.status)}
-                          <span className="font-medium text-black">{category.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">{getStatusBadge(category.status)}</td>
-                      <td className="py-4 px-4 text-sm text-gray-600">{category.finding}</td>
-                      <td className="py-4 px-4 text-sm text-gray-600">{category.action}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </Card>
+        </div>
+      </section>
 
-          <div className="space-y-6">
-            <Card className="border-l-4 border-l-red-500">
-              <div className="flex items-center gap-2 mb-4">
-                <XCircle className="w-5 h-5 text-red-600" />
-                <h3 className="text-lg font-semibold text-black">Blockers</h3>
-              </div>
-              <p className="text-sm text-gray-500 mb-4">Must resolve before submission</p>
-              <ul className="space-y-3">
-                {displayData.blockers.map((blocker, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
-                    <span className="text-sm text-gray-700">{blocker}</span>
-                  </li>
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <Card className="overflow-hidden" variant="elevated">
+                <div className="p-6 border-b border-neutral-100">
+                  <p className="text-headline text-neutral-900">Category Status</p>
+                </div>
+                <div className="divide-y divide-neutral-100">
+                  {displayData.categories.map((cat, i) => {
+                    const styles = getStatusStyles(cat.status)
+                    return (
+                      <div key={i} className="p-5 flex items-center gap-4 hover:bg-neutral-50 transition-colors">
+                        <div className={cn('w-16 text-center py-1 rounded-full text-[11px] font-semibold uppercase', styles.bg, styles.text)}>
+                          {styles.label}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-body font-medium text-neutral-900">{cat.name}</p>
+                          <p className="text-body-sm text-neutral-500 truncate">{cat.finding}</p>
+                        </div>
+                        <p className="text-body-sm text-neutral-400 hidden md:block">{cat.action}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <Card className="p-6" variant="elevated">
+                <p className="text-body font-semibold text-[#d70015] mb-4">Blockers</p>
+                <ul className="space-y-3">
+                  {displayData.blockers.map((b, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-1.5 h-1.5 bg-[#ff3b30] rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-body-sm text-neutral-700">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card className="p-6" variant="elevated">
+                <p className="text-body font-semibold text-[#c77700] mb-4">Warnings</p>
+                <ul className="space-y-3">
+                  {displayData.warnings.map((w, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="w-1.5 h-1.5 bg-[#ff9500] rounded-full mt-2 flex-shrink-0" />
+                      <span className="text-body-sm text-neutral-700">{w}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">Projected Timeline</p>
+              <div className="space-y-4">
+                {displayData.timeline.map((t, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <div className={cn(
+                      'w-14 text-center py-1.5 rounded-lg text-body-sm font-medium',
+                      t.readiness >= 90 ? 'bg-[#34c759]/10 text-[#248a3d]' : 'bg-neutral-100 text-neutral-600'
+                    )}>
+                      +{t.days}d
+                    </div>
+                    <div className="flex-1">
+                      <ProgressBar value={t.readiness} size="sm" showLabel={false} />
+                    </div>
+                    <span className={cn(
+                      'text-body-sm font-medium w-12 text-right',
+                      t.readiness >= 90 ? 'text-[#248a3d]' : 'text-neutral-900'
+                    )}>
+                      {t.readiness}%
+                    </span>
+                    <span className="text-body-sm text-neutral-500 w-32">{t.milestone}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
+              <div className="mt-6 p-4 rounded-xl bg-[#34c759]/10 border border-[#34c759]/20">
+                <p className="text-body-sm font-medium text-[#248a3d]">✓ Submission viable at +180 days</p>
+              </div>
             </Card>
 
-            <Card className="border-l-4 border-l-yellow-500">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                <h3 className="text-lg font-semibold text-black">Warnings</h3>
-              </div>
-              <p className="text-sm text-gray-500 mb-4">Should address, not blocking</p>
-              <ul className="space-y-3">
-                {displayData.warnings.map((warning, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></span>
-                    <span className="text-sm text-gray-700">{warning}</span>
-                  </li>
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">Actions</p>
+              <div className="space-y-3">
+                {['Download Checklist PDF', 'Generate Chase List', 'Draft CSR Section', 'Email Report'].map((action, i) => (
+                  <button key={i} className="w-full flex items-center justify-between p-4 rounded-xl bg-neutral-50 hover:bg-neutral-100 transition-all text-left group">
+                    <span className="text-body text-neutral-900">{action}</span>
+                    <span className="text-body text-neutral-400 group-hover:text-[#0071e3] transition-colors">→</span>
+                  </button>
                 ))}
-              </ul>
+              </div>
             </Card>
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <Clock className="w-5 h-5 text-gray-600" />
-              <h2 className="text-xl font-semibold text-black">Projected Timeline</h2>
-            </div>
-            <div className="space-y-4">
-              {displayData.timeline.map((point, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className={cn(
-                    'w-12 text-center py-1 rounded-lg text-sm font-medium',
-                    point.readiness >= 90 ? 'bg-green-100 text-green-800' :
-                    point.readiness >= 80 ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
-                  )}>
-                    +{point.days}d
-                  </div>
-                  <div className="flex-1">
-                    <ProgressBar value={point.readiness} size="sm" showLabel={false} />
-                  </div>
-                  <div className="w-24 text-right">
-                    <span className={cn(
-                      'font-semibold',
-                      point.readiness >= 90 ? 'text-green-600' : 'text-gray-900'
-                    )}>
-                      {point.readiness}%
-                    </span>
-                  </div>
-                  <div className="w-40 text-sm text-gray-600">{point.milestone}</div>
-                </div>
+      <section className="pb-20 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card className="p-6" variant="default">
+            <p className="text-body-sm font-medium text-neutral-500 mb-3">Provenance</p>
+            <div className="flex flex-wrap gap-2">
+              {displayData.provenance.map((p, i) => (
+                <Badge key={i} variant="default" size="sm">{p}</Badge>
               ))}
             </div>
-            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-green-800">Submission viable at +180 days</span>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-center gap-2 mb-6">
-              <FileText className="w-5 h-5 text-gray-600" />
-              <h2 className="text-xl font-semibold text-black">Actions</h2>
-            </div>
-            <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium text-black">Download Checklist PDF</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-              </button>
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium text-black">Generate Chase List</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-              </button>
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium text-black">Draft CSR Section</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-              </button>
-              <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium text-black">Email Report to Team</span>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-              </button>
-            </div>
           </Card>
         </div>
-
-        <Card>
-          <h2 className="text-lg font-semibold text-black mb-4">Provenance</h2>
-          <div className="flex flex-wrap gap-2">
-            {displayData.provenance.map((source, index) => (
-              <Badge key={index} variant="default">{source}</Badge>
-            ))}
-          </div>
-        </Card>
-      </div>
+      </section>
     </div>
   )
 }

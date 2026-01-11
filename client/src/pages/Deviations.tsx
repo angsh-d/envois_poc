@@ -1,4 +1,3 @@
-import { AlertTriangle, Clock, User, FileText, CheckCircle2 } from 'lucide-react'
 import { Card } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -24,7 +23,7 @@ export default function Deviations() {
       type: 'Timing',
       severity: 'minor',
       category: 'Visit Window',
-      description: '12-month visit completed 45 days outside protocol window (+30/-14 days)',
+      description: '12-month visit completed 45 days outside protocol window',
       detectedDate: '2025-11-15',
       protocolRef: 'CIP v2.0 Section 6.3',
       status: 'open',
@@ -69,226 +68,141 @@ export default function Deviations() {
     major: deviations.filter(d => d.severity === 'major').length,
     minor: deviations.filter(d => d.severity === 'minor').length,
     open: deviations.filter(d => d.status === 'open').length,
-    documented: deviations.filter(d => d.status === 'documented').length,
-  }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'open':
-        return <Badge variant="danger">Open</Badge>
-      case 'documented':
-        return <Badge variant="warning">Documented</Badge>
-      case 'resolved':
-        return <Badge variant="success">Resolved</Badge>
-      default:
-        return null
-    }
-  }
-
-  const getSeverityBadge = (severity: string) => {
-    return severity === 'major' 
-      ? <Badge variant="danger">Major</Badge>
-      : <Badge variant="warning">Minor</Badge>
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="info">UC3</Badge>
-            <Badge>Document-as-Code</Badge>
+    <div className="min-h-screen">
+      <section className="pt-24 pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto text-center">
+          <div className="animate-fade-in-up opacity-0">
+            <Badge variant="info" size="sm">UC3 · Document-as-Code</Badge>
           </div>
-          <h1 className="text-5xl font-semibold text-black tracking-tight mb-3">
-            Protocol Deviation Detection
+          <h1 className="text-display-lg mt-4 animate-fade-in-up opacity-0 stagger-1">
+            Protocol Deviations
           </h1>
-          <p className="text-xl text-gray-500 font-light max-w-3xl">
-            Automated detection of protocol deviations using Document-as-Code execution. 
-            Every patient, every visit validated against protocol_rules.yaml in real-time.
+          <p className="text-body-lg text-neutral-500 mt-4 max-w-[700px] mx-auto animate-fade-in-up opacity-0 stagger-2">
+            Automated detection using Document-as-Code execution. 
+            Every patient, every visit validated against protocol rules in real-time.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Total Deviations</p>
-            <p className="text-4xl font-bold text-black">{stats.total}</p>
-          </Card>
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Major</p>
-            <p className="text-4xl font-bold text-red-600">{stats.major}</p>
-          </Card>
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Minor</p>
-            <p className="text-4xl font-bold text-yellow-600">{stats.minor}</p>
-          </Card>
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Open</p>
-            <p className="text-4xl font-bold text-red-600">{stats.open}</p>
-          </Card>
-          <Card className="p-6">
-            <p className="text-sm text-gray-500 mb-1">Documented</p>
-            <p className="text-4xl font-bold text-yellow-600">{stats.documented}</p>
-          </Card>
-        </div>
-
-        <Card className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-black">Detected Deviations</h2>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm">Export Report</Button>
-              <Button variant="primary" size="sm">Generate CSR Section</Button>
-            </div>
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[980px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 animate-fade-in-up opacity-0 stagger-3">
+            <Card className="p-6 text-center" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Total</p>
+              <p className="text-display-md mt-1">{stats.total}</p>
+            </Card>
+            <Card className="p-6 text-center" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Major</p>
+              <p className="text-display-md mt-1 text-[#ff3b30]">{stats.major}</p>
+            </Card>
+            <Card className="p-6 text-center" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Minor</p>
+              <p className="text-display-md mt-1 text-[#ff9500]">{stats.minor}</p>
+            </Card>
+            <Card className="p-6 text-center" hover>
+              <p className="text-caption text-neutral-500 uppercase tracking-wider">Open</p>
+              <p className="text-display-md mt-1 text-[#ff3b30]">{stats.open}</p>
+            </Card>
           </div>
+        </div>
+      </section>
 
-          <div className="space-y-4">
-            {deviations.map((deviation) => (
-              <div
-                key={deviation.id}
-                className={cn(
-                  'p-6 rounded-xl border-2',
-                  deviation.severity === 'major' 
-                    ? 'border-red-200 bg-red-50' 
-                    : 'border-yellow-200 bg-yellow-50'
-                )}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-10 h-10 rounded-lg flex items-center justify-center',
-                      deviation.severity === 'major' ? 'bg-red-100' : 'bg-yellow-100'
-                    )}>
-                      <AlertTriangle className={cn(
-                        'w-5 h-5',
-                        deviation.severity === 'major' ? 'text-red-600' : 'text-yellow-600'
-                      )} />
+      <section className="pb-16 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <Card variant="elevated" className="overflow-hidden">
+            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+              <p className="text-headline text-neutral-900">Detected Deviations</p>
+              <div className="flex gap-3">
+                <Button variant="secondary" size="sm">Export</Button>
+                <Button variant="primary" size="sm">Generate CSR</Button>
+              </div>
+            </div>
+            <div className="divide-y divide-neutral-100">
+              {deviations.map((d) => (
+                <div key={d.id} className={cn(
+                  'p-6 hover:bg-neutral-50 transition-colors',
+                  d.severity === 'major' && 'bg-[#ff3b30]/[0.02]'
+                )}>
+                  <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-body font-semibold text-neutral-900">{d.id}</span>
+                      <Badge variant={d.severity === 'major' ? 'danger' : 'warning'} size="sm">
+                        {d.severity}
+                      </Badge>
+                      <Badge variant={d.status === 'open' ? 'danger' : d.status === 'documented' ? 'warning' : 'success'} size="sm">
+                        {d.status}
+                      </Badge>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-black">{deviation.id}</span>
-                        {getSeverityBadge(deviation.severity)}
-                        {getStatusBadge(deviation.status)}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{deviation.type} - {deviation.category}</p>
+                    <div className="flex items-center gap-4 text-body-sm text-neutral-400">
+                      <span>{d.patientId}</span>
+                      <span>{d.detectedDate}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      <span>{deviation.patientId}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{deviation.detectedDate}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-gray-700 mb-4">{deviation.description}</p>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <FileText className="w-4 h-4" />
-                    <span>{deviation.protocolRef}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">View Details</Button>
-                    {deviation.status === 'open' && (
-                      <Button variant="secondary" size="sm">Document</Button>
+                  <p className="text-body text-neutral-700 mb-2">{d.description}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-body-sm text-neutral-400">{d.protocolRef}</p>
+                    {d.status === 'open' && (
+                      <Button variant="ghost" size="sm">Document</Button>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <h2 className="text-xl font-semibold text-black mb-6">How It Works</h2>
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">1</span>
-                </div>
-                <div>
-                  <p className="font-medium text-black">Protocol Rules Loaded</p>
-                  <p className="text-sm text-gray-600">protocol_rules.yaml defines all timing windows, required assessments, and data requirements</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">2</span>
-                </div>
-                <div>
-                  <p className="font-medium text-black">Patient Data Scanned</p>
-                  <p className="text-sm text-gray-600">Every visit date, assessment, and data point compared against protocol requirements</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">3</span>
-                </div>
-                <div>
-                  <p className="font-medium text-black">Deviations Classified</p>
-                  <p className="text-sm text-gray-600">Major vs minor classification based on protocol-defined severity thresholds</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-sm">4</span>
-                </div>
-                <div>
-                  <p className="font-medium text-black">Actions Generated</p>
-                  <p className="text-sm text-gray-600">Specific remediation steps and CSR documentation guidance provided</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <h2 className="text-xl font-semibold text-black mb-6">Protocol Rules Active</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Visit Window: +30/-14 days</span>
-                </div>
-                <Badge size="sm">Active</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">HHS Assessment: All timepoints</span>
-                </div>
-                <Badge size="sm">Active</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Radiographic: 6mo, 12mo, 24mo</span>
-                </div>
-                <Badge size="sm">Active</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">SAE Narrative: Required</span>
-                </div>
-                <Badge size="sm">Active</Badge>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm">Informed Consent: Pre-procedure</span>
-                </div>
-                <Badge size="sm">Active</Badge>
-              </div>
+              ))}
             </div>
           </Card>
         </div>
-      </div>
+      </section>
+
+      <section className="pb-20 px-6 lg:px-12">
+        <div className="max-w-[1120px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">How It Works</p>
+              <div className="space-y-5">
+                {[
+                  { step: '1', title: 'Protocol Rules Loaded', desc: 'YAML defines timing windows and requirements' },
+                  { step: '2', title: 'Patient Data Scanned', desc: 'Every visit compared against protocol' },
+                  { step: '3', title: 'Deviations Classified', desc: 'Major vs minor based on severity thresholds' },
+                  { step: '4', title: 'Actions Generated', desc: 'Remediation steps and CSR guidance' },
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-4">
+                    <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-body-sm font-semibold">{item.step}</span>
+                    </div>
+                    <div>
+                      <p className="text-body font-medium text-neutral-900">{item.title}</p>
+                      <p className="text-body-sm text-neutral-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="p-8" variant="elevated">
+              <p className="text-headline text-neutral-900 mb-6">Protocol Rules Active</p>
+              <div className="space-y-3">
+                {[
+                  'Visit Window: +30/-14 days',
+                  'HHS Assessment: All timepoints',
+                  'Radiographic: 6mo, 12mo, 24mo',
+                  'SAE Narrative: Required',
+                  'Informed Consent: Pre-procedure',
+                ].map((rule, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-neutral-50">
+                    <div className="flex items-center gap-3">
+                      <span className="w-1.5 h-1.5 bg-[#34c759] rounded-full" />
+                      <span className="text-body-sm text-neutral-700">{rule}</span>
+                    </div>
+                    <Badge variant="success" size="sm">Active</Badge>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
