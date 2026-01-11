@@ -107,7 +107,8 @@ class PDFExtractor:
         self,
         directory: str,
         source_type: str,
-        pattern: str = "*.pdf"
+        pattern: str = "*.pdf",
+        recursive: bool = False
     ) -> List[DocumentChunk]:
         """Extract all PDFs from a directory.
 
@@ -115,6 +116,7 @@ class PDFExtractor:
             directory: Path to directory containing PDFs.
             source_type: Type of documents.
             pattern: Glob pattern for PDF files.
+            recursive: If True, search subdirectories recursively.
 
         Returns:
             List of DocumentChunk objects from all PDFs.
@@ -124,7 +126,8 @@ class PDFExtractor:
             raise FileNotFoundError(f"Directory not found: {directory}")
 
         all_chunks = []
-        pdf_files = list(dir_path.glob(pattern))
+        glob_pattern = f"**/{pattern}" if recursive else pattern
+        pdf_files = list(dir_path.glob(glob_pattern))
 
         for pdf_file in pdf_files:
             try:
@@ -266,12 +269,12 @@ def index_all_documents(
         except Exception as e:
             logger.error(f"Error indexing literature: {e}")
 
-    # Index registry documents (handle .docx separately if needed)
+    # Index registry documents (PDFs may be in subdirectories)
     registry_dir = base_data_path / "registry"
     if registry_dir.exists():
         try:
-            # PDFs in registry
-            chunks = extractor.extract_directory(str(registry_dir), "registry")
+            # PDFs in registry - search recursively for subdirectories
+            chunks = extractor.extract_directory(str(registry_dir), "registry", recursive=True)
             stats["registry"] = store.add_documents(chunks)
         except Exception as e:
             logger.error(f"Error indexing registry: {e}")
