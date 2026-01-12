@@ -1,6 +1,7 @@
 import { Link } from 'wouter'
 import { ArrowRight, Brain, Shield, Activity, Users } from 'lucide-react'
 import { Card } from '@/components/Card'
+import { Navbar } from '@/components/Navbar'
 
 const studies = [
   {
@@ -39,16 +40,7 @@ const features = [
 export default function Landing() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-semibold text-gray-800 tracking-tight">Clinical Intelligence</span>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main>
         <section className="py-24 px-6">
