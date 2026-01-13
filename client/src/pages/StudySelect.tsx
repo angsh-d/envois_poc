@@ -1,5 +1,5 @@
 import { Link } from 'wouter'
-import { ArrowRight, Brain, Shield, Activity, Users, Sparkles, Zap, Network, Database } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Brain, Shield, Activity, Users, Sparkles, Zap, Network, Database } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { Navbar } from '@/components/Navbar'
 
@@ -52,6 +52,10 @@ export default function StudySelect() {
       <main>
         <section className="pt-12 pb-6 px-6">
           <div className="max-w-5xl mx-auto text-center">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-6">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Role Selection</span>
+            </Link>
             <h1 className="text-4xl font-semibold text-gray-900 tracking-tight mb-4">
               Clinical Strategy Analyst
             </h1>
