@@ -348,10 +348,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       return res.json()
     },
     enabled: activeTab === 'domains',
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   const { data: protocolRules, isLoading: rulesLoading } = useQuery<ProtocolRules>({
@@ -362,10 +363,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       return res.json()
     },
     enabled: activeTab === 'rules',
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   const tabs = [
@@ -1319,8 +1321,8 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
   }
 
   const renderLaboratory = (data: Record<string, unknown>) => {
-    const panels = (data.discovered_panels as string[]) || []
-    const tests = (data.laboratory_tests as Array<{ test_name?: string; panel?: string; frequency?: string }>) || []
+    const panels = (data.discovered_panels as Array<Record<string, unknown>>) || []
+    const tests = (data.laboratory_tests as Array<Record<string, unknown>>) || []
 
     return (
       <div className="space-y-6">
@@ -1331,12 +1333,34 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <Beaker className="w-4 h-4" />
               Laboratory Panels ({panels.length})
             </h4>
-            <div className="flex flex-wrap gap-2">
-              {panels.map((panel, i) => (
-                <span key={i} className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-sm font-medium text-gray-900">
-                  {panel}
-                </span>
-              ))}
+            <div className="grid gap-3">
+              {panels.map((panel, i) => {
+                const name = panel.panel_name || panel.name
+                const description = panel.panel_description || panel.description
+                const category = panel.panel_category
+                const concept = panel.biomedicalConcept as Record<string, unknown> | undefined
+                
+                return (
+                  <div key={i} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-semibold text-gray-900">{safeRenderValue(name)}</p>
+                      {category && (
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
+                          {safeRenderValue(category)}
+                        </span>
+                      )}
+                    </div>
+                    {description && (
+                      <p className="text-sm text-gray-600 mb-2">{safeRenderValue(description)}</p>
+                    )}
+                    {concept?.conceptName && (
+                      <div className="text-xs text-gray-500">
+                        CDISC: {safeRenderValue(concept.conceptName)} ({safeRenderValue(concept.cdiscCode)})
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -1352,7 +1376,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               {tests.map((test, i) => (
                 <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{safeRenderValue(test.test_name || test)}</p>
+                    <p className="font-medium text-gray-900">{safeRenderValue(test.test_name || test.name || test)}</p>
                     {test.panel && <p className="text-xs text-gray-500">{safeRenderValue(test.panel)}</p>}
                   </div>
                   {test.frequency && (

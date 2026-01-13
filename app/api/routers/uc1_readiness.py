@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.services.readiness_service import get_readiness_service
+from app.services.cache_service import get_cache_service
 
 router = APIRouter()
 
@@ -137,8 +138,18 @@ async def get_regulatory_readiness() -> ReadinessAssessmentResponse:
 
     Returns actionable gap analysis with blocking issues.
     """
+    # Try cache first
+    cache = get_cache_service()
+    cached = await cache.get("readiness-assessment")
+    if cached and not cached.get("is_stale"):
+        return ReadinessAssessmentResponse(**cached["data"])
+    
+    # Generate fresh data
     service = get_readiness_service()
     result = await service.get_readiness_assessment()
+    
+    # Update cache
+    await cache.set("readiness-assessment", result)
 
     return ReadinessAssessmentResponse(**result)
 

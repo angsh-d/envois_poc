@@ -119,7 +119,7 @@ class AgentContext(BaseModel):
 
     # Execution constraints
     max_llm_calls: int = Field(default=10, description="Maximum LLM calls allowed")
-    timeout_seconds: float = Field(default=30.0, description="Execution timeout")
+    timeout_seconds: float = Field(default=120.0, description="Execution timeout")
     require_provenance: bool = Field(default=True, description="Require source tracking")
 
     class Config:

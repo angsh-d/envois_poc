@@ -46,7 +46,7 @@ class LLMService:
     - Consensus mode for critical decisions
     """
 
-    # Model mappings - primary: gemini-3-pro-preview, fallback: gpt-5.1
+    # Model mappings - primary: gemini-3-pro-preview
     GEMINI_MODELS = {
         "gemini-3-pro-preview": "gemini-3-pro-preview",
         "gemini-3-pro": "gemini-3-pro-preview",
@@ -54,7 +54,6 @@ class LLMService:
         "gemini-3-flash": "gemini-3-flash-preview",
         "gemini-2.5-pro": "gemini-2.5-pro",
         "gemini-2.5-flash": "gemini-2.5-flash",
-        "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
         "gemini-2.0-flash": "gemini-2.0-flash",
     }
 
@@ -64,9 +63,7 @@ class LLMService:
         "gemini-3-flash": 65536,
         "gemini-2.5-pro": 65536,
         "gemini-2.5-flash": 65536,
-        "gemini-2.5-flash-lite": 65536,
         "gemini-2.0-flash": 8192,
-        "gpt-5.1": 16384,
         "gpt-4": 16384,
         "gpt-4o": 16384,
     }

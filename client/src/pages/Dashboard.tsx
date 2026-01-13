@@ -785,30 +785,33 @@ export default function Dashboard() {
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: fetchDashboardExecutiveSummary,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   // Fetch study progress (enrollment data)
   const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ['dashboard-progress'],
     queryFn: fetchDashboardStudyProgress,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   // Fetch benchmarks (comparison table)
   const { data: benchmarks, isLoading: benchmarksLoading } = useQuery({
     queryKey: ['dashboard-benchmarks'],
     queryFn: fetchDashboardBenchmarks,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   const isLoading = summaryLoading || progressLoading || benchmarksLoading

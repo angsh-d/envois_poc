@@ -131,10 +131,10 @@ def get_cache_service() -> CacheService:
 
 async def warmup_cache() -> None:
     """
-    Precompute and cache all dashboard data on startup.
+    Precompute and cache all data on startup.
     
     This runs in the background and populates the cache
-    so the first request is fast.
+    so all requests are fast.
     """
     cache = get_cache_service()
     
@@ -146,45 +146,78 @@ async def warmup_cache() -> None:
     logger.info("Starting cache warmup...")
     
     try:
-        from app.services.dashboard_service import get_dashboard_service
-        service = get_dashboard_service()
-        
         start_time = datetime.utcnow()
         
+        # Dashboard service endpoints
         try:
+            from app.services.dashboard_service import get_dashboard_service
+            dashboard = get_dashboard_service()
+            
             logger.info("Warming: executive-summary")
-            summary = await service.get_executive_summary()
+            summary = await dashboard.get_executive_summary()
             await cache.set("executive-summary", summary)
-        except Exception as e:
-            logger.error(f"Failed to warm executive-summary: {e}")
-        
-        try:
+            
             logger.info("Warming: study-progress")
-            progress = await service.get_study_progress()
+            progress = await dashboard.get_study_progress()
             await cache.set("study-progress", progress)
-        except Exception as e:
-            logger.error(f"Failed to warm study-progress: {e}")
-        
-        try:
+            
             logger.info("Warming: data-quality")
-            quality = await service.get_data_quality_summary()
+            quality = await dashboard.get_data_quality_summary()
             await cache.set("data-quality", quality)
-        except Exception as e:
-            logger.error(f"Failed to warm data-quality: {e}")
-        
-        try:
+            
             logger.info("Warming: safety-dashboard")
-            safety = await service.get_safety_dashboard()
+            safety = await dashboard.get_safety_dashboard()
             await cache.set("safety-dashboard", safety)
-        except Exception as e:
-            logger.error(f"Failed to warm safety-dashboard: {e}")
-        
-        try:
+            
             logger.info("Warming: benchmarks")
-            benchmarks = await service.get_benchmark_comparison()
+            benchmarks = await dashboard.get_benchmark_comparison()
             await cache.set("benchmarks", benchmarks)
         except Exception as e:
-            logger.error(f"Failed to warm benchmarks: {e}")
+            logger.error(f"Failed to warm dashboard endpoints: {e}")
+        
+        # Readiness service endpoints
+        try:
+            from app.services.readiness_service import get_readiness_service
+            readiness = get_readiness_service()
+            
+            logger.info("Warming: readiness-assessment")
+            readiness_data = await readiness.get_readiness_assessment()
+            await cache.set("readiness-assessment", readiness_data)
+        except Exception as e:
+            logger.error(f"Failed to warm readiness: {e}")
+        
+        # Safety service endpoints
+        try:
+            from app.services.safety_service import get_safety_service
+            safety_svc = get_safety_service()
+            
+            logger.info("Warming: safety-summary")
+            safety_data = await safety_svc.get_safety_summary()
+            await cache.set("safety-summary", safety_data)
+        except Exception as e:
+            logger.error(f"Failed to warm safety: {e}")
+        
+        # Deviations service endpoints
+        try:
+            from app.services.deviations_service import get_deviations_service
+            deviations = get_deviations_service()
+            
+            logger.info("Warming: deviations-summary")
+            deviations_data = await deviations.get_study_deviations()
+            await cache.set("deviations-summary", deviations_data)
+        except Exception as e:
+            logger.error(f"Failed to warm deviations: {e}")
+        
+        # Risk service endpoints
+        try:
+            from app.services.risk_service import get_risk_service
+            risk = get_risk_service()
+            
+            logger.info("Warming: risk-population")
+            risk_data = await risk.get_population_risk()
+            await cache.set("risk-population", risk_data)
+        except Exception as e:
+            logger.error(f"Failed to warm risk: {e}")
         
         elapsed = (datetime.utcnow() - start_time).total_seconds()
         logger.info(f"Cache warmup complete in {elapsed:.1f}s")
