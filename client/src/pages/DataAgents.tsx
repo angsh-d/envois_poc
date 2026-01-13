@@ -139,7 +139,7 @@ export default function DataAgents({ params }: DataAgentsProps) {
               onClick={() => setDataSubTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 dataSubTab === tab.id
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-gray-700 text-white'
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >
@@ -900,6 +900,22 @@ export default function DataAgents({ params }: DataAgentsProps) {
     { id: 'rules', name: 'Safety Thresholds', icon: Shield, type: 'Rules', format: 'YAML', agents: ['safety'] },
   ]
 
+  const llmTools = [
+    { id: 'gemini', name: 'Gemini 2.0 Flash', type: 'Primary LLM', desc: 'Reasoning & generation' },
+    { id: 'embeddings', name: 'text-embedding-004', type: 'Embeddings', desc: 'Semantic search' },
+    { id: 'xgboost', name: 'XGBoost Classifier', type: 'ML Model', desc: 'Risk prediction' },
+    { id: 'rag', name: 'RAG Pipeline', type: 'Retrieval', desc: 'Context injection' },
+  ]
+
+  const specialistAgents = [
+    { id: 'data', name: 'Clinical Data Agent', shortName: 'Data Agent', icon: Database, desc: 'Retrieves & analyzes patient data', tools: ['LLM', 'SQL'] },
+    { id: 'registry', name: 'Registry Benchmark Agent', shortName: 'Registry Agent', icon: Globe, desc: 'Compares against global registries', tools: ['LLM', 'YAML'] },
+    { id: 'literature', name: 'Literature Evidence Agent', shortName: 'Literature Agent', icon: BookOpen, desc: 'RAG-powered citation retrieval', tools: ['LLM', 'RAG', 'Embeddings'] },
+    { id: 'safety', name: 'Safety Signal Agent', shortName: 'Safety Agent', icon: Shield, desc: 'Detects adverse event signals', tools: ['LLM', 'Rules'] },
+    { id: 'protocol', name: 'Protocol Compliance Agent', shortName: 'Protocol Agent', icon: FileText, desc: 'Validates against digitized protocol', tools: ['LLM', 'USDM'] },
+    { id: 'risk', name: 'Risk Stratification Agent', shortName: 'Risk Agent', icon: Activity, desc: 'ML-powered risk prediction', tools: ['LLM', 'XGBoost'] },
+  ]
+
   const renderAgents = () => (
     <div className="space-y-8">
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -907,103 +923,141 @@ export default function DataAgents({ params }: DataAgentsProps) {
           <Bot className="w-5 h-5 text-gray-600" />
           <h3 className="font-semibold text-gray-900">Multi-Agent Architecture</h3>
         </div>
-        <p className="text-sm text-gray-600">The platform uses specialized AI agents that work together to analyze clinical data, compare against benchmarks, and generate insights.</p>
+        <p className="text-sm text-gray-600">The platform uses specialized AI agents that leverage LLMs and ML models as tools to analyze clinical data, compare against benchmarks, and generate evidence-based insights.</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gray-900 px-4 py-3">
-          <h3 className="font-semibold text-white text-sm">System Architecture</h3>
+        <div className="bg-gray-200 px-4 py-3 border-b border-gray-300">
+          <h3 className="font-semibold text-gray-800 text-sm">Agentic System Architecture</h3>
         </div>
         <div className="p-6 bg-gray-50">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-full">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3 text-center font-medium">Data Sources</p>
+          <div className="flex flex-col items-center gap-3">
+            
+            <div className="w-full border border-gray-200 rounded-xl p-4 bg-white">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3 font-semibold">Data Layer</p>
               <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
                 {dataSources.map((source) => {
                   const Icon = source.icon
                   return (
-                    <div key={source.id} className="bg-white border border-gray-300 rounded-lg p-2 text-center border-dashed">
-                      <div className="w-6 h-6 bg-gray-50 rounded flex items-center justify-center mx-auto mb-1">
+                    <div key={source.id} className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center">
+                      <div className="w-5 h-5 bg-white border border-gray-200 rounded flex items-center justify-center mx-auto mb-1">
                         <Icon className="w-3 h-3 text-gray-500" />
                       </div>
-                      <p className="text-[10px] font-medium text-gray-700 leading-tight">{source.name}</p>
-                      <p className="text-[9px] text-gray-400">{source.format}</p>
+                      <p className="text-[9px] font-medium text-gray-700 leading-tight">{source.name}</p>
+                      <p className="text-[8px] text-gray-400">{source.format}</p>
                     </div>
                   )
                 })}
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-gray-400">
-              <div className="w-px h-4 bg-gray-300"></div>
+            <div className="flex items-center justify-center w-full">
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
+              <div className="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            <div className="w-full border border-gray-300 rounded-xl p-4 bg-gray-100">
+              <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-3 font-semibold">LLM & ML Tools Layer</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                {llmTools.map((tool) => (
+                  <div key={tool.id} className="bg-white border border-gray-200 rounded-lg p-2.5 text-center">
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <Sparkles className="w-3 h-3 text-gray-500" />
+                      <p className="text-[10px] font-semibold text-gray-700">{tool.name}</p>
+                    </div>
+                    <p className="text-[8px] text-gray-400">{tool.type}</p>
+                    <p className="text-[8px] text-gray-500 mt-0.5">{tool.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center w-full">
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
+              <div className="flex-1 h-px bg-gray-200"></div>
+            </div>
+
+            <div className="w-full border border-gray-400 rounded-xl p-4 bg-gray-200">
+              <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-3 font-semibold">Specialist Agents Layer</p>
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 w-full">
+                {specialistAgents.map((agent) => {
+                  const Icon = agent.icon
+                  return (
+                    <div key={agent.id} className="bg-white border border-gray-300 rounded-lg p-2.5 text-center hover:shadow-sm transition-shadow">
+                      <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-1.5">
+                        <Icon className="w-3.5 h-3.5 text-gray-600" />
+                      </div>
+                      <p className="text-[10px] font-semibold text-gray-800 leading-tight">{agent.shortName}</p>
+                      <p className="text-[8px] text-gray-500 mt-0.5 leading-tight">{agent.desc}</p>
+                      <div className="mt-1.5 flex flex-wrap justify-center gap-0.5">
+                        {agent.tools.slice(0, 2).map((t) => (
+                          <span key={t} className="text-[7px] px-1 py-0.5 bg-gray-100 text-gray-500 rounded">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center w-full">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <ChevronRight className="w-4 h-4 text-gray-400 rotate-90 mx-2" />
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
 
             <div className="w-full max-w-2xl">
-              <div className="bg-gray-900 text-white rounded-xl p-4 text-center">
+              <div className="bg-gray-600 text-white rounded-xl p-4 text-center border border-gray-500">
                 <div className="flex items-center justify-center gap-2 mb-1">
-                  <Cpu className="w-5 h-5" />
+                  <Network className="w-5 h-5" />
                   <span className="font-semibold">Orchestrator Agent</span>
                 </div>
-                <p className="text-xs text-gray-400">Central coordinator & request router</p>
+                <p className="text-xs text-gray-300">Task decomposition, agent routing, context management & response coordination</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-gray-400">
-              <div className="w-px h-6 bg-gray-300"></div>
+            <div className="flex items-center justify-center w-full">
+              <div className="flex-1 h-px bg-gray-300"></div>
+              <ChevronRight className="w-4 h-4 text-gray-400 rotate-90 mx-2" />
+              <div className="flex-1 h-px bg-gray-300"></div>
             </div>
             
-            <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 w-full">
-              {agents.filter(a => a.level === 1).map((agent) => {
-                const Icon = agent.icon
-                const agentSources = dataSources.filter(s => s.agents.includes(agent.id))
-                return (
-                  <div key={agent.id} className="bg-white border border-gray-200 rounded-lg p-3 text-center hover:border-gray-400 transition-colors group">
-                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                      <Icon className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <p className="text-xs font-medium text-gray-800">{agent.name.replace(' Agent', '')}</p>
-                    {agentSources.length > 0 && (
-                      <div className="mt-1.5 flex flex-wrap justify-center gap-1">
-                        {agentSources.slice(0, 2).map((s) => (
-                          <span key={s.id} className="text-[8px] px-1 py-0.5 bg-gray-100 text-gray-500 rounded">{s.format.split(' ')[0]}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            
-            <div className="flex items-center gap-2 text-gray-400">
-              <div className="w-px h-6 bg-gray-300"></div>
-            </div>
-            
-            <div className="w-full max-w-md">
-              <div className="bg-gray-800 text-white rounded-xl p-4 text-center">
+            <div className="w-full max-w-xl">
+              <div className="bg-gray-500 text-white rounded-xl p-4 text-center border border-gray-400">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Sparkles className="w-5 h-5" />
                   <span className="font-semibold">Synthesis Agent</span>
                 </div>
-                <p className="text-xs text-gray-400">LLM-powered response generation</p>
+                <p className="text-xs text-gray-200">LLM-powered response synthesis, narrative generation & insight consolidation</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-gray-400">
-              <div className="w-px h-6 bg-gray-300"></div>
+            <div className="flex items-center justify-center w-full">
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
+              <div className="flex-1 h-px bg-gray-200"></div>
             </div>
             
-            <div className="w-full max-w-lg grid grid-cols-3 gap-3">
-              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                <Layers className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-600">Dashboard</p>
-              </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                <Search className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-600">Chat Interface</p>
-              </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                <FileText className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-                <p className="text-xs text-gray-600">Reports</p>
+            <div className="w-full border border-gray-200 rounded-xl p-4 bg-white">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3 font-semibold">User Interface Layer</p>
+              <div className="w-full grid grid-cols-3 gap-2">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-center">
+                  <Layers className="w-4 h-4 text-gray-500 mx-auto mb-1" />
+                  <p className="text-[10px] font-medium text-gray-700">Dashboard</p>
+                  <p className="text-[8px] text-gray-400">KPIs & visualizations</p>
+                </div>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-center">
+                  <Search className="w-4 h-4 text-gray-500 mx-auto mb-1" />
+                  <p className="text-[10px] font-medium text-gray-700">Chat Interface</p>
+                  <p className="text-[8px] text-gray-400">Natural language Q&A</p>
+                </div>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-center">
+                  <FileText className="w-4 h-4 text-gray-500 mx-auto mb-1" />
+                  <p className="text-[10px] font-medium text-gray-700">Reports</p>
+                  <p className="text-[8px] text-gray-400">Generated narratives</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1012,33 +1066,42 @@ export default function DataAgents({ params }: DataAgentsProps) {
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900 text-sm">Data Sources → Agent Mapping</h3>
+          <h3 className="font-semibold text-gray-900 text-sm">Agent Capabilities & Tool Usage</h3>
         </div>
         <div className="p-4">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-2 text-gray-500 font-medium">Data Source</th>
-                <th className="text-left py-2 text-gray-500 font-medium">Type</th>
-                <th className="text-left py-2 text-gray-500 font-medium">Format</th>
-                <th className="text-left py-2 text-gray-500 font-medium">Used By Agents</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Agent</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Purpose</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Data Sources</th>
+                <th className="text-left py-2 text-gray-500 font-medium">LLM/ML Tools</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {dataSources.map((source) => (
-                <tr key={source.id}>
-                  <td className="py-2 font-medium text-gray-800">{source.name}</td>
-                  <td className="py-2 text-gray-600">{source.type}</td>
-                  <td className="py-2 font-mono text-xs text-gray-600">{source.format}</td>
-                  <td className="py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {source.agents.map((a) => (
-                        <span key={a} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded capitalize">{a}</span>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {specialistAgents.map((agent) => {
+                const agentSources = dataSources.filter(s => s.agents.includes(agent.id))
+                return (
+                  <tr key={agent.id}>
+                    <td className="py-2 font-medium text-gray-800">{agent.name}</td>
+                    <td className="py-2 text-gray-600 text-xs">{agent.desc}</td>
+                    <td className="py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {agentSources.map((s) => (
+                          <span key={s.id} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded">{s.name}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {agent.tools.map((t) => (
+                          <span key={t} className="px-1.5 py-0.5 bg-gray-200 text-gray-700 text-[10px] rounded font-medium">{t}</span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -1052,7 +1115,7 @@ export default function DataAgents({ params }: DataAgentsProps) {
             <div key={agent.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="p-4 flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  agent.level === 0 ? 'bg-gray-900' : agent.level === 2 ? 'bg-gray-800' : 'bg-gray-100'
+                  agent.level === 0 ? 'bg-gray-600' : agent.level === 2 ? 'bg-gray-500' : 'bg-gray-100'
                 }`}>
                   <Icon className={`w-6 h-6 ${agent.level === 0 || agent.level === 2 ? 'text-white' : 'text-gray-600'}`} />
                 </div>
@@ -1060,8 +1123,8 @@ export default function DataAgents({ params }: DataAgentsProps) {
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-gray-900">{agent.name}</h4>
                     <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                      agent.level === 0 ? 'bg-gray-900 text-white' : 
-                      agent.level === 2 ? 'bg-gray-800 text-white' : 
+                      agent.level === 0 ? 'bg-gray-600 text-white' : 
+                      agent.level === 2 ? 'bg-gray-500 text-white' : 
                       'bg-gray-100 text-gray-600'
                     }`}>
                       {agent.level === 0 ? 'COORDINATOR' : agent.level === 2 ? 'SYNTHESIS' : 'SPECIALIST'}
@@ -1132,7 +1195,7 @@ export default function DataAgents({ params }: DataAgentsProps) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-gray-700 text-white'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
