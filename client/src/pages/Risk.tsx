@@ -27,7 +27,7 @@ export default function Risk() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <XCircle className="w-12 h-12 text-gray-500 mx-auto mb-4" />
           <p className="text-gray-600">Failed to load risk data</p>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function Risk() {
         <p className="text-gray-500 mt-1">ML-powered risk assessment for revision prediction</p>
       </div>
 
-      <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+      <Card className="bg-white border border-gray-100">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" />
@@ -79,28 +79,28 @@ export default function Risk() {
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Patients</p>
           <p className="text-4xl font-semibold text-gray-800 mt-2">{totalPatients}</p>
         </Card>
-        <Card className="text-center border-l-4 border-red-500">
+        <Card className="text-center border-l-4 border-gray-700">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <AlertTriangle className="w-5 h-5 text-gray-600" />
           </div>
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">High Risk</p>
-          <p className="text-4xl font-semibold text-red-600 mt-2">{highRisk}</p>
+          <p className="text-4xl font-semibold text-gray-800 mt-2">{highRisk}</p>
           <p className="text-sm text-gray-500 mt-1">{highRiskPct}%</p>
         </Card>
-        <Card className="text-center border-l-4 border-amber-500">
+        <Card className="text-center border-l-4 border-gray-500">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Activity className="w-5 h-5 text-amber-600" />
+            <Activity className="w-5 h-5 text-gray-600" />
           </div>
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Moderate Risk</p>
-          <p className="text-4xl font-semibold text-amber-600 mt-2">{moderateRisk}</p>
+          <p className="text-4xl font-semibold text-gray-700 mt-2">{moderateRisk}</p>
           <p className="text-sm text-gray-500 mt-1">{moderateRiskPct}%</p>
         </Card>
-        <Card className="text-center border-l-4 border-green-500">
+        <Card className="text-center border-l-4 border-gray-300">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-green-600" />
+            <TrendingUp className="w-5 h-5 text-gray-600" />
           </div>
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Low Risk</p>
-          <p className="text-4xl font-semibold text-green-600 mt-2">{lowRisk}</p>
+          <p className="text-4xl font-semibold text-gray-600 mt-2">{lowRisk}</p>
           <p className="text-sm text-gray-500 mt-1">{lowRiskPct}%</p>
         </Card>
       </div>
@@ -111,7 +111,7 @@ export default function Risk() {
           <div className="h-8 w-full rounded-lg overflow-hidden flex">
             {highRisk > 0 && (
               <div
-                className="bg-red-500 flex items-center justify-center text-white text-xs font-medium"
+                className="bg-gray-800 flex items-center justify-center text-white text-xs font-medium"
                 style={{ width: `${(highRisk / totalPatients) * 100}%` }}
               >
                 {highRiskPct}%
@@ -119,7 +119,7 @@ export default function Risk() {
             )}
             {moderateRisk > 0 && (
               <div
-                className="bg-amber-500 flex items-center justify-center text-white text-xs font-medium"
+                className="bg-gray-500 flex items-center justify-center text-white text-xs font-medium"
                 style={{ width: `${(moderateRisk / totalPatients) * 100}%` }}
               >
                 {moderateRiskPct}%
@@ -127,7 +127,7 @@ export default function Risk() {
             )}
             {lowRisk > 0 && (
               <div
-                className="bg-green-500 flex items-center justify-center text-white text-xs font-medium"
+                className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium"
                 style={{ width: `${(lowRisk / totalPatients) * 100}%` }}
               >
                 {lowRiskPct}%
@@ -136,15 +136,15 @@ export default function Risk() {
           </div>
           <div className="flex justify-between mt-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-red-500"></div>
+              <div className="w-3 h-3 rounded bg-gray-800"></div>
               <span>High Risk ({highRisk})</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-amber-500"></div>
+              <div className="w-3 h-3 rounded bg-gray-500"></div>
               <span>Moderate ({moderateRisk})</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded bg-green-500"></div>
+              <div className="w-3 h-3 rounded bg-gray-300"></div>
               <span>Low Risk ({lowRisk})</span>
             </div>
           </div>
@@ -176,12 +176,12 @@ export default function Risk() {
       </Card>
 
       {data.note && (
-        <Card className="bg-blue-50 border-blue-100">
+        <Card className="bg-gray-50 border-gray-200">
           <div className="flex items-start gap-3">
-            <Activity className="w-5 h-5 text-blue-600 mt-0.5" />
+            <Activity className="w-5 h-5 text-gray-600 mt-0.5" />
             <div>
-              <p className="font-medium text-blue-800">Note</p>
-              <p className="text-sm text-blue-700 mt-1">{data.note}</p>
+              <p className="font-medium text-gray-800">Note</p>
+              <p className="text-sm text-gray-600 mt-1">{data.note}</p>
             </div>
           </div>
         </Card>

@@ -88,7 +88,7 @@ export default function Safety() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <XCircle className="w-12 h-12 text-gray-500 mx-auto mb-4" />
           <p className="text-gray-600">Failed to load safety data</p>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function Safety() {
       </div>
 
       {/* AI Summary */}
-      <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+      <Card className="bg-white border border-gray-100">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" />
@@ -148,7 +148,7 @@ export default function Safety() {
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Active Signals</p>
-          <p className={`text-3xl font-semibold mt-2 ${data.n_signals === 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <p className="text-3xl font-semibold mt-2 text-gray-800">
             {data.n_signals}
           </p>
         </Card>
@@ -180,7 +180,7 @@ export default function Safety() {
               <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
-                    <Activity className={`w-4 h-4 ${metric.signal ? 'text-red-500' : 'text-green-500'}`} />
+                    <Activity className={`w-4 h-4 ${metric.signal ? 'text-gray-700' : 'text-gray-400'}`} />
                     <span className="font-medium text-gray-800">{formatMetricName(metric.metric)}</span>
                   </div>
                 </td>
@@ -188,7 +188,7 @@ export default function Safety() {
                   {metric.count}/{metric.total}
                 </td>
                 <td className="py-4 px-4 text-center">
-                  <span className={`font-semibold ${metric.signal ? 'text-red-600' : 'text-gray-800'}`}>
+                  <span className={`font-semibold ${metric.signal ? 'text-gray-900' : 'text-gray-700'}`}>
                     {(metric.rate * 100).toFixed(1)}%
                   </span>
                 </td>
@@ -296,14 +296,12 @@ export default function Safety() {
       </Card>
 
       {/* Conclusion */}
-      <Card className={`border-l-4 ${
-        data.n_signals === 0 ? 'border-green-500 bg-green-50/50' : 'border-amber-500 bg-amber-50/50'
-      }`}>
+      <Card className="border-l-4 border-gray-300 bg-gray-50/50">
         <div className="flex items-start gap-4">
           {data.n_signals === 0 ? (
-            <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
+            <CheckCircle className="w-6 h-6 text-gray-600 flex-shrink-0" />
           ) : (
-            <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0" />
+            <AlertTriangle className="w-6 h-6 text-gray-600 flex-shrink-0" />
           )}
           <div>
             <h3 className="font-semibold text-gray-800 mb-2">Conclusion</h3>

@@ -5,16 +5,26 @@ interface CardProps {
   className?: string
   onClick?: () => void
   hoverable?: boolean
+  padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 
-export function Card({ children, className = '', onClick, hoverable = false }: CardProps) {
+export function Card({ children, className = '', onClick, hoverable = false, padding = 'md' }: CardProps) {
+  const paddingStyles = {
+    none: '',
+    sm: 'p-4',
+    md: 'p-6',
+    lg: 'p-8',
+  }
+
   return (
     <div
       onClick={onClick}
       className={`
-        bg-white rounded-2xl p-6
-        shadow-[0_2px_8px_rgba(0,0,0,0.04),0_4px_24px_rgba(0,0,0,0.04)]
-        ${hoverable ? 'cursor-pointer transition-all duration-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_32px_rgba(0,0,0,0.06)] hover:-translate-y-0.5' : ''}
+        bg-white rounded-xl
+        border border-gray-100
+        shadow-[0_1px_3px_rgba(0,0,0,0.03)]
+        ${paddingStyles[padding]}
+        ${hoverable ? 'cursor-pointer transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:-translate-y-0.5' : ''}
         ${className}
       `}
     >
@@ -27,13 +37,20 @@ interface CardHeaderProps {
   title: string
   subtitle?: string
   action?: ReactNode
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
+export function CardHeader({ title, subtitle, action, size = 'md' }: CardHeaderProps) {
+  const titleStyles = {
+    sm: 'text-sm font-semibold',
+    md: 'text-base font-semibold',
+    lg: 'text-lg font-semibold',
+  }
+
   return (
     <div className="flex items-start justify-between mb-4">
       <div>
-        <h3 className="text-lg font-semibold text-gray-800 tracking-tight">{title}</h3>
+        <h3 className={`${titleStyles[size]} text-gray-900 tracking-tight`}>{title}</h3>
         {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
       </div>
       {action}
@@ -44,25 +61,73 @@ export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
 interface StatCardProps {
   label: string
   value: string | number
-  trend?: 'up' | 'down' | 'neutral'
-  trendValue?: string
   status?: 'success' | 'warning' | 'danger' | 'neutral'
+  icon?: ReactNode
+  subtitle?: string
 }
 
-export function StatCard({ label, value, status = 'neutral' }: StatCardProps) {
+export function StatCard({ label, value, status = 'neutral', icon, subtitle }: StatCardProps) {
   const statusColors = {
-    success: 'text-green-600',
-    warning: 'text-amber-600',
-    danger: 'text-red-600',
-    neutral: 'text-gray-800',
+    success: 'text-gray-900',
+    warning: 'text-gray-900',
+    danger: 'text-gray-900',
+    neutral: 'text-gray-900',
+  }
+
+  const statusIndicator = {
+    success: 'bg-gray-400',
+    warning: 'bg-gray-500',
+    danger: 'bg-gray-700',
+    neutral: 'bg-gray-400',
   }
 
   return (
-    <Card className="text-center">
-      <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className={`text-4xl font-semibold mt-2 tracking-tight ${statusColors[status]}`}>
-        {value}
-      </p>
+    <Card className="relative overflow-hidden">
+      <div className={`absolute top-0 left-0 w-1 h-full ${statusIndicator[status]}`} />
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className={`text-2xl font-semibold mt-1 tracking-tight ${statusColors[status]}`}>
+            {value}
+          </p>
+          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+        </div>
+        {icon && <div className="text-gray-300">{icon}</div>}
+      </div>
     </Card>
+  )
+}
+
+interface DataRowProps {
+  label: string
+  value: ReactNode
+  mono?: boolean
+}
+
+export function DataRow({ label, value, mono = false }: DataRowProps) {
+  return (
+    <div className="flex items-baseline justify-between py-2.5 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-500">{label}</span>
+      <span className={`text-sm text-gray-900 font-medium ${mono ? 'font-mono' : ''}`}>{value}</span>
+    </div>
+  )
+}
+
+interface SectionProps {
+  title: string
+  subtitle?: string
+  children: ReactNode
+  className?: string
+}
+
+export function Section({ title, subtitle, children, className = '' }: SectionProps) {
+  return (
+    <div className={className}>
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-gray-900 tracking-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+      </div>
+      {children}
+    </div>
   )
 }

@@ -24,18 +24,18 @@ interface ProvenanceCardProps {
 
 // Confidence level colors and icons
 const confidenceConfig: Record<ConfidenceLevel, { color: string; bgColor: string; icon: typeof CheckCircle2 }> = {
-  high: { color: 'text-green-600', bgColor: 'bg-green-500', icon: CheckCircle2 },
-  moderate: { color: 'text-yellow-600', bgColor: 'bg-yellow-500', icon: AlertCircle },
-  low: { color: 'text-orange-600', bgColor: 'bg-orange-500', icon: AlertTriangle },
-  insufficient: { color: 'text-red-600', bgColor: 'bg-red-500', icon: XCircle }
+  high: { color: 'text-gray-600', bgColor: 'bg-gray-400', icon: CheckCircle2 },
+  moderate: { color: 'text-gray-600', bgColor: 'bg-gray-500', icon: AlertCircle },
+  low: { color: 'text-gray-600', bgColor: 'bg-gray-600', icon: AlertTriangle },
+  insufficient: { color: 'text-gray-700', bgColor: 'bg-gray-700', icon: XCircle }
 }
 
 // Lineage badge configuration
 const lineageConfig: Record<DataLineage, { label: string; icon: typeof FileCheck; color: string; bgColor: string }> = {
-  raw_data: { label: 'Observed', icon: FileCheck, color: 'text-blue-700', bgColor: 'bg-blue-50' },
-  calculated: { label: 'Calculated', icon: Calculator, color: 'text-purple-700', bgColor: 'bg-purple-50' },
-  llm_synthesis: { label: 'AI Synthesized', icon: Sparkles, color: 'text-amber-700', bgColor: 'bg-amber-50' },
-  aggregated: { label: 'Aggregated', icon: Layers, color: 'text-teal-700', bgColor: 'bg-teal-50' }
+  raw_data: { label: 'Observed', icon: FileCheck, color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  calculated: { label: 'Calculated', icon: Calculator, color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  llm_synthesis: { label: 'AI Synthesized', icon: Sparkles, color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  aggregated: { label: 'Aggregated', icon: Layers, color: 'text-gray-700', bgColor: 'bg-gray-100' }
 }
 
 // Source type icons
@@ -88,7 +88,7 @@ function LineageBadge({ lineage }: { lineage?: DataLineage }) {
 function CompletenessBar({ score }: { score?: number }) {
   if (score === undefined) return null
   const percentage = Math.round(score * 100)
-  const color = score >= 0.8 ? 'bg-green-500' : score >= 0.6 ? 'bg-yellow-500' : 'bg-orange-500'
+  const color = score >= 0.8 ? 'bg-gray-400' : score >= 0.6 ? 'bg-gray-500' : 'bg-gray-600'
 
   return (
     <div className="flex items-center gap-2">
@@ -204,11 +204,11 @@ function QualityIndicators({ metadata }: { metadata?: SourceMetadata }) {
     <div className="mt-2 pt-2 border-t border-gray-100 space-y-2">
       {strengths && strengths.length > 0 && (
         <div>
-          <span className="text-[10px] font-medium text-green-700 uppercase">Strengths</span>
+          <span className="text-[10px] font-medium text-gray-600 uppercase">Strengths</span>
           <ul className="mt-0.5 space-y-0.5">
             {strengths.slice(0, 2).map((s, i) => (
               <li key={i} className="text-[10px] text-gray-600 flex items-start gap-1">
-                <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-3 h-3 text-gray-500 flex-shrink-0 mt-0.5" />
                 {s}
               </li>
             ))}
@@ -217,11 +217,11 @@ function QualityIndicators({ metadata }: { metadata?: SourceMetadata }) {
       )}
       {limitations && limitations.length > 0 && (
         <div>
-          <span className="text-[10px] font-medium text-amber-700 uppercase">Limitations</span>
+          <span className="text-[10px] font-medium text-gray-600 uppercase">Limitations</span>
           <ul className="mt-0.5 space-y-0.5">
             {limitations.slice(0, 2).map((l, i) => (
               <li key={i} className="text-[10px] text-gray-600 flex items-start gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-3 h-3 text-gray-500 flex-shrink-0 mt-0.5" />
                 {l}
               </li>
             ))}
@@ -251,14 +251,9 @@ export function ProvenanceCard({ source, defaultExpanded = false }: ProvenanceCa
       >
         {/* Source type icon */}
         <div className={`
-          w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0
-          ${source.type.includes('registry') ? 'bg-purple-100' :
-            source.type.includes('literature') ? 'bg-blue-100' : 'bg-gray-100'}
+          w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-100
         `}>
-          <SourceIcon className={`w-3.5 h-3.5
-            ${source.type.includes('registry') ? 'text-purple-600' :
-              source.type.includes('literature') ? 'text-blue-600' : 'text-gray-600'}
-          `} />
+          <SourceIcon className="w-3.5 h-3.5 text-gray-600" />
         </div>
 
         {/* Reference text */}

@@ -35,10 +35,10 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   if (!isOpen) return null
 
   const tabs = [
-    { id: 'real' as const, label: 'Real Data', icon: CheckCircle, color: 'text-green-600' },
-    { id: 'synthetic' as const, label: 'Synthetic Data', icon: Beaker, color: 'text-amber-600' },
-    { id: 'models' as const, label: 'AI & ML Models', icon: Sparkles, color: 'text-indigo-600' },
-    { id: 'lineage' as const, label: 'Data Lineage', icon: Database, color: 'text-blue-600' },
+    { id: 'real' as const, label: 'Real Data', icon: CheckCircle, color: 'text-gray-700' },
+    { id: 'synthetic' as const, label: 'Synthetic Data', icon: Beaker, color: 'text-gray-700' },
+    { id: 'models' as const, label: 'AI & ML Models', icon: Sparkles, color: 'text-gray-700' },
+    { id: 'lineage' as const, label: 'Data Lineage', icon: Database, color: 'text-gray-700' },
   ]
 
   return (
@@ -51,9 +51,9 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-white">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center">
               <Database className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -98,23 +98,23 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           {/* ========== TAB 1: REAL DATA ========== */}
           {activeTab === 'real' && (
             <div className="space-y-6">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <h3 className="font-semibold text-green-900">Real Data Sources</h3>
+                  <CheckCircle className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Real Data Sources</h3>
                 </div>
-                <p className="text-sm text-green-800">These data sources contain real, provided data from actual clinical studies, published literature, and curated registry reports.</p>
+                <p className="text-sm text-gray-600">These data sources contain real, provided data from actual clinical studies, published literature, and curated registry reports.</p>
               </div>
 
               {/* H-34 Study Data */}
-              <div className="border border-blue-200 rounded-xl overflow-hidden">
-                <div className="bg-blue-50 px-4 py-3 border-b border-blue-200">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-semibold text-blue-900">H-34 Clinical Study Data</h3>
+                      <FileText className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">H-34 Clinical Study Data</h3>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">REAL DATA</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -150,14 +150,14 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
 
               {/* Literature Data */}
-              <div className="border border-green-200 rounded-xl overflow-hidden">
-                <div className="bg-green-50 px-4 py-3 border-b border-green-200">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-green-600" />
-                      <h3 className="font-semibold text-green-900">Published Literature</h3>
+                      <BookOpen className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">Published Literature</h3>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">REAL DATA</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -208,14 +208,14 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
 
               {/* Registry Data */}
-              <div className="border border-purple-200 rounded-xl overflow-hidden">
-                <div className="bg-purple-50 px-4 py-3 border-b border-purple-200">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-semibold text-purple-900">Registry Benchmark Data</h3>
+                      <Globe className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">Registry Benchmark Data</h3>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">REAL DATA (Curated)</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA (Curated)</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -286,7 +286,7 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                       <FileText className="w-5 h-5 text-gray-600" />
                       <h3 className="font-semibold text-gray-900">Protocol Rules</h3>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">REAL DATA</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
                   </div>
                 </div>
                 <div className="p-4 text-sm text-gray-600">
@@ -299,28 +299,28 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           {/* ========== TAB 2: SYNTHETIC DATA ========== */}
           {activeTab === 'synthetic' && (
             <div className="space-y-6">
-              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
+              <div className="bg-gray-100 border border-gray-300 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                  <h3 className="font-semibold text-amber-900">Synthetic Data Disclosure</h3>
+                  <AlertTriangle className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Synthetic Data Disclosure</h3>
                 </div>
-                <p className="text-sm text-amber-800">The following data is synthetically generated by this application. All synthetic records are marked with <code className="bg-amber-100 px-1 rounded text-xs">is_synthetic=True</code> for full transparency.</p>
+                <p className="text-sm text-gray-700">The following data is synthetically generated by this application. All synthetic records are marked with <code className="bg-gray-200 px-1 rounded text-xs">is_synthetic=True</code> for full transparency.</p>
               </div>
 
               {/* Synthetic Patient Data */}
-              <div className="border-2 border-amber-300 rounded-xl overflow-hidden bg-amber-50/50">
-                <div className="bg-amber-100 px-4 py-3 border-b border-amber-300">
+              <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
+                <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Beaker className="w-5 h-5 text-amber-700" />
-                      <h3 className="font-semibold text-amber-900">Synthetic Patient Records</h3>
+                      <Beaker className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">Synthetic Patient Records</h3>
                     </div>
-                    <span className="px-2 py-1 bg-amber-200 text-amber-800 text-xs font-medium rounded">SYNTHETIC</span>
+                    <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded">SYNTHETIC</span>
                   </div>
                 </div>
                 <div className="p-4">
                   <table className="w-full text-sm">
-                    <tbody className="divide-y divide-amber-200">
+                    <tbody className="divide-y divide-gray-100">
                       <tr>
                         <td className="py-2 text-gray-600 w-44">Purpose</td>
                         <td className="py-2 text-gray-800">Data augmentation for ML model training</td>
@@ -344,30 +344,30 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                     </tbody>
                   </table>
 
-                  <div className="mt-4 pt-4 border-t border-amber-200">
+                  <div className="mt-4 pt-4 border-t border-gray-200">
                     <h4 className="font-medium text-gray-800 mb-3">Synthetic Data Characteristics</h4>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">Demographics</p>
                         <p className="text-xs text-gray-600">Randomized within real data ranges</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">HHS Trajectory</p>
                         <p className="text-xs text-gray-600">Recovery curve model with individual variation</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">Adverse Events</p>
                         <p className="text-xs text-gray-600">35% AE rate, 80% serious (literature-aligned)</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">Revision Rate</p>
                         <p className="text-xs text-gray-600">8% (aligned with literature benchmarks)</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">Follow-up Completion</p>
                         <p className="text-xs text-gray-600">85% at 2mo → 45% at 2yr (realistic dropout)</p>
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                      <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <p className="font-medium text-gray-800 text-sm">Transparency Flag</p>
                         <p className="text-xs text-gray-600">All records marked is_synthetic=True</p>
                       </div>
@@ -391,22 +391,22 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                   <tbody className="divide-y divide-gray-100">
                     <tr>
                       <td className="py-2 text-gray-800">H-34 Study Data (Excel)</td>
-                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">REAL</span></td>
+                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL</span></td>
                       <td className="py-2 text-gray-600">37 patients</td>
                     </tr>
                     <tr>
                       <td className="py-2 text-gray-800">Synthetic Training Data</td>
-                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded">SYNTHETIC</span></td>
+                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">SYNTHETIC</span></td>
                       <td className="py-2 text-gray-600">300 patients</td>
                     </tr>
                     <tr>
                       <td className="py-2 text-gray-800">Literature Benchmarks</td>
-                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">REAL</span></td>
+                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL</span></td>
                       <td className="py-2 text-gray-600">12 publications</td>
                     </tr>
                     <tr>
                       <td className="py-2 text-gray-800">Registry Norms</td>
-                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">REAL (Curated)</span></td>
+                      <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL (Curated)</span></td>
                       <td className="py-2 text-gray-600">5 registries, 218K+ procedures</td>
                     </tr>
                   </tbody>
@@ -466,14 +466,14 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
 
               {/* XGBoost Risk Model */}
-              <div className="border border-purple-200 rounded-xl overflow-hidden">
-                <div className="bg-purple-50 px-4 py-3 border-b border-purple-200">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-semibold text-purple-900">XGBoost Risk Prediction Model</h3>
+                      <TrendingUp className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">XGBoost Risk Prediction Model</h3>
                     </div>
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">ML - Trained</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">ML - Trained</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -533,14 +533,14 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
               </div>
 
               {/* Hazard Ratio Ensemble */}
-              <div className="border border-green-200 rounded-xl overflow-hidden">
-                <div className="bg-green-50 px-4 py-3 border-b border-green-200">
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-green-600" />
-                      <h3 className="font-semibold text-green-900">Literature Hazard Ratio Ensemble</h3>
+                      <BookOpen className="w-5 h-5 text-gray-600" />
+                      <h3 className="font-semibold text-gray-900">Literature Hazard Ratio Ensemble</h3>
                     </div>
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">Statistical</span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">Statistical</span>
                   </div>
                 </div>
                 <div className="p-4">
@@ -584,12 +584,12 @@ function DataSourcesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           {/* ========== TAB 4: DATA LINEAGE ========== */}
           {activeTab === 'lineage' && (
             <div className="space-y-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Database className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Data Flow & Lineage</h3>
+                  <Database className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Data Flow & Lineage</h3>
                 </div>
-                <p className="text-sm text-blue-800">How data flows from sources through processing to AI agents and user interfaces.</p>
+                <p className="text-sm text-gray-600">How data flows from sources through processing to AI agents and user interfaces.</p>
               </div>
 
               {/* Data Flow Diagram */}
@@ -816,7 +816,7 @@ export default function Dashboard() {
 
   if (summaryError) {
     return (
-      <div className="flex items-center justify-center h-64 text-red-600">
+      <div className="flex items-center justify-center h-64 text-gray-600">
         <AlertTriangle className="w-6 h-6 mr-2" />
         <span>Failed to load dashboard data. Please check the backend is running.</span>
       </div>
@@ -920,8 +920,8 @@ export default function Dashboard() {
             {(summary?.top_priorities || []).slice(0, 3).map((item, i) => (
               <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                 <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${
-                  item.priority === 1 ? 'text-red-500' :
-                  item.priority === 2 ? 'text-amber-500' : 'text-gray-400'
+                  item.priority === 1 ? 'text-gray-700' :
+                  item.priority === 2 ? 'text-gray-500' : 'text-gray-400'
                 }`} />
                 <div>
                   <p className="font-medium text-gray-800 text-sm">{item.title}</p>
@@ -930,7 +930,7 @@ export default function Dashboard() {
               </div>
             ))}
             {(!summary?.top_priorities || summary.top_priorities.length === 0) && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl text-green-700">
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl text-gray-700">
                 <CheckCircle className="w-5 h-5" />
                 <span className="text-sm">No critical action items</span>
               </div>
@@ -960,11 +960,11 @@ export default function Dashboard() {
                 <td className="py-3 px-4 text-sm text-center text-gray-500">{row.source}</td>
                 <td className="py-3 px-4 text-center">
                   {row.status === 'success' ? (
-                    <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                    <CheckCircle className="w-5 h-5 text-gray-600 mx-auto" />
                   ) : row.status === 'warning' ? (
-                    <TrendingUp className="w-5 h-5 text-amber-500 mx-auto" />
+                    <TrendingUp className="w-5 h-5 text-gray-500 mx-auto" />
                   ) : (
-                    <AlertTriangle className="w-5 h-5 text-red-500 mx-auto" />
+                    <AlertTriangle className="w-5 h-5 text-gray-700 mx-auto" />
                   )}
                 </td>
               </tr>

@@ -207,7 +207,7 @@ function extractMetrics(text: string): Array<{ value: string; label: string; tre
 // Metric Card Component
 function MetricCard({ value, label, trend }: { value: string; label: string; trend?: 'up' | 'down' | 'neutral' }) {
   const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
-  const trendColor = trend === 'up' ? 'text-amber-500' : trend === 'down' ? 'text-green-500' : 'text-gray-400'
+  const trendColor = trend === 'up' ? 'text-gray-600' : trend === 'down' ? 'text-gray-500' : 'text-gray-400'
 
   return (
     <div className="inline-flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
@@ -222,22 +222,22 @@ function MetricCard({ value, label, trend }: { value: string; label: string; tre
 function AlertBox({ content, type }: { content: string; type: 'warning' | 'success' | 'info' }) {
   const config = {
     warning: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
+      bg: 'bg-gray-100',
+      border: 'border-gray-300',
       icon: AlertTriangle,
-      iconColor: 'text-amber-500'
+      iconColor: 'text-gray-600'
     },
     success: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
+      bg: 'bg-gray-50',
+      border: 'border-gray-200',
       icon: CheckCircle2,
-      iconColor: 'text-green-500'
+      iconColor: 'text-gray-600'
     },
     info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
+      bg: 'bg-gray-50',
+      border: 'border-gray-200',
       icon: Info,
-      iconColor: 'text-blue-500'
+      iconColor: 'text-gray-600'
     }
   }
 
@@ -254,12 +254,12 @@ function AlertBox({ content, type }: { content: string; type: 'warning' | 'succe
 // Threshold Proximity Alert - specifically for safety threshold warnings
 function ThresholdAlert({ content }: { content: string }) {
   return (
-    <div className="flex items-start gap-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-lg px-3 py-2 shadow-sm">
-      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
-        <AlertTriangle className="w-3 h-3 text-amber-600" />
+    <div className="flex items-start gap-2 bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 shadow-sm">
+      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+        <AlertTriangle className="w-3 h-3 text-gray-600" />
       </div>
       <div>
-        <span className="text-[11px] font-medium text-amber-700 uppercase tracking-wide">Threshold Alert</span>
+        <span className="text-[11px] font-medium text-gray-700 uppercase tracking-wide">Threshold Alert</span>
         <HighlightedText text={content} />
       </div>
     </div>
@@ -273,11 +273,11 @@ function RegistryCard({ content }: { content: string }) {
   const registryName = registryMatch ? registryMatch[1].toUpperCase() : null
 
   return (
-    <div className="flex items-start gap-2 bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-2">
-      <Globe className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
+    <div className="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+      <Globe className="w-4 h-4 text-gray-600 flex-shrink-0 mt-0.5" />
       <div className="flex-1">
         {registryName && (
-          <span className="inline-block text-[10px] font-semibold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded mb-1">
+          <span className="inline-block text-[10px] font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded mb-1">
             {registryName}
           </span>
         )}
@@ -292,11 +292,11 @@ function RevisionCard({ content }: { content: string }) {
   // Highlight revision reason keywords
   const highlightedContent = content
     .replace(/(aseptic loosening|infection|instability|pain|fracture)/gi,
-      '<strong class="text-rose-600">$1</strong>')
+      '<strong class="text-gray-800">$1</strong>')
 
   return (
-    <div className="flex items-start gap-2 bg-rose-50/50 border border-rose-200 rounded-lg px-3 py-2">
-      <BarChart3 className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+    <div className="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+      <BarChart3 className="w-4 h-4 text-gray-600 flex-shrink-0 mt-0.5" />
       <p
         className="text-[13px] text-gray-700 leading-relaxed"
         dangerouslySetInnerHTML={{ __html: highlightedContent }}
@@ -312,8 +312,8 @@ function ComparisonBadge({ content }: { content: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      {isHigher && <TrendingUp className="w-3.5 h-3.5 text-amber-500" />}
-      {isLower && <TrendingDown className="w-3.5 h-3.5 text-green-500" />}
+      {isHigher && <TrendingUp className="w-3.5 h-3.5 text-gray-600" />}
+      {isLower && <TrendingDown className="w-3.5 h-3.5 text-gray-500" />}
       <p className="text-[13px] text-gray-700 leading-relaxed">{content}</p>
     </div>
   )
@@ -381,7 +381,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
     const percentMatch = remaining.match(/^(\d+(?:\.\d+)?%)/)
     if (percentMatch) {
       elements.push(
-        <span key={key++} className="font-semibold text-[#007aff] bg-blue-50 px-1 rounded">
+        <span key={key++} className="font-semibold text-gray-800 bg-gray-100 px-1 rounded">
           {percentMatch[1]}
         </span>
       )

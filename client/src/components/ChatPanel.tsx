@@ -264,8 +264,8 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
-              boxShadow: '0 2px 8px rgba(0, 122, 255, 0.3)'
+              background: '#1d1d1f',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
             }}
           >
             <Sparkles className="w-4.5 h-4.5 text-white" />
@@ -301,12 +301,9 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full py-8 animate-fade-in">
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%)'
-              }}
+              className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-gray-100"
             >
-              <Sparkles className="w-7 h-7 text-[#007aff]" />
+              <Sparkles className="w-7 h-7 text-gray-600" />
             </div>
             <h4 className="text-[17px] font-semibold text-gray-800 mb-1">How can I help?</h4>
             <p className="text-[13px] text-gray-500 text-center mb-6 max-w-[280px]">
@@ -336,10 +333,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
             <div className={`max-w-[88%] ${msg.role === 'assistant' ? 'flex gap-2.5' : ''}`}>
               {msg.role === 'assistant' && (
                 <div
-                  className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
-                  style={{
-                    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)'
-                  }}
+                  className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 bg-gray-800"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
@@ -403,7 +397,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
                 <button
                   key={i}
                   onClick={() => setInput(q)}
-                  className="text-[12px] text-[#007aff] bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors border border-blue-100"
+                  className="text-[12px] text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full transition-colors border border-gray-200"
                 >
                   {q}
                 </button>
@@ -417,10 +411,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           <div className="flex justify-start animate-message-in">
             <div className="flex gap-2.5">
               <div
-                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center animate-pulse-ring"
-                style={{
-                  background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)'
-                }}
+                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center animate-pulse-subtle bg-gray-800"
               >
                 <Sparkles className="w-3.5 h-3.5 text-white" />
               </div>
@@ -463,7 +454,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         }}
       >
         <div
-          className="flex items-center gap-2 bg-gray-100/80 rounded-full px-4 py-1 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007aff]/30 focus-within:shadow-sm"
+          className="flex items-center gap-2 bg-gray-100/80 rounded-full px-4 py-1 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-gray-300 focus-within:shadow-sm"
           style={{ border: '1px solid rgba(0, 0, 0, 0.06)' }}
         >
           <input
@@ -481,10 +472,10 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
             style={{
               background: input.trim() && !isLoading
-                ? 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)'
+                ? '#1d1d1f'
                 : '#d2d2d7',
               boxShadow: input.trim() && !isLoading
-                ? '0 2px 8px rgba(0, 122, 255, 0.3)'
+                ? '0 2px 8px rgba(0, 0, 0, 0.15)'
                 : 'none'
             }}
           >

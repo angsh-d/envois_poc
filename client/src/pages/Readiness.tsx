@@ -231,7 +231,7 @@ export default function Readiness() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <XCircle className="w-12 h-12 text-gray-500 mx-auto mb-4" />
           <p className="text-gray-600">Failed to load readiness data</p>
         </div>
       </div>
@@ -245,10 +245,10 @@ export default function Readiness() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pass': return <CheckCircle className="w-5 h-5 text-green-500" />
-      case 'watch': return <AlertTriangle className="w-5 h-5 text-amber-500" />
-      case 'gap': return <AlertTriangle className="w-5 h-5 text-red-500" />
-      case 'blocker': return <XCircle className="w-5 h-5 text-red-600" />
+      case 'pass': return <CheckCircle className="w-5 h-5 text-gray-600" />
+      case 'watch': return <AlertTriangle className="w-5 h-5 text-gray-500" />
+      case 'gap': return <AlertTriangle className="w-5 h-5 text-gray-500" />
+      case 'blocker': return <XCircle className="w-5 h-5 text-gray-700" />
       default: return null
     }
   }
@@ -367,13 +367,13 @@ export default function Readiness() {
       </Card>
 
       {blockers.length > 0 && (
-        <Card className="border-l-4 border-red-500">
+        <Card className="border-l-4 border-gray-600">
           <CardHeader title="Critical Blockers" subtitle="Full transparency with calculation provenance" action={<Badge variant="danger">{blockers.length}</Badge>} />
           <div className="space-y-4 mt-4">
             {blockers.map((blocker, i) => (
-              <div key={i} className="p-4 bg-red-50 rounded-xl">
+              <div key={i} className="p-4 bg-gray-100 rounded-xl">
                 <div className="flex items-start gap-3">
-                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <XCircle className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{blocker.title}</p>
                     <p className="text-sm text-gray-600 mt-1">{blocker.description}</p>
@@ -394,7 +394,7 @@ export default function Readiness() {
                         </button>
 
                         {expandedProvenance.includes(i) && (
-                      <div className="mt-2 p-3 bg-white rounded-lg border border-red-100">
+                      <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Calculation Provenance</p>
 
                         {/* Calculation formula */}
@@ -436,16 +436,16 @@ export default function Readiness() {
                             <span className="text-xs text-gray-400">Signals Exceeding Thresholds:</span>
                             <div className="mt-1 space-y-2">
                               {blocker.provenance.signals_detected.map((signal, idx) => (
-                                <div key={idx} className="p-2 bg-red-50 border border-red-200 rounded">
+                                <div key={idx} className="p-2 bg-gray-50 border border-gray-200 rounded">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-red-700">{signal.metric}</span>
-                                    <span className="text-xs font-mono text-red-600">{signal.exceeded_by} over threshold</span>
+                                    <span className="text-xs font-semibold text-gray-700">{signal.metric}</span>
+                                    <span className="text-xs font-mono text-gray-700">{signal.exceeded_by} over threshold</span>
                                   </div>
                                   <div className="text-xs text-gray-600 mt-1">
                                     <span className="font-mono">{signal.calculation}</span>
                                   </div>
                                   <div className="flex gap-4 mt-1 text-xs">
-                                    <span>Observed: <span className="font-semibold text-red-600">{signal.observed_rate}</span></span>
+                                    <span>Observed: <span className="font-semibold text-gray-700">{signal.observed_rate}</span></span>
                                     <span>Threshold: <span className="font-semibold text-gray-600">{signal.threshold}</span></span>
                                   </div>
                                 </div>
@@ -504,7 +504,7 @@ export default function Readiness() {
                           {blocker.provenance.source && (
                             <div className="text-xs">
                               <span className="text-gray-400">Source:</span>
-                              <span className="ml-1 text-blue-600">{blocker.provenance.source}</span>
+                              <span className="ml-1 text-gray-600">{blocker.provenance.source}</span>
                             </div>
                           )}
                           {blocker.provenance.regulatory_reference && (
@@ -519,7 +519,7 @@ export default function Readiness() {
                       </div>
                     )}
 
-                    <p className="text-sm text-red-600 font-medium mt-3">Action: {blocker.action}</p>
+                    <p className="text-sm text-gray-700 font-medium mt-3">Action: {blocker.action}</p>
                   </div>
                 </div>
               </div>
@@ -539,13 +539,13 @@ export default function Readiness() {
             />
             {/* Interim target marker */}
             <div
-              className="absolute top-0 h-full w-0.5 bg-amber-500"
+              className="absolute top-0 h-full w-0.5 bg-gray-500"
               style={{ left: `${(data.enrollment.interim_target / data.enrollment.target) * 100}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 text-xs text-gray-500">
             <span>0</span>
-            <span className="text-amber-600">Interim: {data.enrollment.interim_target}</span>
+            <span className="text-gray-600">Interim: {data.enrollment.interim_target}</span>
             <span>Target: {data.enrollment.target}</span>
           </div>
 
@@ -553,9 +553,9 @@ export default function Readiness() {
           <div className="mt-6 flex items-center justify-between">
             {timeline.milestones.map((milestone, i) => (
               <div key={i} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${milestone.completed ? 'bg-green-100' : 'bg-gray-100'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${milestone.completed ? 'bg-gray-100' : 'bg-gray-100'}`}>
                   {milestone.completed ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-gray-600" />
                   ) : (
                     <span className="text-sm font-medium text-gray-400">{milestone.value}</span>
                   )}
@@ -580,7 +580,7 @@ export default function Readiness() {
                   <span className="font-medium text-gray-800">{source.reference}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${source.confidence >= 0.95 ? 'bg-green-500' : source.confidence >= 0.8 ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                  <div className={`w-2 h-2 rounded-full ${source.confidence >= 0.95 ? 'bg-gray-400' : source.confidence >= 0.8 ? 'bg-gray-500' : 'bg-gray-600'}`} />
                   <span className="text-xs text-gray-500">
                     {(source.confidence * 100).toFixed(0)}% confidence
                   </span>

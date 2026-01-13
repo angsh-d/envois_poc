@@ -90,7 +90,7 @@ export default function Landing() {
                           <h3 className="text-xl font-semibold text-gray-800 group-hover:text-gray-900 transition-colors">
                             {study.name}
                           </h3>
-                          <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          <span className="px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
                             {study.status}
                           </span>
                         </div>

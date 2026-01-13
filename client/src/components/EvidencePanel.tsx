@@ -52,11 +52,11 @@ function getSourceIcon(sourceType: string) {
 function getSourceColor(sourceType: string): { bg: string; text: string; border: string } {
   switch (sourceType) {
     case 'registry':
-      return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+      return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
     case 'literature':
-      return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
+      return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
     case 'study_data':
-      return { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' }
+      return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
     default:
       return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
   }
@@ -126,7 +126,7 @@ function RawDataModal({ point, onClose }: { point: EvidenceDataPoint; onClose: (
               <Activity className="w-3.5 h-3.5" />
               Survival Rates
             </div>
-            <div className="bg-green-50 rounded-lg p-3">
+            <div className="bg-gray-50 rounded-lg p-3">
               <div className="grid grid-cols-5 gap-2 text-center">
                 {[
                   { label: '1yr', value: raw.survival_1yr },
@@ -136,8 +136,8 @@ function RawDataModal({ point, onClose }: { point: EvidenceDataPoint; onClose: (
                   { label: '15yr', value: raw.survival_15yr },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <div className="text-[10px] text-green-600 font-medium">{label}</div>
-                    <div className={`text-[13px] font-bold ${value ? 'text-green-700' : 'text-gray-400'}`}>
+                    <div className="text-[10px] text-gray-600 font-medium">{label}</div>
+                    <div className={`text-[13px] font-bold ${value ? 'text-gray-700' : 'text-gray-400'}`}>
                       {formatPercent(value)}
                     </div>
                   </div>
@@ -152,7 +152,7 @@ function RawDataModal({ point, onClose }: { point: EvidenceDataPoint; onClose: (
               <AlertTriangle className="w-3.5 h-3.5" />
               Revision Rates
             </div>
-            <div className="bg-orange-50 rounded-lg p-3">
+            <div className="bg-gray-100 rounded-lg p-3">
               <div className="grid grid-cols-5 gap-2 text-center">
                 {[
                   { label: '1yr', value: raw.revision_rate_1yr },
@@ -162,8 +162,8 @@ function RawDataModal({ point, onClose }: { point: EvidenceDataPoint; onClose: (
                   { label: 'P95', value: raw.revision_rate_p95 },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <div className="text-[10px] text-orange-600 font-medium">{label}</div>
-                    <div className={`text-[13px] font-bold ${value ? 'text-orange-700' : 'text-gray-400'}`}>
+                    <div className="text-[10px] text-gray-600 font-medium">{label}</div>
+                    <div className={`text-[13px] font-bold ${value ? 'text-gray-800' : 'text-gray-400'}`}>
                       {formatPercent(value)}
                     </div>
                   </div>

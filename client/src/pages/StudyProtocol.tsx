@@ -241,23 +241,41 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Activity,
 }
 
-// Color mapping for domains
+// Apple-inspired greyscale color mapping for domains
 const colorMap: Record<string, { bg: string; text: string; border: string; light: string }> = {
-  blue: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50' },
-  green: { bg: 'bg-green-500', text: 'text-green-600', border: 'border-green-200', light: 'bg-green-50' },
-  red: { bg: 'bg-red-500', text: 'text-red-600', border: 'border-red-200', light: 'bg-red-50' },
-  orange: { bg: 'bg-orange-500', text: 'text-orange-600', border: 'border-orange-200', light: 'bg-orange-50' },
-  purple: { bg: 'bg-purple-500', text: 'text-purple-600', border: 'border-purple-200', light: 'bg-purple-50' },
-  cyan: { bg: 'bg-cyan-500', text: 'text-cyan-600', border: 'border-cyan-200', light: 'bg-cyan-50' },
-  emerald: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50' },
-  indigo: { bg: 'bg-indigo-500', text: 'text-indigo-600', border: 'border-indigo-200', light: 'bg-indigo-50' },
-  pink: { bg: 'bg-pink-500', text: 'text-pink-600', border: 'border-pink-200', light: 'bg-pink-50' },
-  slate: { bg: 'bg-slate-500', text: 'text-slate-600', border: 'border-slate-200', light: 'bg-slate-50' },
-  amber: { bg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-200', light: 'bg-amber-50' },
-  teal: { bg: 'bg-teal-500', text: 'text-teal-600', border: 'border-teal-200', light: 'bg-teal-50' },
-  rose: { bg: 'bg-rose-500', text: 'text-rose-600', border: 'border-rose-200', light: 'bg-rose-50' },
-  sky: { bg: 'bg-sky-500', text: 'text-sky-600', border: 'border-sky-200', light: 'bg-sky-50' },
-  violet: { bg: 'bg-violet-500', text: 'text-violet-600', border: 'border-violet-200', light: 'bg-violet-50' },
+  blue: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  green: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  red: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  orange: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  purple: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  cyan: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  emerald: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  indigo: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  pink: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  slate: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  amber: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  teal: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  rose: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  sky: { bg: 'bg-gray-700', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+  violet: { bg: 'bg-gray-800', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
+}
+
+// Helper to check if a value is empty
+const isEmptyValue = (value: unknown): boolean => {
+  if (value === null || value === undefined) return true
+  if (value === '') return true
+  if (Array.isArray(value) && value.length === 0) return true
+  if (typeof value === 'object' && Object.keys(value as object).length === 0) return true
+  return false
+}
+
+// Helper to format display keys
+const formatDisplayKey = (key: string): string => {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/\b\w/g, l => l.toUpperCase())
+    .trim()
 }
 
 export default function StudyProtocol({ params }: StudyProtocolProps) {
@@ -344,22 +362,22 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
   const getOMOPTableColor = (table: string) => {
     switch (table) {
-      case 'person': return 'bg-blue-100 text-blue-800'
-      case 'observation': return 'bg-green-100 text-green-800'
-      case 'procedure_occurrence': return 'bg-purple-100 text-purple-800'
-      case 'condition_occurrence': return 'bg-red-100 text-red-800'
-      case 'drug_exposure': return 'bg-yellow-100 text-yellow-800'
-      case 'measurement': return 'bg-orange-100 text-orange-800'
+      case 'person': return 'bg-gray-100 text-gray-800'
+      case 'observation': return 'bg-gray-100 text-gray-800'
+      case 'procedure_occurrence': return 'bg-gray-100 text-gray-800'
+      case 'condition_occurrence': return 'bg-gray-100 text-gray-800'
+      case 'drug_exposure': return 'bg-gray-100 text-gray-800'
+      case 'measurement': return 'bg-gray-100 text-gray-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getQueryableStatusColor = (status: string) => {
     switch (status) {
-      case 'fully_queryable': return 'bg-green-100 text-green-800'
-      case 'partially_queryable': return 'bg-yellow-100 text-yellow-800'
-      case 'requires_manual': return 'bg-orange-100 text-orange-800'
-      case 'screening_only': return 'bg-red-100 text-red-800'
+      case 'fully_queryable': return 'bg-gray-100 text-gray-800'
+      case 'partially_queryable': return 'bg-gray-100 text-gray-800'
+      case 'requires_manual': return 'bg-gray-100 text-gray-800'
+      case 'screening_only': return 'bg-gray-100 text-gray-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -442,8 +460,8 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Source Document</h3>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <span className="text-red-600 font-bold text-sm">PDF</span>
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <span className="text-gray-700 font-bold text-sm">PDF</span>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">{overview.source_document.filename}</p>
@@ -896,7 +914,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
           </h4>
           <div className="space-y-2">
             {arms.map((arm, i) => (
-              <div key={i} className="bg-gradient-to-r from-blue-50 to-white p-4 rounded-lg border border-blue-100">
+              <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <p className="font-medium text-gray-900">{arm.name}</p>
                 {arm.description && (
                   <p className="text-sm text-gray-600 mt-1">{arm.description}</p>
@@ -914,10 +932,10 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
           </h4>
           <div className="flex gap-2 flex-wrap">
             {epochs.map((epoch, i) => (
-              <div key={i} className="bg-gradient-to-r from-indigo-50 to-white px-4 py-3 rounded-lg border border-indigo-100">
+              <div key={i} className="bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
                 <p className="font-medium text-gray-900">{epoch.name}</p>
                 {epoch.type && (
-                  <p className="text-xs text-indigo-600 mt-1">{epoch.type}</p>
+                  <p className="text-xs text-gray-500 mt-1">{epoch.type}</p>
                 )}
               </div>
             ))}
@@ -944,7 +962,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="space-y-2">
               {objectives.map((obj, i) => (
-                <div key={i} className="bg-gradient-to-r from-green-50 to-white p-4 rounded-lg border border-green-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{obj.name || obj}</p>
                 </div>
               ))}
@@ -986,7 +1004,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Estimands ({estimands.length})</h4>
             <div className="space-y-2">
               {estimands.map((est, i) => (
-                <div key={i} className="bg-gradient-to-r from-purple-50 to-white p-4 rounded-lg border border-purple-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{est.name || est}</p>
                 </div>
               ))}
@@ -1011,7 +1029,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <AlertTriangle className="w-4 h-4" />
               AE Definition
             </h4>
-            <div className="bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border border-red-100">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               {aeDef.definition && (
                 <p className="text-sm text-gray-700">{String(aeDef.definition)}</p>
               )}
@@ -1026,7 +1044,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <Shield className="w-4 h-4" />
               SAE Criteria
             </h4>
-            <div className="bg-gradient-to-r from-orange-50 to-white p-4 rounded-lg border border-orange-100">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               {saeCriteria.regulatory_criteria && Array.isArray(saeCriteria.regulatory_criteria) && (
                 <ul className="space-y-1">
                   {(saeCriteria.regulatory_criteria as string[]).map((c, i) => (
@@ -1073,7 +1091,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="space-y-2">
               {prohibited.map((med, i) => (
-                <div key={i} className="bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border border-red-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{med.drug_class || med}</p>
                   {med.reason && <p className="text-sm text-red-600 mt-1">{med.reason}</p>}
                 </div>
@@ -1091,9 +1109,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="space-y-2">
               {restricted.map((med, i) => (
-                <div key={i} className="bg-gradient-to-r from-yellow-50 to-white p-4 rounded-lg border border-yellow-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{med.drug_class || med}</p>
-                  {med.restriction && <p className="text-sm text-yellow-700 mt-1">{med.restriction}</p>}
+                  {med.restriction && <p className="text-sm text-gray-600 mt-1">{med.restriction}</p>}
                 </div>
               ))}
             </div>
@@ -1109,7 +1127,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="space-y-2">
               {required.map((med, i) => (
-                <div key={i} className="bg-gradient-to-r from-green-50 to-white p-4 rounded-lg border border-green-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{med.medication || med}</p>
                   {med.indication && <p className="text-sm text-green-700 mt-1">{med.indication}</p>}
                 </div>
@@ -1136,7 +1154,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="flex flex-wrap gap-2">
               {panels.map((panel, i) => (
-                <span key={i} className="px-3 py-2 bg-gradient-to-r from-emerald-50 to-white rounded-lg border border-emerald-100 text-sm font-medium text-gray-900">
+                <span key={i} className="px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-sm font-medium text-gray-900">
                   {panel}
                 </span>
               ))}
@@ -1184,7 +1202,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <FileText className="w-4 h-4" />
               Study Purpose
             </h4>
-            <div className="bg-gradient-to-r from-indigo-50 to-white p-4 rounded-lg border border-indigo-100">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               <p className="text-sm text-gray-700">{overview.study_purpose}</p>
             </div>
           </div>
@@ -1197,7 +1215,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <AlertTriangle className="w-4 h-4 text-red-500" />
               Risks
             </h4>
-            <div className="bg-gradient-to-r from-red-50 to-white p-4 rounded-lg border border-red-100">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               <ul className="space-y-1">
                 {risks.general_risks.map((risk, i) => (
                   <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
@@ -1217,7 +1235,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <Heart className="w-4 h-4 text-green-500" />
               Potential Benefits
             </h4>
-            <div className="bg-gradient-to-r from-green-50 to-white p-4 rounded-lg border border-green-100">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               <ul className="space-y-1">
                 {benefits.potential_benefits.map((benefit, i) => (
                   <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
@@ -1244,7 +1262,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
         </h4>
         <div className="grid gap-3">
           {instruments.map((inst, i) => (
-            <div key={i} className="bg-gradient-to-r from-pink-50 to-white p-4 rounded-lg border border-pink-100">
+            <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               <p className="font-medium text-gray-900">{inst.name || inst.full_name || inst}</p>
               {inst.domains && Array.isArray(inst.domains) && (
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -1275,7 +1293,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="grid gap-3">
               {modalities.map((mod, i) => (
-                <div key={i} className="bg-gradient-to-r from-sky-50 to-white p-4 rounded-lg border border-sky-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{mod.modality_type || mod}</p>
                   {mod.anatomical_region && (
                     <p className="text-sm text-gray-600 mt-1">Region: {mod.anatomical_region}</p>
@@ -1321,7 +1339,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </h4>
             <div className="space-y-2">
               {types.map((dt, i) => (
-                <div key={i} className="bg-gradient-to-r from-rose-50 to-white p-4 rounded-lg border border-rose-100">
+                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                   <p className="font-medium text-gray-900">{dt.type || 'Withdrawal'}</p>
                   {dt.definition && (
                     <p className="text-sm text-gray-600 mt-1">{dt.definition}</p>
@@ -1357,69 +1375,176 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     )
   }
 
-  const renderGenericDomain = (data: Record<string, unknown>) => {
-    // For domains without custom renderers, show a beautiful card-based view
-    const entries = Object.entries(data).filter(([key]) =>
-      !['id', 'instanceType', 'name', 'provenance', 'extraction_statistics'].includes(key)
+  const renderObjectAsTable = (obj: Record<string, unknown>, depth: number = 0): React.ReactNode => {
+    const entries = Object.entries(obj).filter(([key, value]) => 
+      !isEmptyValue(value) && !['id', 'instanceType', 'provenance'].includes(key)
     )
-
-    if (entries.length === 0) {
-      return (
-        <div className="text-center py-8 text-gray-500">
-          <p className="text-sm">No displayable data available</p>
-        </div>
-      )
-    }
+    
+    if (entries.length === 0) return null
 
     return (
-      <div className="space-y-4">
+      <div className={depth > 0 ? 'ml-4' : ''}>
         {entries.map(([key, value]) => {
-          const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-
-          // Handle arrays
-          if (Array.isArray(value) && value.length > 0) {
+          const displayKey = formatDisplayKey(key)
+          
+          if (typeof value === 'boolean') {
             return (
-              <div key={key}>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">{displayKey} ({value.length})</h4>
+              <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <span className="text-sm text-gray-500">{displayKey}</span>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded ${value ? 'bg-gray-100 text-gray-700' : 'bg-gray-50 text-gray-400'}`}>
+                  {value ? 'Yes' : 'No'}
+                </span>
+              </div>
+            )
+          }
+          
+          if (typeof value === 'number') {
+            return (
+              <div key={key} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                <span className="text-sm text-gray-500">{displayKey}</span>
+                <span className="text-sm font-medium text-gray-900">{value}</span>
+              </div>
+            )
+          }
+          
+          if (typeof value === 'string') {
+            return (
+              <div key={key} className="py-2 border-b border-gray-50 last:border-0">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{displayKey}</span>
+                <p className="text-sm text-gray-800 mt-0.5">{value}</p>
+              </div>
+            )
+          }
+          
+          if (Array.isArray(value) && value.length > 0) {
+            if (typeof value[0] === 'string') {
+              return (
+                <div key={key} className="py-3 border-b border-gray-50 last:border-0">
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{displayKey}</span>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {value.map((item, i) => (
+                      <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md">{String(item)}</span>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+            return (
+              <div key={key} className="py-3 border-b border-gray-50 last:border-0">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2 block">{displayKey} ({value.length})</span>
                 <div className="space-y-2">
-                  {value.slice(0, 5).map((item, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      {typeof item === 'object' ? (
-                        <pre className="text-xs text-gray-600 overflow-x-auto">
-                          {JSON.stringify(item, null, 2)}
-                        </pre>
+                  {value.slice(0, 8).map((item, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                      {typeof item === 'object' && item !== null ? (
+                        renderObjectAsTable(item as Record<string, unknown>, depth + 1)
                       ) : (
                         <p className="text-sm text-gray-700">{String(item)}</p>
                       )}
                     </div>
                   ))}
-                  {value.length > 5 && (
-                    <p className="text-xs text-gray-500 italic">...and {value.length - 5} more</p>
+                  {value.length > 8 && (
+                    <p className="text-xs text-gray-400 pt-1">+ {value.length - 8} more items</p>
+                  )}
+                </div>
+              </div>
+            )
+          }
+          
+          if (typeof value === 'object' && value !== null) {
+            return (
+              <div key={key} className="py-3 border-b border-gray-50 last:border-0">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2 block">{displayKey}</span>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  {renderObjectAsTable(value as Record<string, unknown>, depth + 1)}
+                </div>
+              </div>
+            )
+          }
+          
+          return null
+        })}
+      </div>
+    )
+  }
+
+  const renderGenericDomain = (data: Record<string, unknown>) => {
+    const entries = Object.entries(data).filter(([key, value]) =>
+      !['id', 'instanceType', 'name', 'provenance', 'extraction_statistics'].includes(key) && !isEmptyValue(value)
+    )
+
+    if (entries.length === 0) {
+      return (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-sm">No data available for this domain</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="divide-y divide-gray-100">
+        {entries.map(([key, value]) => {
+          const displayKey = formatDisplayKey(key)
+
+          if (Array.isArray(value) && value.length > 0) {
+            if (typeof value[0] === 'string') {
+              return (
+                <div key={key} className="py-4">
+                  <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {value.map((item, i) => (
+                      <span key={i} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg">{String(item)}</span>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+            return (
+              <div key={key} className="py-4">
+                <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
+                <div className="grid gap-3">
+                  {value.slice(0, 10).map((item, i) => (
+                    <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                      {typeof item === 'object' && item !== null ? (
+                        renderObjectAsTable(item as Record<string, unknown>)
+                      ) : (
+                        <p className="text-sm text-gray-700">{String(item)}</p>
+                      )}
+                    </div>
+                  ))}
+                  {value.length > 10 && (
+                    <p className="text-xs text-gray-400 text-center py-2">+ {value.length - 10} more items</p>
                   )}
                 </div>
               </div>
             )
           }
 
-          // Handle objects
           if (typeof value === 'object' && value !== null) {
             return (
-              <div key={key}>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">{displayKey}</h4>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <pre className="text-xs text-gray-600 overflow-x-auto">
-                    {JSON.stringify(value, null, 2)}
-                  </pre>
+              <div key={key} className="py-4">
+                <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
+                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                  {renderObjectAsTable(value as Record<string, unknown>)}
                 </div>
               </div>
             )
           }
 
-          // Handle primitives
+          if (typeof value === 'boolean') {
+            return (
+              <div key={key} className="flex items-center justify-between py-3">
+                <span className="text-sm text-gray-600">{displayKey}</span>
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-md ${value ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  {value ? 'Yes' : 'No'}
+                </span>
+              </div>
+            )
+          }
+
           return (
-            <div key={key} className="flex items-baseline gap-2">
-              <span className="text-sm font-medium text-gray-600">{displayKey}:</span>
-              <span className="text-sm text-gray-900">{String(value)}</span>
+            <div key={key} className="flex items-baseline justify-between py-3">
+              <span className="text-sm text-gray-500">{displayKey}</span>
+              <span className="text-sm font-medium text-gray-900">{String(value)}</span>
             </div>
           )
         })}
@@ -1429,82 +1554,64 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
   const renderDomains = () => {
     if (domainsLoading || !domains) {
-      return <div className="animate-pulse h-48 bg-gray-100 rounded-lg" />
+      return (
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="animate-pulse bg-gray-100 rounded-xl h-20" />
+          ))}
+        </div>
+      )
+    }
+
+    const domainsWithData = domains.filter(domain => {
+      if (!domain.data || typeof domain.data !== 'object') return false
+      const dataEntries = Object.entries(domain.data).filter(([key, value]) =>
+        !['id', 'instanceType', 'name', 'provenance', 'extraction_statistics'].includes(key) && !isEmptyValue(value)
+      )
+      return dataEntries.length > 0
+    })
+
+    if (domainsWithData.length === 0) {
+      return (
+        <div className="text-center py-16">
+          <Database className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500">No domain data available</p>
+        </div>
+      )
     }
 
     return (
-      <div className="space-y-6">
-        {/* Domain Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {domains.map((domain) => {
-            const Icon = iconMap[domain.icon] || Database
-            const colors = colorMap[domain.color] || colorMap.slate
-            const isExpanded = expandedDomain === domain.id
-            const hasData = domain.data && Object.keys(domain.data).length > 0
+      <div className="space-y-4">
+        {domainsWithData.map((domain) => {
+          const Icon = iconMap[domain.icon] || Database
+          const isExpanded = expandedDomain === domain.id
 
-            return (
+          return (
+            <div key={domain.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
               <button
-                key={domain.id}
                 onClick={() => setExpandedDomain(isExpanded ? null : domain.id)}
-                className={`
-                  relative p-4 rounded-xl border-2 transition-all duration-200 text-left
-                  ${isExpanded
-                    ? `${colors.border} ${colors.light} shadow-lg scale-[1.02]`
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-                  }
-                  ${!hasData ? 'opacity-50' : ''}
-                `}
-                disabled={!hasData}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50/50 transition-colors"
               >
-                <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center mb-3`}>
-                  <Icon className="w-5 h-5 text-white" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">{domain.name}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">{domain.description}</p>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm leading-tight">{domain.name}</h3>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{domain.description}</p>
-                {isExpanded && (
-                  <div className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 ${colors.light} border-b-2 border-r-2 ${colors.border}`} />
-                )}
+                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
               </button>
-            )
-          })}
-        </div>
-
-        {/* Expanded Domain Content */}
-        {expandedDomain && (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg">
-            {(() => {
-              const domain = domains.find(d => d.id === expandedDomain)
-              if (!domain) return null
-              const Icon = iconMap[domain.icon] || Database
-              const colors = colorMap[domain.color] || colorMap.slate
-
-              return (
-                <>
-                  <div className={`p-4 ${colors.light} border-b ${colors.border} flex items-center justify-between`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center`}>
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{domain.name}</h3>
-                        <p className="text-sm text-gray-600">{domain.description}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setExpandedDomain(null)}
-                      className="text-gray-400 hover:text-gray-600 p-2"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="p-6">
-                    {renderDomainContent(domain)}
-                  </div>
-                </>
-              )
-            })()}
-          </div>
-        )}
+              
+              {isExpanded && (
+                <div className="border-t border-gray-100 bg-gray-50/30 p-6">
+                  {renderDomainContent(domain)}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -1535,7 +1642,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     return (
       <div className="space-y-6">
         {/* Protocol Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white">
+        <div className="bg-gray-900 rounded-xl p-6 text-white">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6" />
@@ -1644,7 +1751,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="flex items-center gap-2 mb-3">
               <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded">PRIMARY</span>
             </div>
-            <div className="bg-gradient-to-r from-green-50 to-white p-4 rounded-lg border border-green-200">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               <h4 className="font-semibold text-gray-900">{protocolRules.endpoints.primary.name}</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
                 <div>

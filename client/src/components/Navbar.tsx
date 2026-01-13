@@ -38,7 +38,7 @@ export function Navbar({ userName = 'Angshuman Deb' }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-white text-sm font-medium">
             {initials}
           </div>
           <span className="text-sm font-medium text-gray-700">{userName}</span>

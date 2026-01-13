@@ -37,11 +37,11 @@ interface DeviationRecord {
 
 // Deviation type configuration
 const DEVIATION_TYPES = {
-  visit_timing: { label: 'Visit Timing', icon: Clock, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  missing_assessment: { label: 'Missing Assessment', icon: ClipboardList, color: 'text-purple-600', bgColor: 'bg-purple-100' },
-  ie_violation: { label: 'IE Violation', icon: UserX, color: 'text-red-600', bgColor: 'bg-red-100' },
-  ae_reporting: { label: 'AE Reporting', icon: FileText, color: 'text-orange-600', bgColor: 'bg-orange-100' },
-  consent_timing: { label: 'Consent Timing', icon: Shield, color: 'text-amber-600', bgColor: 'bg-amber-100' },
+  visit_timing: { label: 'Visit Timing', icon: Clock, color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  missing_assessment: { label: 'Missing Assessment', icon: ClipboardList, color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  ie_violation: { label: 'IE Violation', icon: UserX, color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  ae_reporting: { label: 'AE Reporting', icon: FileText, color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  consent_timing: { label: 'Consent Timing', icon: Shield, color: 'text-gray-600', bgColor: 'bg-gray-100' },
 }
 
 interface DeviationsResponse {
@@ -82,7 +82,7 @@ export default function Deviations() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <XCircle className="w-12 h-12 text-gray-500 mx-auto mb-4" />
           <p className="text-gray-600">Failed to load deviations data</p>
         </div>
       </div>
@@ -148,11 +148,11 @@ export default function Deviations() {
 
   const getStatusIcon = () => {
     if (data.total_deviations === 0) {
-      return <CheckCircle className="w-5 h-5 text-green-500" />
+      return <CheckCircle className="w-5 h-5 text-gray-600" />
     } else if (criticalCount > 0) {
-      return <XCircle className="w-5 h-5 text-red-500" />
+      return <XCircle className="w-5 h-5 text-gray-500" />
     } else {
-      return <AlertTriangle className="w-5 h-5 text-amber-500" />
+      return <AlertTriangle className="w-5 h-5 text-gray-500" />
     }
   }
 
@@ -185,11 +185,11 @@ export default function Deviations() {
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Compliant</p>
-          <p className="text-3xl font-semibold text-green-600 mt-2">{compliantVisits}</p>
+          <p className="text-3xl font-semibold text-gray-700 mt-2">{compliantVisits}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Deviations</p>
-          <p className="text-3xl font-semibold text-red-600 mt-2">{data.total_deviations}</p>
+          <p className="text-3xl font-semibold text-gray-700 mt-2">{data.total_deviations}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Rate</p>
@@ -208,17 +208,17 @@ export default function Deviations() {
         </Card>
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-3 h-3 rounded-full bg-amber-500" />
+            <div className="w-3 h-3 rounded-full bg-gray-500" />
             <span className="font-medium text-gray-800">Major</span>
-            <span className="ml-auto text-2xl font-semibold text-amber-600">{majorCount}</span>
+            <span className="ml-auto text-2xl font-semibold text-gray-600">{majorCount}</span>
           </div>
           <p className="text-sm text-gray-500">{getSeverityDescription('major')}</p>
         </Card>
         <Card>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-gray-700" />
             <span className="font-medium text-gray-800">Critical</span>
-            <span className="ml-auto text-2xl font-semibold text-red-600">{criticalCount}</span>
+            <span className="ml-auto text-2xl font-semibold text-gray-700">{criticalCount}</span>
           </div>
           <p className="text-sm text-gray-500">{getSeverityDescription('critical')}</p>
         </Card>
@@ -290,7 +290,7 @@ export default function Deviations() {
             {visitBreakdown.map((item, i) => (
               <div key={i} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <FileWarning className="w-4 h-4 text-amber-500" />
+                  <FileWarning className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-800">{item.visit}</span>
                 </div>
                 <Badge variant="warning">{item.count} deviation(s)</Badge>
@@ -360,10 +360,10 @@ export default function Deviations() {
                       <td className="py-3 px-4 text-center">
                         <div className="flex items-center justify-center gap-1">
                           {dev.requires_explanation && (
-                            <span className="w-2 h-2 rounded-full bg-amber-500" title="Requires explanation" />
+                            <span className="w-2 h-2 rounded-full bg-gray-500" title="Requires explanation" />
                           )}
                           {dev.affects_evaluability && (
-                            <span className="w-2 h-2 rounded-full bg-red-500" title="Affects evaluability" />
+                            <span className="w-2 h-2 rounded-full bg-gray-700" title="Affects evaluability" />
                           )}
                           {!dev.requires_explanation && !dev.affects_evaluability && (
                             <span className="text-xs text-gray-400">—</span>
@@ -378,11 +378,11 @@ export default function Deviations() {
           </div>
           <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 px-4">
             <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="w-2 h-2 rounded-full bg-gray-500" />
               <span>Requires PI Explanation</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span className="w-2 h-2 rounded-full bg-gray-700" />
               <span>Affects Evaluability</span>
             </div>
           </div>
