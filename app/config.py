@@ -138,13 +138,6 @@ class Settings(BaseSettings):
         description="Path to extracted registry norms YAML"
     )
 
-    # Vector store
-    chroma_persist_path: str = Field(
-        default="data/vectorstore/chroma_db",
-        alias="CHROMA_PERSIST_PATH",
-        description="ChromaDB persistence path"
-    )
-
     # Logging
     log_level: str = Field(
         default="INFO",
@@ -210,12 +203,6 @@ class Settings(BaseSettings):
     def get_registry_norms_path(self) -> Path:
         """Get absolute path to registry norms YAML."""
         return self.project_root / self.registry_norms_path
-
-    def get_chroma_persist_path(self) -> Path:
-        """Get absolute path to ChromaDB persistence directory."""
-        path = self.project_root / self.chroma_persist_path
-        path.mkdir(parents=True, exist_ok=True)
-        return path
 
     def get_log_dir(self) -> Path:
         """Get absolute path to log directory."""
