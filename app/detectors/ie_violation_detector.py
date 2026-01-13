@@ -99,9 +99,9 @@ class IEViolationDetector(BaseDetector):
                         affects_evaluability=True,
                         requires_pi_notification=True,
                         # Provenance
-                        data_source="H-34 Excel: Patients sheet",
+                        data_source="study_patients table",
                         data_fields_used=["year_of_birth"],
-                        protocol_reference="Section 5.1 - Inclusion Criteria",
+                        protocol_reference="Protocol H-34 v2.0 - Inclusion Criteria",
                         protocol_rule_id="ie_age_minimum",
                         regulatory_reference="ICH GCP E6(R2) 3.1.1 - IE verification",
                     ))
@@ -131,9 +131,9 @@ class IEViolationDetector(BaseDetector):
                             affects_evaluability=True,
                             requires_pi_notification=True,
                             # Provenance
-                            data_source="H-34 Excel: Preoperative sheet",
+                            data_source="study_patients table (preoperative data)",
                             data_fields_used=["osteoporosis"],
-                            protocol_reference="Section 5.2 - Exclusion Criteria (severe osteoporosis)",
+                            protocol_reference="Protocol H-34 v2.0 - Exclusion Criteria (severe osteoporosis)",
                             protocol_rule_id="ie_osteoporosis_exclusion",
                             regulatory_reference="ICH GCP E6(R2) 3.1.1 - IE verification",
                         ))
@@ -153,9 +153,9 @@ class IEViolationDetector(BaseDetector):
                         requires_explanation=True,
                         affects_evaluability=True,
                         # Provenance
-                        data_source="H-34 Excel: Preoperative sheet",
+                        data_source="study_patients table (preoperative data)",
                         data_fields_used=["osteoporosis"],
-                        protocol_reference="Section 5.2 - Exclusion Criteria (severe osteoporosis)",
+                        protocol_reference="Protocol H-34 v2.0 - Exclusion Criteria (severe osteoporosis)",
                         protocol_rule_id="ie_osteoporosis_exclusion",
                         regulatory_reference="ICH GCP E6(R2) 3.1.1 - IE verification",
                     ))
@@ -181,9 +181,9 @@ class IEViolationDetector(BaseDetector):
                         requires_explanation=True,
                         affects_evaluability=False,
                         # Provenance
-                        data_source="H-34 Excel: Patients sheet",
+                        data_source="study_patients table",
                         data_fields_used=["bmi"],
-                        protocol_reference="Section 5.1 - General Health Status",
+                        protocol_reference="Protocol H-34 v2.0 - General Health Status",
                         regulatory_reference="Clinical judgment - surgical fitness",
                     ))
                 # Very high BMI might affect surgical outcomes
@@ -201,9 +201,9 @@ class IEViolationDetector(BaseDetector):
                         requires_explanation=False,
                         affects_evaluability=False,
                         # Provenance
-                        data_source="H-34 Excel: Patients sheet",
+                        data_source="study_patients table",
                         data_fields_used=["bmi"],
-                        protocol_reference="Section 5.1 - Surgical Fitness",
+                        protocol_reference="Protocol H-34 v2.0 - Surgical Fitness",
                         regulatory_reference="Clinical judgment - surgical fitness",
                     ))
 

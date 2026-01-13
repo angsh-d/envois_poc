@@ -162,11 +162,12 @@ class DataAgent(BaseAgent):
         # Add source provenance
         result.add_source(
             SourceType.STUDY_DATA,
-            f"H-34 Study Excel Export (n={study_data.total_patients})",
+            f"H-34 Study Database (n={study_data.total_patients} patients)",
             confidence=1.0,
             details={
                 "query_type": query_type,
-                "file": str(settings.get_h34_study_data_path().name),
+                "data_source": "PostgreSQL database",
+                "tables": ["study_patients", "study_scores", "study_adverse_events", "study_surgeries"],
                 "total_patients": study_data.total_patients,
             }
         )

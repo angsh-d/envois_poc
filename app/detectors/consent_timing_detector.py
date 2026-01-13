@@ -104,9 +104,9 @@ class ConsentTimingDetector(BaseDetector):
                     affects_evaluability=True,
                     requires_pi_notification=True,
                     # Provenance
-                    data_source="H-34 Excel: Patients sheet + Intraoperatives sheet",
+                    data_source="study_patients + study_surgeries tables",
                     data_fields_used=["consent_date", "surgery_date"],
-                    protocol_reference="Section 4.1 - Informed Consent Procedures",
+                    protocol_reference="Protocol H-34 v2.0 - Informed Consent Procedures",
                     regulatory_reference="ICH GCP E6(R2) 4.8.10 - Consent before study procedures",
                 ))
 
@@ -123,9 +123,9 @@ class ConsentTimingDetector(BaseDetector):
                     requires_explanation=True,
                     affects_evaluability=False,
                     # Provenance
-                    data_source="H-34 Excel: Patients sheet + Intraoperatives sheet",
+                    data_source="study_patients + study_surgeries tables",
                     data_fields_used=["consent_date", "surgery_date"],
-                    protocol_reference="Section 4.1 - Informed Consent Procedures",
+                    protocol_reference="Protocol H-34 v2.0 - Informed Consent Procedures",
                     regulatory_reference="ICH GCP E6(R2) 4.8.10 - Adequate consideration time",
                 ))
 
@@ -145,9 +145,9 @@ class ConsentTimingDetector(BaseDetector):
                             requires_explanation=False,
                             affects_evaluability=False,
                             # Provenance
-                            data_source="H-34 Excel: Patients sheet",
+                            data_source="study_patients table",
                             data_fields_used=["consent_date", "screening_date"],
-                            protocol_reference="Section 4.1.2 - Re-consent Requirements",
+                            protocol_reference="Protocol H-34 v2.0 - Re-consent Requirements",
                             regulatory_reference="ICH GCP E6(R2) 4.8.2 - Consent revisions",
                         ))
 

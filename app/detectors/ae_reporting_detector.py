@@ -92,9 +92,9 @@ class AEReportingDetector(BaseDetector):
                         affects_evaluability=False,
                         requires_pi_notification=True,
                         # Provenance
-                        data_source="H-34 Excel: Adverse Events sheet",
+                        data_source="study_adverse_events table",
                         data_fields_used=["ae_id", "is_sae", "onset_date", "report_date"],
-                        protocol_reference="Section 8.3 - SAE Reporting Requirements",
+                        protocol_reference="Protocol H-34 v2.0 - SAE Reporting Requirements",
                         regulatory_reference="FDA 21 CFR 312.32; ICH E2A - SAE within 24 hours",
                     ))
                 continue
@@ -130,9 +130,9 @@ class AEReportingDetector(BaseDetector):
                         affects_evaluability=False,
                         requires_pi_notification=days_delayed > 7,
                         # Provenance
-                        data_source="H-34 Excel: Adverse Events sheet",
+                        data_source="study_adverse_events table",
                         data_fields_used=["ae_id", "is_sae", "onset_date", "initial_report_date"],
-                        protocol_reference="Section 8.3 - SAE Reporting Window (24 hours)",
+                        protocol_reference="Protocol H-34 v2.0 - SAE Reporting Window (24 hours)",
                         protocol_rule_id="sae_reporting_window_days",
                         regulatory_reference="FDA 21 CFR 312.32; ICH E2A; ICH GCP 4.11",
                     ))
@@ -153,9 +153,9 @@ class AEReportingDetector(BaseDetector):
                     requires_explanation=False,
                     affects_evaluability=False,
                     # Provenance
-                    data_source="H-34 Excel: Adverse Events sheet",
+                    data_source="study_adverse_events table",
                     data_fields_used=["ae_id", "is_sae", "onset_date", "report_date"],
-                    protocol_reference="Section 8.2 - AE Documentation Requirements",
+                    protocol_reference="Protocol H-34 v2.0 - AE Documentation Requirements",
                     regulatory_reference="ICH GCP 4.11 - Timely AE recording",
                 ))
 

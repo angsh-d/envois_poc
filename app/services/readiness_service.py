@@ -121,11 +121,11 @@ class ReadinessService:
         # Add primary data source with provenance details
         sources.append({
             "type": "study_data",
-            "reference": f"H-34 Study Excel Export (n={enrollment_status.get('enrolled', 0)})",
+            "reference": f"H-34 Study Database (n={enrollment_status.get('enrolled', 0)} enrolled)",
             "confidence": 1.0,
             "details": {
-                "data_source": "H-34DELTARevisionstudy_export",
-                "data_fields": ["patients", "hhs_scores", "adverse_events", "intraoperatives"],
+                "data_source": "PostgreSQL database",
+                "tables": ["study_patients", "study_scores", "study_adverse_events", "study_surgeries"],
                 "query_types": ["summary", "safety", "deviations"],
             }
         })
@@ -133,9 +133,10 @@ class ReadinessService:
         # Add protocol rules source
         sources.append({
             "type": "protocol",
-            "reference": f"protocol_rules.yaml v{protocol_rules.protocol_version}",
+            "reference": f"Protocol H-34 v{protocol_rules.protocol_version}",
             "confidence": 1.0,
             "details": {
+                "data_source": "protocol_rules table",
                 "protocol_id": protocol_rules.protocol_id,
                 "sample_size_target": protocol_rules.sample_size_target,
                 "primary_endpoint": protocol_rules.primary_endpoint.id,
@@ -448,8 +449,9 @@ class ReadinessService:
                     },
                     "threshold": f"100% of target enrollment ({enrollment['target']} patients)",
                     "current_status": enrollment['status'],
-                    "source": "H-34 Study Excel Export - Patients sheet",
-                    "regulatory_reference": "Protocol Section 6.1 - Sample Size Justification",
+                    "source": "study_patients table (patients with enrolled='Yes')",
+                    "target_source": "protocol_rules table (sample_size_target)",
+                    "regulatory_reference": "Protocol H-34 v2.0 Sample Size Requirements",
                 }
             })
 
@@ -513,7 +515,8 @@ class ReadinessService:
                         "fracture_rate": f"{protocol_rules.safety_thresholds.get('fracture_rate_concern', 0.08)*100:.0f}%",
                     },
                     "determination": "Status = 'concerning' when any rate exceeds protocol threshold",
-                    "source": "H-34 Study Excel Export - Adverse Events sheet",
+                    "source": "study_adverse_events table",
+                    "thresholds_source": "protocol_rules table (safety_thresholds)",
                     "regulatory_reference": "FDA 21 CFR 812.150 - Safety Reporting Requirements",
                 }
             })
@@ -537,8 +540,9 @@ class ReadinessService:
                         "withdrawn": "Patients who discontinued study participation",
                     },
                     "threshold": "80% completion rate (derived from protocol 20% dropout allowance)",
-                    "source": "H-34 Study Excel Export - HHS Scores sheet (FU 2 Years timepoint)",
-                    "regulatory_reference": "Protocol Section 6.1 - Evaluable Population Definition",
+                    "source": "study_scores table (2-year HHS assessments)",
+                    "enrollment_source": "study_patients table",
+                    "regulatory_reference": "Protocol H-34 v2.0 Evaluable Population Definition",
                 }
             })
 

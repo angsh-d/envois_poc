@@ -126,9 +126,9 @@ class VisitTimingDetector(BaseDetector):
                     requires_explanation=self.requires_explanation(severity),
                     affects_evaluability=self.affects_evaluability(severity),
                     # Provenance
-                    data_source="H-34 Excel: HHS Scores sheet + Intraoperatives sheet",
+                    data_source="study_scores + study_surgeries tables",
                     data_fields_used=["follow_up_date", "surgery_date"],
-                    protocol_reference=f"Schedule of Assessments - {hhs.follow_up} window",
+                    protocol_reference=f"Protocol H-34 v2.0 - Schedule of Assessments ({hhs.follow_up})",
                     protocol_rule_id=f"{visit_id}_window",
                     regulatory_reference="ICH GCP E6(R2) - Protocol adherence",
                 ))

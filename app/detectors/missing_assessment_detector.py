@@ -175,9 +175,9 @@ class MissingAssessmentDetector(BaseDetector):
 
                     # Determine data source based on assessment type
                     data_source_map = {
-                        "hhs": "H-34 Excel: HHS Scores sheet",
-                        "ohs": "H-34 Excel: OHS Scores sheet",
-                        "radiology": "H-34 Excel: Radiographic Evaluations sheet",
+                        "hhs": "study_scores table (HHS assessments)",
+                        "ohs": "study_scores table (OHS assessments)",
+                        "radiology": "study database (radiographic evaluations)",
                     }
 
                     deviations.append(Deviation(
@@ -194,7 +194,7 @@ class MissingAssessmentDetector(BaseDetector):
                         requires_explanation=self.requires_explanation(severity),
                         affects_evaluability=self.affects_evaluability(severity),
                         # Provenance
-                        data_source=data_source_map.get(assessment, "H-34 Excel"),
+                        data_source=data_source_map.get(assessment, "study database"),
                         data_fields_used=["patient_id", "follow_up", f"{assessment}_score"],
                         protocol_reference=f"Schedule of Assessments - {visit_name}",
                         protocol_rule_id=f"{visit_id}_required_assessments",
