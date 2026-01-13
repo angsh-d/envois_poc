@@ -169,12 +169,12 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         setMessages((prev) => [...prev, assistantMessage])
       } else {
         // Fetch fresh response
-        const response = await sendChatMessage({
-          message: currentInput,
+        const response = await sendChatMessage(
+          currentInput,
           context,
-          study_id: studyId,
-          history: messages,
-        })
+          studyId,
+          messages
+        )
 
         // Cache the response
         setCachedResponse(cacheKey, response.response, response.sources, response.evidence)
