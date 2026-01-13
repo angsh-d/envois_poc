@@ -50,14 +50,36 @@ class PatientRiskResponse(BaseModel):
     execution_time_ms: float = Field(default=0.0)
 
 
+class PatientRiskDetail(BaseModel):
+    """Detailed risk information for a patient."""
+    patient_id: str = Field(..., description="Patient identifier")
+    risk_score: float = Field(..., description="Risk score 0-1")
+    n_risk_factors: int = Field(..., description="Number of risk factors")
+    contributing_factors: List[Dict[str, Any]] = Field(default_factory=list)
+    recommendations: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class FactorPrevalence(BaseModel):
+    """Risk factor prevalence in population."""
+    factor: str = Field(..., description="Factor name")
+    count: int = Field(..., description="Number of patients with factor")
+    percentage: float = Field(..., description="Percentage of population")
+    hazard_ratio: float = Field(..., description="Hazard ratio from literature")
+
+
 class PopulationRiskResponse(BaseModel):
     """Population risk distribution response."""
     success: bool = Field(..., description="Request success status")
     assessment_date: str = Field(..., description="Assessment timestamp")
     n_patients: int = Field(..., description="Total patients analyzed")
     risk_distribution: Dict[str, int] = Field(..., description="Count by risk level")
-    high_risk_patients: List[str] = Field(default_factory=list)
+    high_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
+    moderate_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
+    low_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
+    factor_prevalence: List[FactorPrevalence] = Field(default_factory=list)
     mean_risk_score: float = Field(..., description="Mean risk score")
+    median_risk_score: Optional[float] = Field(None, description="Median risk score")
+    std_risk_score: Optional[float] = Field(None, description="Standard deviation")
     note: Optional[str] = Field(None)
 
 

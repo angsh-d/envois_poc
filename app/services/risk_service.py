@@ -316,7 +316,7 @@ class RiskService:
         Get risk distribution across the study population.
 
         Returns:
-            Dict with population risk statistics
+            Dict with population risk statistics including per-tier cohorts
         """
         # Load actual patient data from study
         study_data = get_study_data()
@@ -331,6 +331,11 @@ class RiskService:
         # Extract features for each patient and calculate risk
         patient_features_list = []
         high_risk_patients = []
+        moderate_risk_patients = []
+        low_risk_patients = []
+        
+        # Track factor prevalence across population
+        factor_counts: Dict[str, int] = {}
 
         for patient in study_data.patients:
             # Build patient features from demographics and medical history
@@ -339,29 +344,64 @@ class RiskService:
 
             # Get individual prediction
             prediction = self._risk_model.predict(features)
+            
+            # Count factor prevalence
+            for factor_info in prediction["contributing_factors"]:
+                factor_name = factor_info["factor"]
+                factor_counts[factor_name] = factor_counts.get(factor_name, 0) + 1
+            
+            # Build patient detail object
+            patient_detail = {
+                "patient_id": patient.patient_id,
+                "risk_score": prediction["risk_score"],
+                "n_risk_factors": prediction["n_risk_factors"],
+                "contributing_factors": prediction["contributing_factors"],
+                "recommendations": self._generate_recommendations(prediction),
+            }
 
             if prediction["risk_level"] == "high":
-                high_risk_patients.append({
-                    "patient_id": patient.patient_id,
-                    "risk_score": prediction["risk_score"],
-                    "n_risk_factors": prediction["n_risk_factors"],
-                    "top_factors": [f["factor"] for f in prediction["contributing_factors"][:3]],
-                })
+                high_risk_patients.append(patient_detail)
+            elif prediction["risk_level"] == "moderate":
+                moderate_risk_patients.append(patient_detail)
+            else:
+                low_risk_patients.append(patient_detail)
 
         # Get population distribution
         population_stats = self._risk_model.get_population_risk_distribution(patient_features_list)
+        
+        # Sort patients by risk score (highest first)
+        high_risk_patients.sort(key=lambda x: x["risk_score"], reverse=True)
+        moderate_risk_patients.sort(key=lambda x: x["risk_score"], reverse=True)
+        low_risk_patients.sort(key=lambda x: x["risk_score"], reverse=True)
+        
+        # Build factor prevalence list
+        n_patients = len(study_data.patients)
+        factor_prevalence = [
+            {
+                "factor": factor,
+                "count": count,
+                "percentage": round(count / n_patients * 100, 1),
+                "hazard_ratio": self._risk_model.HAZARD_RATIOS.get(factor, 1.0)
+            }
+            for factor, count in sorted(factor_counts.items(), key=lambda x: x[1], reverse=True)
+        ]
 
         return {
             "success": True,
             "assessment_date": datetime.utcnow().isoformat(),
-            "n_patients": population_stats.get("n_patients", len(study_data.patients)),
+            "n_patients": population_stats.get("n_patients", n_patients),
             "risk_distribution": population_stats.get("risk_distribution", {}),
             "high_risk_patients": high_risk_patients,
+            "moderate_risk_patients": moderate_risk_patients,
+            "low_risk_patients": low_risk_patients,
             "high_risk_count": len(high_risk_patients),
+            "moderate_risk_count": len(moderate_risk_patients),
+            "low_risk_count": len(low_risk_patients),
             "high_risk_pct": population_stats.get("high_risk_pct", 0),
             "mean_risk_score": population_stats.get("mean_risk_score", 0),
             "median_risk_score": population_stats.get("median_risk_score", 0),
             "std_risk_score": population_stats.get("std_risk_score", 0),
+            "factor_prevalence": factor_prevalence,
         }
 
     def _build_patient_features(self, patient, study_data) -> Dict[str, Any]:
