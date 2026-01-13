@@ -785,9 +785,9 @@ export default function Dashboard() {
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: fetchDashboardExecutiveSummary,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: true,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
   })
@@ -796,9 +796,9 @@ export default function Dashboard() {
   const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ['dashboard-progress'],
     queryFn: fetchDashboardStudyProgress,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: true,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     retry: 2,
   })
@@ -807,11 +807,10 @@ export default function Dashboard() {
   const { data: benchmarks, isLoading: benchmarksLoading } = useQuery({
     queryKey: ['dashboard-benchmarks'],
     queryFn: fetchDashboardBenchmarks,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: true,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
-    retry: 2,
   })
 
   const isLoading = summaryLoading || progressLoading || benchmarksLoading

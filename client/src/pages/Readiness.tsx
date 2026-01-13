@@ -232,11 +232,10 @@ export default function Readiness() {
   const { data, isLoading, error } = useQuery<ReadinessResponse>({
     queryKey: ['readiness', studyId],
     queryFn: () => fetchReadiness(),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: true,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
-    retry: 2,
   })
 
   if (isLoading) {

@@ -73,11 +73,10 @@ export default function Safety() {
   const { data, isLoading, error } = useQuery<SafetyResponse>({
     queryKey: ['safety-signals'],
     queryFn: fetchSafetySignals,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
-    refetchOnMount: 'always',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
-    retry: 2,
   })
 
   if (isLoading) {
