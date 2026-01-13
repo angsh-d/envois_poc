@@ -901,9 +901,9 @@ export default function DataAgents({ params }: DataAgentsProps) {
   ]
 
   const llmTools = [
-    { id: 'gemini', name: 'Gemini 2.0 Flash', type: 'Primary LLM', desc: 'Reasoning & generation' },
-    { id: 'embeddings', name: 'text-embedding-004', type: 'Embeddings', desc: 'Semantic search' },
-    { id: 'xgboost', name: 'XGBoost Classifier', type: 'ML Model', desc: 'Risk prediction' },
+    { id: 'llm-ensemble', name: 'Ensemble of Foundation LLMs', type: 'Language Models', desc: 'Reasoning & generation' },
+    { id: 'embeddings', name: 'Embedding Models', type: 'Embeddings', desc: 'Semantic search' },
+    { id: 'ml-models', name: 'ML Classifiers', type: 'ML Models', desc: 'Risk prediction' },
     { id: 'rag', name: 'RAG Pipeline', type: 'Retrieval', desc: 'Context injection' },
   ]
 
