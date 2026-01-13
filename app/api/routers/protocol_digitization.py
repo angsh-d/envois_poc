@@ -6,8 +6,11 @@ Provides endpoints to access digitized protocol content:
 - Schedule of Assessments (SOA)
 - Eligibility Criteria with OMOP mappings
 """
+import json
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from app.services.protocol_digitization_service import get_protocol_digitization_service
@@ -315,3 +318,56 @@ async def get_protocol_rules() -> Dict[str, Any]:
     """Get protocol rules from Document-as-Code YAML."""
     service = get_protocol_digitization_service()
     return service.get_protocol_rules()
+
+
+PROTOCOL_DATA_DIR = Path("data/raw/protocol")
+
+@router.get(
+    "/download/soa-usdm",
+    summary="Download SOA USDM JSON",
+    description="Download the Schedule of Assessments USDM JSON file"
+)
+async def download_soa_usdm():
+    """Download SOA USDM JSON file."""
+    file_path = PROTOCOL_DATA_DIR / "CIP_H-34_v.2.0_05Nov2024_fully signed_soa_usdm_draft.json"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="SOA USDM file not found")
+    return FileResponse(
+        path=str(file_path),
+        filename="H-34_SOA_USDM.json",
+        media_type="application/json"
+    )
+
+
+@router.get(
+    "/download/eligibility",
+    summary="Download Eligibility Criteria JSON",
+    description="Download the Eligibility Criteria JSON file"
+)
+async def download_eligibility():
+    """Download Eligibility Criteria JSON file."""
+    file_path = PROTOCOL_DATA_DIR / "CIP_H-34_v.2.0_05Nov2024_fully signed_eligibility_criteria.json"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Eligibility criteria file not found")
+    return FileResponse(
+        path=str(file_path),
+        filename="H-34_Eligibility_Criteria.json",
+        media_type="application/json"
+    )
+
+
+@router.get(
+    "/download/usdm",
+    summary="Download USDM 4.0 JSON",
+    description="Download the complete USDM 4.0 protocol JSON file"
+)
+async def download_usdm():
+    """Download complete USDM 4.0 JSON file."""
+    file_path = PROTOCOL_DATA_DIR / "CIP_H-34_v.2.0_05Nov2024_fully signed_usdm_4.0.json"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="USDM file not found")
+    return FileResponse(
+        path=str(file_path),
+        filename="H-34_USDM_4.0.json",
+        media_type="application/json"
+    )

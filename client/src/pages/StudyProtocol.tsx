@@ -6,7 +6,7 @@ import {
   Target, AlertTriangle, Shield, Pill, TestTube, FlaskConical,
   FileSignature, ClipboardList, Building, CheckCircle, LogOut,
   Scan, Activity, Users, Beaker, FileText, Heart, Stethoscope,
-  Clock, Leaf, Syringe
+  Clock, Leaf, Syringe, Download
 } from 'lucide-react'
 
 interface StudyProtocolProps {
@@ -529,9 +529,19 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       <div className="space-y-6">
         {/* SOA Matrix Table - Like PDF page 53 */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Schedule of Assessments</h3>
-            <p className="text-sm text-gray-500 mt-1">Activities and visit schedule matrix</p>
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Schedule of Assessments</h3>
+              <p className="text-sm text-gray-500 mt-1">Activities and visit schedule matrix</p>
+            </div>
+            <a
+              href="/api/v1/protocol/download/soa-usdm"
+              download
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Download SOA USDM JSON
+            </a>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -827,6 +837,18 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
     return (
       <div className="space-y-6">
+        {/* Download Button */}
+        <div className="flex justify-end">
+          <a
+            href="/api/v1/protocol/download/eligibility"
+            download
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download Eligibility Criteria JSON
+          </a>
+        </div>
+
         {/* Summary */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Eligibility Summary</h3>
@@ -1832,6 +1854,18 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
     return (
       <div className="space-y-4">
+        {/* Download Button */}
+        <div className="flex justify-end mb-2">
+          <a
+            href="/api/v1/protocol/download/usdm"
+            download
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download USDM 4.0 JSON
+          </a>
+        </div>
+        
         {domainsWithData.map((domain) => {
           const Icon = iconMap[domain.icon] || Database
           const isExpanded = expandedDomain === domain.id

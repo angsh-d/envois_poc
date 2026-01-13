@@ -12,7 +12,7 @@ const navItems = [
   { path: '/safety', label: 'Safety Signals', icon: AlertTriangle },
   { path: '/deviations', label: 'Deviations', icon: FileWarning },
   { path: '/risk', label: 'Patient Risk', icon: Users },
-  { path: '/protocol', label: 'Protocol', icon: FileText },
+  { path: '/protocol', label: 'Digital Protocol', icon: FileText },
 ]
 
 export function SideNav({ studyId, studyName }: SideNavProps) {
