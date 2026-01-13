@@ -99,3 +99,5 @@ uvicorn
 xlrd
 pgvector
 psycopg2-binary
+psycopg2-binary
+sqlalchemy
