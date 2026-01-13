@@ -16,10 +16,8 @@ client/tsconfig*.json
 client/eslint.config.js
 client/components.json
 
-# Data files not needed (in PostgreSQL database)
-data/raw/
+# Data generation scripts (not needed at runtime)
 data/generators/
-data/vectorstore/
 
 # Other development files
 attached_assets/
