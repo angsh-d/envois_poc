@@ -57,9 +57,9 @@ export default function Landing() {
               <span>Powered by Multi-Agent AI Architecture</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-semibold text-gray-900 tracking-tight leading-[1.1]">
-              Clinical Intelligence
+              Clinical Data Intelligence
               <br />
-              <span className="bg-gradient-to-r from-gray-600 to-gray-400 bg-clip-text text-transparent">Reimagined</span>
+              <span className="bg-gradient-to-r from-gray-600 to-gray-400 bg-clip-text text-transparent">Platform</span>
             </h1>
             <p className="mt-8 text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
               AI-native platform unifying clinical studies, global registries, published literature, and real-world evidence into actionable insights for faster, smarter decision-making.
