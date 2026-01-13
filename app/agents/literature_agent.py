@@ -2,7 +2,7 @@
 Literature Agent for Clinical Intelligence Platform.
 
 Responsible for RAG-based literature search and benchmark extraction.
-Uses ChromaDB vector store for semantic search over literature PDFs.
+Uses PostgreSQL pgvector for semantic search over literature PDFs.
 """
 import logging
 from datetime import datetime
@@ -249,7 +249,7 @@ class LiteratureAgent(BaseAgent):
         n_results: int = 5
     ) -> Dict[str, Any]:
         """
-        Semantic search over literature documents using ChromaDB.
+        Semantic search over literature documents using pgvector.
 
         Args:
             query: Search query text
