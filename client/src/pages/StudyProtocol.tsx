@@ -2080,15 +2080,23 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
   const renderRules = () => {
     if (rulesLoading || !protocolRules) {
-      return <div className="animate-pulse h-48 bg-gray-100 rounded-lg" />
+      return <div className="animate-pulse h-48 bg-gray-100 rounded-2xl" />
     }
 
     const formatDay = (day: number) => {
-      if (day === 0) return 'Day 0 (Surgery)'
+      if (day === 0) return 'Day 0'
       if (day < 0) return `Day ${day}`
       if (day < 30) return `Day +${day}`
-      if (day < 365) return `${Math.round(day / 30)} months`
-      return `${(day / 365).toFixed(0)} year${day >= 730 ? 's' : ''}`
+      if (day < 365) return `${Math.round(day / 30)}mo`
+      return `${(day / 365).toFixed(0)}yr`
+    }
+
+    const formatDayLong = (day: number) => {
+      if (day === 0) return 'Surgery Day'
+      if (day < 0) return `${Math.abs(day)} days before`
+      if (day < 30) return `${day} days post-op`
+      if (day < 365) return `${Math.round(day / 30)} months post-op`
+      return `${(day / 365).toFixed(0)} year${day >= 730 ? 's' : ''} post-op`
     }
 
     const formatAssessment = (assessment: string) => {
@@ -2102,169 +2110,199 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     }
 
     return (
-      <div className="space-y-6">
-        {/* Protocol Header */}
-        <div className="bg-gray-900 rounded-xl p-6 text-white">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{protocolRules.protocol.title}</h2>
-              <p className="text-indigo-100">Document-as-Code Protocol Rules</p>
+      <div className="space-y-8">
+        {/* Protocol Header - Clean minimal design */}
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gray-900 rounded-2xl flex items-center justify-center">
+                  <FileText className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">{protocolRules.protocol.title}</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Protocol Rules Engine</p>
+                </div>
+              </div>
+              <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                v{protocolRules.protocol.version}
+              </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="bg-white/10 rounded-lg p-3">
-              <p className="text-indigo-200 text-xs">Protocol ID</p>
-              <p className="font-semibold">{protocolRules.protocol.id}</p>
+          <div className="grid grid-cols-4 divide-x divide-gray-100">
+            <div className="p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Protocol ID</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.id}</p>
             </div>
-            <div className="bg-white/10 rounded-lg p-3">
-              <p className="text-indigo-200 text-xs">Version</p>
-              <p className="font-semibold">{protocolRules.protocol.version}</p>
+            <div className="p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Phase</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.phase}</p>
             </div>
-            <div className="bg-white/10 rounded-lg p-3">
-              <p className="text-indigo-200 text-xs">Phase</p>
-              <p className="font-semibold">{protocolRules.protocol.phase}</p>
+            <div className="p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Sponsor</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.sponsor}</p>
             </div>
-            <div className="bg-white/10 rounded-lg p-3">
-              <p className="text-indigo-200 text-xs">Effective Date</p>
-              <p className="font-semibold">{protocolRules.protocol.effective_date}</p>
+            <div className="p-4 text-center">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Effective</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.effective_date}</p>
             </div>
           </div>
         </div>
 
-        {/* Visit Windows Timeline */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-600" />
-            Visit Windows Timeline
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">Reference point: {protocolRules.schedule_of_assessments.reference_point.replace('_', ' ')}</p>
+        {/* Visit Windows - Modern Timeline */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Visit Schedule</h3>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Reference: {protocolRules.schedule_of_assessments.reference_point.replace(/_/g, ' ')}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-900"></div>
+                <span className="text-gray-600">Standard Visit</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-400 ring-2 ring-gray-300"></div>
+                <span className="text-gray-600">Primary Endpoint</span>
+              </div>
+            </div>
+          </div>
 
-          <div className="space-y-4">
+          {/* Horizontal Timeline */}
+          <div className="relative mb-8">
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200"></div>
+            <div className="flex justify-between relative">
+              {protocolRules.schedule_of_assessments.visits.map((visit, idx) => (
+                <div key={visit.id} className="flex flex-col items-center" style={{ flex: 1 }}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all ${
+                    visit.is_primary_endpoint
+                      ? 'bg-gray-900 text-white ring-4 ring-gray-200'
+                      : 'bg-white border-2 border-gray-300 text-gray-700'
+                  }`}>
+                    {idx + 1}
+                  </div>
+                  <p className="text-xs font-medium text-gray-900 mt-2 text-center">{formatDay(visit.target_day)}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5 text-center max-w-[60px] leading-tight">{visit.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Visit Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {protocolRules.schedule_of_assessments.visits.map((visit, idx) => (
               <div
                 key={visit.id}
-                className={`relative flex items-start gap-4 p-4 rounded-lg border ${
+                className={`p-4 rounded-xl border transition-all hover:shadow-sm ${
                   visit.is_primary_endpoint
-                    ? 'border-green-200 bg-green-50'
-                    : 'border-gray-100 bg-gray-50'
+                    ? 'border-gray-300 bg-gray-50'
+                    : 'border-gray-100 bg-white'
                 }`}
               >
-                {/* Timeline connector */}
-                {idx < protocolRules.schedule_of_assessments.visits.length - 1 && (
-                  <div className="absolute left-8 top-16 w-0.5 h-8 bg-gray-200" />
-                )}
-
-                {/* Visit number */}
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  visit.is_primary_endpoint
-                    ? 'bg-green-600 text-white'
-                    : 'bg-blue-600 text-white'
-                }`}>
-                  {idx + 1}
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                    visit.is_primary_endpoint ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 text-sm truncate">{visit.name}</h4>
+                    <p className="text-xs text-gray-500">{formatDayLong(visit.target_day)}</p>
+                  </div>
+                  {visit.is_primary_endpoint && (
+                    <span className="px-2 py-0.5 bg-gray-900 text-white text-[10px] font-medium rounded-full whitespace-nowrap">
+                      Primary
+                    </span>
+                  )}
                 </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-gray-900">{visit.name}</h4>
-                    {visit.is_primary_endpoint && (
-                      <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded-full">
-                        Primary Endpoint
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 text-sm mb-2">
-                    <span className="text-gray-600">
-                      <span className="font-medium">Target:</span> {formatDay(visit.target_day)}
+                <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                  <Clock className="w-3.5 h-3.5 text-gray-400" />
+                  <span>Window: -{visit.window_minus} / +{visit.window_plus} days</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {visit.required_assessments.slice(0, 4).map(assessment => (
+                    <span
+                      key={assessment}
+                      className="px-2 py-0.5 bg-gray-100 rounded text-[10px] text-gray-600"
+                    >
+                      {formatAssessment(assessment)}
                     </span>
-                    <span className="text-gray-600">
-                      <span className="font-medium">Window:</span> -{visit.window_minus} / +{visit.window_plus} days
+                  ))}
+                  {visit.required_assessments.length > 4 && (
+                    <span className="px-2 py-0.5 bg-gray-200 rounded text-[10px] text-gray-600 font-medium">
+                      +{visit.required_assessments.length - 4}
                     </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {visit.required_assessments.map(assessment => (
-                      <span
-                        key={assessment}
-                        className="px-2 py-0.5 bg-white border border-gray-200 rounded text-xs text-gray-600"
-                      >
-                        {formatAssessment(assessment)}
-                      </span>
-                    ))}
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Endpoints */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-green-600" />
-            Study Endpoints
-          </h3>
+        {/* Endpoints - Cleaner card design */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Study Endpoints</h3>
 
           {/* Primary Endpoint */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-medium rounded">PRIMARY</span>
+              <Target className="w-4 h-4 text-gray-900" />
+              <span className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Primary Endpoint</span>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <h4 className="font-semibold text-gray-900">{protocolRules.endpoints.primary.name}</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 text-sm">
+            <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
+              <h4 className="font-semibold text-gray-900 text-base">{protocolRules.endpoints.primary.name}</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                 <div>
-                  <p className="text-gray-500">Timepoint</p>
-                  <p className="font-medium text-gray-900">{protocolRules.endpoints.primary.timepoint}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Timepoint</p>
+                  <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.timepoint}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Calculation</p>
-                  <p className="font-medium text-gray-900 font-mono text-xs">{protocolRules.endpoints.primary.calculation}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">Calculation</p>
+                  <p className="text-sm font-mono text-gray-700 mt-1 bg-white px-2 py-1 rounded border border-gray-200 inline-block">
+                    {protocolRules.endpoints.primary.calculation}
+                  </p>
                 </div>
                 {protocolRules.endpoints.primary.mcid_threshold && (
                   <div>
-                    <p className="text-gray-500">MCID Threshold</p>
-                    <p className="font-medium text-gray-900">{protocolRules.endpoints.primary.mcid_threshold} points</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">MCID</p>
+                    <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.mcid_threshold} pts</p>
                   </div>
                 )}
                 {protocolRules.endpoints.primary.success_threshold && (
                   <div>
-                    <p className="text-gray-500">Success Threshold</p>
-                    <p className="font-medium text-gray-900">{protocolRules.endpoints.primary.success_threshold} points</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Success</p>
+                    <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.success_threshold} pts</p>
                   </div>
                 )}
               </div>
               {protocolRules.endpoints.primary.success_criterion && (
-                <p className="mt-3 text-sm text-green-700 bg-green-100 p-2 rounded">
-                  {protocolRules.endpoints.primary.success_criterion}
-                </p>
+                <div className="mt-4 p-3 bg-white border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-700">{protocolRules.endpoints.primary.success_criterion}</p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Secondary Endpoints */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-medium rounded">SECONDARY</span>
+            <Activity className="w-4 h-4 text-gray-500" />
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Secondary Endpoints</span>
           </div>
-          <div className="grid gap-3">
+          <div className="grid md:grid-cols-2 gap-3">
             {protocolRules.endpoints.secondary.map((endpoint) => (
-              <div key={endpoint.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-900">{endpoint.name}</h4>
-                <div className="flex flex-wrap gap-4 mt-2 text-sm">
-                  <span className="text-gray-600">
-                    <span className="font-medium">Timepoint:</span> {endpoint.timepoint}
-                  </span>
-                  <span className="text-gray-600">
-                    <span className="font-medium">Method:</span>{' '}
-                    <code className="bg-gray-200 px-1 rounded text-xs">{endpoint.calculation}</code>
-                  </span>
+              <div key={endpoint.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                <h4 className="font-medium text-gray-900 text-sm">{endpoint.name}</h4>
+                <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-600">
+                  <span>{endpoint.timepoint}</span>
+                  <span className="text-gray-300">|</span>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded">{endpoint.calculation}</code>
                   {endpoint.success_threshold && (
-                    <span className="text-gray-600">
-                      <span className="font-medium">Threshold:</span> {endpoint.success_threshold}
-                    </span>
+                    <>
+                      <span className="text-gray-300">|</span>
+                      <span>Threshold: {endpoint.success_threshold}</span>
+                    </>
                   )}
                 </div>
               </div>
@@ -2272,160 +2310,182 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
           </div>
         </div>
 
-        {/* Sample Size & Safety Thresholds */}
+        {/* Sample Size & Safety - Side by side */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Sample Size */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5 text-purple-600" />
-              Sample Size
-            </h3>
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Users className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-semibold text-gray-900">Sample Size</h3>
+            </div>
+            
+            <div className="text-center py-4 mb-4 bg-gray-50 rounded-xl">
+              <p className="text-4xl font-bold text-gray-900">{protocolRules.sample_size.target_enrollment}</p>
+              <p className="text-sm text-gray-500 mt-1">Target Enrollment</p>
+            </div>
+
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                <span className="text-gray-600">Target Enrollment</span>
-                <span className="font-bold text-purple-600 text-xl">{protocolRules.sample_size.target_enrollment}</span>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600">Interim Analysis</span>
+                <span className="text-sm font-medium text-gray-900">{protocolRules.sample_size.interim_analysis} patients</span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">Interim Analysis</span>
-                <span className="font-medium text-gray-900">{protocolRules.sample_size.interim_analysis} patients</span>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600">Dropout Allowance</span>
+                <span className="text-sm font-medium text-gray-900">{(protocolRules.sample_size.dropout_allowance * 100).toFixed(0)}%</span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-gray-600">Dropout Allowance</span>
-                <span className="font-medium text-gray-900">{(protocolRules.sample_size.dropout_allowance * 100).toFixed(0)}%</span>
-              </div>
-              <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase mb-2">Power Calculation</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-500">Power:</span> <span className="font-medium">{(protocolRules.sample_size.power_calculation.power * 100)}%</span></div>
-                  <div><span className="text-gray-500">Alpha:</span> <span className="font-medium">{protocolRules.sample_size.power_calculation.alpha}</span></div>
-                  <div><span className="text-gray-500">Effect Size:</span> <span className="font-medium">{protocolRules.sample_size.power_calculation.effect_size}</span></div>
-                  <div><span className="text-gray-500">Expected Δ:</span> <span className="font-medium">{protocolRules.sample_size.power_calculation.expected_improvement}</span></div>
+            </div>
+
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Power Calculation</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Power</span>
+                  <span className="font-medium text-gray-900">{(protocolRules.sample_size.power_calculation.power * 100)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Alpha</span>
+                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.alpha}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Effect Size</span>
+                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.effect_size}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Expected Δ</span>
+                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.expected_improvement}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Safety Thresholds */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-red-600" />
-              Safety Thresholds
-            </h3>
-            <p className="text-sm text-gray-500 mb-3">Rates above these trigger review/escalation</p>
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <Shield className="w-5 h-5 text-gray-700" />
+              <h3 className="text-lg font-semibold text-gray-900">Safety Thresholds</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">Rates above these trigger review</p>
             <div className="space-y-2">
-              {Object.entries(protocolRules.safety_thresholds).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
-                  <span className="text-sm text-gray-700">
-                    {key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase())}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded text-sm font-medium ${
-                    value >= 0.1 ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'
-                  }`}>
-                    {(value * 100).toFixed(0)}%
-                  </span>
-                </div>
-              ))}
+              {Object.entries(protocolRules.safety_thresholds).map(([key, value]) => {
+                const percentage = (value * 100).toFixed(0)
+                const isCritical = value >= 0.1
+                return (
+                  <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <span className="text-sm text-gray-700">
+                      {key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase()).trim()}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${isCritical ? 'bg-gray-800' : 'bg-gray-400'}`}
+                          style={{ width: `${Math.min(Number(percentage) * 5, 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className={`text-sm font-semibold ${isCritical ? 'text-gray-900' : 'text-gray-600'}`}>
+                        {percentage}%
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
 
-        {/* Deviation Classification */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
-            Deviation Classification Rules
-          </h3>
+        {/* Deviation Classification - Minimal cards */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <AlertTriangle className="w-5 h-5 text-gray-700" />
+            <h3 className="text-lg font-semibold text-gray-900">Deviation Classification</h3>
+          </div>
           <div className="grid md:grid-cols-3 gap-4">
-            {/* Minor */}
-            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">MINOR</span>
+            <div className="p-5 rounded-xl border-2 border-gray-200 bg-white">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Minor</span>
               </div>
-              <p className="text-sm text-gray-700 mb-2">{protocolRules.deviation_classification.minor.description}</p>
-              <p className="text-xs text-gray-500 italic">{protocolRules.deviation_classification.minor.action}</p>
+              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.minor.description}</p>
+              <p className="text-xs text-gray-500 border-t border-gray-100 pt-3">{protocolRules.deviation_classification.minor.action}</p>
             </div>
-
-            {/* Major */}
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded">MAJOR</span>
+            <div className="p-5 rounded-xl border-2 border-gray-300 bg-gray-50">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Major</span>
               </div>
-              <p className="text-sm text-gray-700 mb-2">{protocolRules.deviation_classification.major.description}</p>
-              <p className="text-xs text-gray-500 italic">{protocolRules.deviation_classification.major.action}</p>
+              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.major.description}</p>
+              <p className="text-xs text-gray-500 border-t border-gray-200 pt-3">{protocolRules.deviation_classification.major.action}</p>
             </div>
-
-            {/* Critical */}
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded">CRITICAL</span>
+            <div className="p-5 rounded-xl border-2 border-gray-400 bg-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-gray-900"></div>
+                <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Critical</span>
               </div>
-              <p className="text-sm text-gray-700 mb-2">{protocolRules.deviation_classification.critical.description}</p>
-              <p className="text-xs text-gray-500 italic">{protocolRules.deviation_classification.critical.action}</p>
+              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.critical.description}</p>
+              <p className="text-xs text-gray-600 border-t border-gray-300 pt-3">{protocolRules.deviation_classification.critical.action}</p>
             </div>
           </div>
         </div>
 
-        {/* Adverse Events */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Stethoscope className="w-5 h-5 text-red-600" />
-            Adverse Event Handling
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
+        {/* Adverse Events - Clean layout */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Stethoscope className="w-5 h-5 text-gray-700" />
+            <h3 className="text-lg font-semibold text-gray-900">Adverse Event Handling</h3>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Requirements</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  {protocolRules.adverse_events.sae_narrative_required ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <X className="w-4 h-4 text-red-600" />
-                  )}
-                  <span className="text-sm text-gray-700">SAE Narrative Required</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {protocolRules.adverse_events.device_relationship_required ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <X className="w-4 h-4 text-red-600" />
-                  )}
-                  <span className="text-sm text-gray-700">Device Relationship Assessment</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {protocolRules.adverse_events.causality_assessment_required ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <X className="w-4 h-4 text-red-600" />
-                  )}
-                  <span className="text-sm text-gray-700">Causality Assessment</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-red-50 rounded mt-2">
-                  <AlertTriangle className="w-4 h-4 text-red-600" />
-                  <span className="text-sm text-red-700 font-medium">
-                    SAE Reporting Window: {protocolRules.adverse_events.sae_reporting_window_days * 24} hours
-                  </span>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Requirements</h4>
+              <div className="space-y-3">
+                {[
+                  { label: 'SAE Narrative Required', value: protocolRules.adverse_events.sae_narrative_required },
+                  { label: 'Device Relationship Assessment', value: protocolRules.adverse_events.device_relationship_required },
+                  { label: 'Causality Assessment', value: protocolRules.adverse_events.causality_assessment_required },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                      item.value ? 'bg-gray-900' : 'bg-gray-200'
+                    }`}>
+                      {item.value ? (
+                        <Check className="w-3 h-3 text-white" />
+                      ) : (
+                        <X className="w-3 h-3 text-gray-400" />
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-700">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 p-4 bg-gray-100 rounded-xl flex items-center gap-3">
+                <Clock className="w-5 h-5 text-gray-700" />
+                <div>
+                  <p className="text-xs text-gray-500 uppercase">SAE Reporting Window</p>
+                  <p className="text-lg font-semibold text-gray-900">{protocolRules.adverse_events.sae_reporting_window_days * 24} hours</p>
                 </div>
               </div>
             </div>
+
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Classifications</h4>
-              <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Classifications</h4>
+              <div className="flex flex-wrap gap-2 mb-6">
                 {protocolRules.adverse_events.classifications.map((c) => (
-                  <span key={c} className="inline-block mr-2 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                  <span key={c} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg">
                     {c}
                   </span>
                 ))}
               </div>
-              <h4 className="text-sm font-semibold text-gray-700 mt-4 mb-3">Severity Grades</h4>
+              
+              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Severity Grades</h4>
               <div className="flex gap-2">
                 {protocolRules.adverse_events.severity_grades.map((grade, idx) => (
                   <span
                     key={grade}
-                    className={`px-3 py-1 text-sm rounded-full ${
-                      idx === 0 ? 'bg-yellow-100 text-yellow-800' :
-                      idx === 1 ? 'bg-orange-100 text-orange-800' :
-                      'bg-red-100 text-red-800'
-                    }`}
+                    className="px-4 py-2 text-sm rounded-lg font-medium"
+                    style={{
+                      backgroundColor: `rgb(${240 - idx * 30}, ${240 - idx * 30}, ${240 - idx * 30})`,
+                      color: idx === 2 ? '#1f2937' : '#374151'
+                    }}
                   >
                     {grade}
                   </span>
@@ -2435,24 +2495,27 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
           </div>
         </div>
 
-        {/* I/E Criteria */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-indigo-600" />
-            Inclusion/Exclusion Criteria
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6">
+        {/* I/E Criteria - Modern list design */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <ClipboardList className="w-5 h-5 text-gray-700" />
+            <h3 className="text-lg font-semibold text-gray-900">Eligibility Criteria</h3>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Inclusion */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                <h4 className="font-semibold text-gray-700">Inclusion ({protocolRules.ie_criteria.inclusion.length})</h4>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Inclusion</h4>
+                <span className="text-xs text-gray-500 ml-auto">{protocolRules.ie_criteria.inclusion.length} criteria</span>
               </div>
               <ul className="space-y-2">
                 {protocolRules.ie_criteria.inclusion.map((criterion, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                    <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    {criterion}
+                  <li key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span className="text-xs text-gray-400 font-mono mt-0.5">{idx + 1}</span>
+                    <span className="text-sm text-gray-700 flex-1">{criterion}</span>
                   </li>
                 ))}
               </ul>
@@ -2460,15 +2523,18 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
             {/* Exclusion */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                <h4 className="font-semibold text-gray-700">Exclusion ({protocolRules.ie_criteria.exclusion.length})</h4>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center">
+                  <X className="w-3.5 h-3.5 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Exclusion</h4>
+                <span className="text-xs text-gray-500 ml-auto">{protocolRules.ie_criteria.exclusion.length} criteria</span>
               </div>
               <ul className="space-y-2">
                 {protocolRules.ie_criteria.exclusion.map((criterion, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                    <X className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                    {criterion}
+                  <li key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <span className="text-xs text-gray-400 font-mono mt-0.5">{idx + 1}</span>
+                    <span className="text-sm text-gray-700 flex-1">{criterion}</span>
                   </li>
                 ))}
               </ul>
