@@ -342,7 +342,7 @@ class RiskService:
 
             if prediction["risk_level"] == "high":
                 high_risk_patients.append({
-                    "patient_id": patient.Id,
+                    "patient_id": patient.patient_id,
                     "risk_score": prediction["risk_score"],
                     "n_risk_factors": prediction["n_risk_factors"],
                     "top_factors": [f["factor"] for f in prediction["contributing_factors"][:3]],
@@ -399,7 +399,7 @@ class RiskService:
         # Get preoperative data for comorbidities
         preop = None
         for p in study_data.preoperatives:
-            if p.Id == patient.Id:
+            if p.patient_id == patient.patient_id:
                 preop = p
                 break
 
@@ -431,7 +431,7 @@ class RiskService:
         # Get intraoperative data for bone quality
         intraop = None
         for i in study_data.intraoperatives:
-            if i.Id == patient.Id:
+            if i.patient_id == patient.patient_id:
                 intraop = i
                 break
 
@@ -446,7 +446,7 @@ class RiskService:
         # Get surgery data for duration
         surgery = None
         for s in study_data.surgery_data:
-            if s.Id == patient.Id:
+            if s.patient_id == patient.patient_id:
                 surgery = s
                 break
 
