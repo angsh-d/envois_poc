@@ -82,6 +82,7 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
+- 2026-01-13: Added expandable detail rows to Safety Metrics table - clicking on active signals (Dislocation Rate, Fracture Rate) expands to show Affected Patients (with contributing factors), Literature Context (benchmarks from literature_benchmarks), and Recommendations panels
 - 2026-01-13: Added Data & Agents page - moved data sources from Dashboard modal to dedicated page in side nav, added Agents tab with multi-agent architecture visualization and detailed agent documentation
 - 2026-01-13: Added download endpoints for protocol JSON files (SOA USDM, Eligibility Criteria, USDM 4.0) with download buttons on Digital Protocol tabs
 - 2026-01-13: Renamed "Protocol" to "Digital Protocol" in side navigation

@@ -1,9 +1,10 @@
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
 import { fetchSafetySignals } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { Sparkles, AlertTriangle, CheckCircle, Info, ExternalLink, XCircle, Activity, TrendingDown } from 'lucide-react'
+import { Sparkles, AlertTriangle, CheckCircle, Info, ExternalLink, XCircle, Activity, TrendingDown, ChevronDown, Users, BookOpen, Lightbulb } from 'lucide-react'
 
 // Type definitions for real API response
 interface SafetyMetric {
@@ -69,13 +70,14 @@ function formatMetricName(metric: string): string {
 export default function Safety() {
   const [, params] = useRoute('/study/:studyId/safety')
   const studyId = params?.studyId || 'h34-delta'
+  const [expandedMetric, setExpandedMetric] = useState<string | null>(null)
 
   const { data, isLoading, error } = useQuery<SafetyResponse>({
     queryKey: ['safety-signals'],
     queryFn: fetchSafetySignals,
-    staleTime: Infinity,
+    staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   })
 
@@ -179,34 +181,199 @@ export default function Safety() {
             </tr>
           </thead>
           <tbody>
-            {data.metrics.map((metric, i) => (
-              <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    <Activity className={`w-4 h-4 ${metric.signal ? 'text-gray-700' : 'text-gray-400'}`} />
-                    <span className="font-medium text-gray-800">{formatMetricName(metric.metric)}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-4 text-center text-gray-600">
-                  {metric.count}/{metric.total}
-                </td>
-                <td className="py-4 px-4 text-center">
-                  <span className={`font-semibold ${metric.signal ? 'text-gray-900' : 'text-gray-700'}`}>
-                    {(metric.rate * 100).toFixed(1)}%
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-center text-gray-500">
-                  {(metric.threshold * 100).toFixed(0)}%
-                </td>
-                <td className="py-4 px-4 text-center">
-                  {metric.signal ? (
-                    <Badge variant="danger">Signal</Badge>
-                  ) : (
-                    <Badge variant="success">OK</Badge>
+            {data.metrics.map((metric, i) => {
+              const isExpanded = expandedMetric === metric.metric
+              const metricKey = metric.metric.replace(/_rate$/, '')
+              const benchmark = data.literature_benchmarks?.[metricKey]
+              
+              const getSignalDetails = () => {
+                const details: { factors: string[], patients: string, recommendations: string[] } = {
+                  factors: [],
+                  patients: `${metric.count} of ${metric.total} patients`,
+                  recommendations: []
+                }
+                
+                if (metric.metric === 'dislocation_rate') {
+                  details.factors = [
+                    'Posterior surgical approach (vs anterior)',
+                    'History of prior hip surgery',
+                    'Low BMI patients (<22)',
+                    'Non-compliance with movement restrictions'
+                  ]
+                  details.recommendations = [
+                    'Review surgical approach protocols',
+                    'Enhance post-op movement restriction education',
+                    'Consider larger femoral head size for high-risk patients'
+                  ]
+                } else if (metric.metric === 'fracture_rate') {
+                  details.factors = [
+                    'Osteoporosis or poor bone quality',
+                    'Press-fit component fixation',
+                    'Age >75 years',
+                    'Paprosky Type 3 defects'
+                  ]
+                  details.recommendations = [
+                    'Pre-operative bone density screening',
+                    'Consider cemented fixation for poor bone quality',
+                    'Enhanced intraoperative bone protection protocols'
+                  ]
+                } else if (metric.metric === 'infection_rate') {
+                  details.factors = [
+                    'Diabetes mellitus',
+                    'BMI >35',
+                    'Prolonged operative time (>3 hours)',
+                    'Prior revision surgery'
+                  ]
+                  details.recommendations = [
+                    'Pre-operative glucose optimization',
+                    'Extended antibiotic prophylaxis for high-risk patients',
+                    'Enhanced sterile technique protocols'
+                  ]
+                } else if (metric.metric === 'revision_rate') {
+                  details.factors = [
+                    'Complex primary diagnosis',
+                    'Multiple prior surgeries',
+                    'Bone loss severity',
+                    'Implant selection factors'
+                  ]
+                  details.recommendations = [
+                    'Extended follow-up for high-risk cohorts',
+                    'Review implant selection criteria',
+                    'Consider specialized revision centers'
+                  ]
+                }
+                return details
+              }
+              
+              const signalDetails = getSignalDetails()
+              
+              return (
+                <React.Fragment key={i}>
+                  <tr 
+                    className={`border-b border-gray-50 last:border-0 transition-colors ${
+                      metric.signal ? 'cursor-pointer hover:bg-gray-100' : 'hover:bg-gray-50'
+                    } ${isExpanded ? 'bg-gray-50' : ''}`}
+                    onClick={() => metric.signal && setExpandedMetric(isExpanded ? null : metric.metric)}
+                  >
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        {metric.signal && (
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        )}
+                        <Activity className={`w-4 h-4 ${metric.signal ? 'text-gray-700' : 'text-gray-400'}`} />
+                        <span className="font-medium text-gray-800">{formatMetricName(metric.metric)}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-600">
+                      {metric.count}/{metric.total}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span className={`font-semibold ${metric.signal ? 'text-gray-900' : 'text-gray-700'}`}>
+                        {(metric.rate * 100).toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-500">
+                      {(metric.threshold * 100).toFixed(0)}%
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      {metric.signal ? (
+                        <Badge variant="danger">Signal</Badge>
+                      ) : (
+                        <Badge variant="success">OK</Badge>
+                      )}
+                    </td>
+                  </tr>
+                  
+                  {isExpanded && metric.signal && (
+                    <tr>
+                      <td colSpan={5} className="bg-gray-50 px-4 pb-4">
+                        <div className="grid grid-cols-3 gap-4 pt-2">
+                          <div className="bg-white rounded-xl border border-gray-200 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Users className="w-4 h-4 text-gray-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-gray-900 text-sm">Affected Patients</h4>
+                                <p className="text-xs text-gray-500">{signalDetails.patients}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-gray-500 uppercase">Contributing Factors</p>
+                              <ul className="space-y-1.5">
+                                {signalDetails.factors.map((factor, idx) => (
+                                  <li key={idx} className="flex items-start gap-2 text-xs text-gray-700">
+                                    <span className="w-1 h-1 bg-gray-400 rounded-full mt-1.5 flex-shrink-0" />
+                                    {factor}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white rounded-xl border border-gray-200 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <BookOpen className="w-4 h-4 text-gray-600" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">Literature Context</h4>
+                            </div>
+                            {benchmark ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                  {benchmark.mean !== undefined && (
+                                    <div className="bg-gray-50 rounded-lg p-2">
+                                      <p className="text-lg font-bold text-gray-900">{(benchmark.mean * 100).toFixed(1)}%</p>
+                                      <p className="text-xs text-gray-500">Literature Mean</p>
+                                    </div>
+                                  )}
+                                  {benchmark.range && (
+                                    <div className="bg-gray-50 rounded-lg p-2">
+                                      <p className="text-lg font-bold text-gray-900">{(benchmark.range[0] * 100).toFixed(0)}-{(benchmark.range[1] * 100).toFixed(0)}%</p>
+                                      <p className="text-xs text-gray-500">Published Range</p>
+                                    </div>
+                                  )}
+                                </div>
+                                {benchmark.concern_threshold !== undefined && (
+                                  <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-lg">
+                                    <AlertTriangle className="w-4 h-4 text-gray-600" />
+                                    <span className="text-xs text-gray-700">
+                                      Concern threshold: {(benchmark.concern_threshold * 100).toFixed(0)}%
+                                    </span>
+                                  </div>
+                                )}
+                                <p className="text-xs text-gray-500">
+                                  Study rate of {(metric.rate * 100).toFixed(1)}% exceeds threshold by {((metric.rate - metric.threshold) * 100).toFixed(1)} percentage points
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500">No literature benchmarks available for this metric</p>
+                            )}
+                          </div>
+                          
+                          <div className="bg-white rounded-xl border border-gray-200 p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Lightbulb className="w-4 h-4 text-gray-600" />
+                              </div>
+                              <h4 className="font-semibold text-gray-900 text-sm">Recommendations</h4>
+                            </div>
+                            <ul className="space-y-2">
+                              {signalDetails.recommendations.map((rec, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <CheckCircle className="w-3.5 h-3.5 text-gray-500 mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-gray-700">{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                   )}
-                </td>
-              </tr>
-            ))}
+                </React.Fragment>
+              )
+            })}
           </tbody>
         </table>
       </Card>
