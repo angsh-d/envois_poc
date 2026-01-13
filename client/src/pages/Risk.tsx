@@ -12,7 +12,10 @@ export default function Risk() {
   const { data, isLoading, error } = useQuery<RiskSummaryResponse>({
     queryKey: ['risk', studyId],
     queryFn: () => fetchRiskSummary(),
-    retry: false,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   if (isLoading) {

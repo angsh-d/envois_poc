@@ -290,7 +290,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       const res = await fetch(`${API_BASE}/protocol/overview`)
       if (!res.ok) throw new Error('Failed to fetch overview')
       return res.json()
-    }
+    },
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { data: soaMatrix, isLoading: soaMatrixLoading } = useQuery<SOAMatrix>({
@@ -300,7 +304,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       if (!res.ok) throw new Error('Failed to fetch SOA matrix')
       return res.json()
     },
-    enabled: activeTab === 'soa'
+    enabled: activeTab === 'soa',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { data: footnotes, isLoading: footnotesLoading } = useQuery<Footnote[]>({
@@ -310,7 +318,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       if (!res.ok) throw new Error('Failed to fetch footnotes')
       return res.json()
     },
-    enabled: activeTab === 'soa'
+    enabled: activeTab === 'soa',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { data: eligibility, isLoading: eligibilityLoading } = useQuery<EligibilityCriteria>({
@@ -320,7 +332,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       if (!res.ok) throw new Error('Failed to fetch eligibility')
       return res.json()
     },
-    enabled: activeTab === 'eligibility'
+    enabled: activeTab === 'eligibility',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { data: domains, isLoading: domainsLoading } = useQuery<DomainSection[]>({
@@ -330,7 +346,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       if (!res.ok) throw new Error('Failed to fetch domains')
       return res.json()
     },
-    enabled: activeTab === 'domains'
+    enabled: activeTab === 'domains',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const { data: protocolRules, isLoading: rulesLoading } = useQuery<ProtocolRules>({
@@ -340,7 +360,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       if (!res.ok) throw new Error('Failed to fetch protocol rules')
       return res.json()
     },
-    enabled: activeTab === 'rules'
+    enabled: activeTab === 'rules',
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const tabs = [

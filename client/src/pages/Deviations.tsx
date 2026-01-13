@@ -67,7 +67,10 @@ export default function Deviations() {
   const { data, isLoading, error } = useQuery<DeviationsResponse>({
     queryKey: ['deviations', studyId],
     queryFn: () => fetchDeviations(studyId),
-    retry: false,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   if (isLoading) {
