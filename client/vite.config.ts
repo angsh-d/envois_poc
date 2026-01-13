@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@assets': path.resolve(__dirname, '../attached_assets'),
     },
   },
   server: {
@@ -15,5 +16,11 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     hmr: false,
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'esbuild',
   },
 })
