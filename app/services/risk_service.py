@@ -234,7 +234,7 @@ class RiskService:
         self._safety_agent = SafetyAgent()
         self._literature_agent = LiteratureAgent()
         self._synthesis_agent = SynthesisAgent()
-        self._doc_loader = get_doc_loader()
+        self._doc_loader = get_hybrid_loader()
 
     async def get_patient_risk(self, patient_id: str) -> Dict[str, Any]:
         """

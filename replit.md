@@ -46,7 +46,7 @@ Single consolidated workflow:
 ## API Endpoints
 - `/health` - Health check
 - `/ready` - Readiness check
-- `/docs` - API documentation (Swagger UI)
+- `/api/docs` - API documentation (Swagger UI)
 - `/api/v1/uc1/*` - Regulatory Readiness endpoints
 - `/api/v1/uc2/*` - Safety Signals endpoints
 - `/api/v1/uc3/*` - Protocol Deviations endpoints
@@ -81,7 +81,31 @@ Apple-inspired design with:
 - Rounded corners (2xl) and subtle shadows
 - Smooth transitions and hover states
 
+## Database Architecture
+All structured and vector data is stored in PostgreSQL with the following tables:
+- **protocol_rules**: Protocol definitions (protocol_id, version, sample sizes, thresholds)
+- **protocol_visits**: Visit windows and timing rules
+- **protocol_endpoints**: Primary and secondary endpoint definitions
+- **protocol_documents**: USDM JSON documents (SOA, eligibility criteria, full USDM)
+- **literature_publications**: Published study benchmarks and outcomes
+- **literature_risk_factors**: Risk factor hazard ratios from literature
+- **registry_benchmarks**: International registry norms (AOANJRR, NJR, SHAR, AJRR, CJRR)
+- **study_patients**: H-34 study patient demographics
+- **study_adverse_events**: Adverse event records
+- **study_scores**: Patient outcome scores (HHS, VAS, etc.)
+- **study_surgeries**: Surgical procedure details
+- **embeddings**: pgvector-indexed document embeddings for RAG
+
+### Hybrid Data Loader
+Data loading uses a hybrid approach (database-first with file fallback):
+- `get_hybrid_loader()` tries database first, falls back to local YAML files
+- Enables seamless transition and zero-downtime migration
+- All services and agents use database-backed loaders
+
 ## Recent Changes
+- 2026-01-13: Migrated all structured data from files to PostgreSQL - protocol rules, literature benchmarks, registry norms, study data (patients, AEs, scores, surgeries)
+- 2026-01-13: Created hybrid data loader with database-first and file-fallback strategy
+- 2026-01-13: Updated all services and agents to use get_hybrid_loader() instead of get_doc_loader()
 - 2026-01-13: Redesigned Protocol Domains tab with modern UI - insight pills in card headers, visual timeline for study epochs, premium arm cards with interventions, improved generic renderer with better visual hierarchy, Apple-inspired greyscale styling
 - 2026-01-13: Migrated vector store from ChromaDB to PostgreSQL with pgvector - using Replit's managed database for persistent vector embeddings storage with HNSW index
 - 2026-01-13: Enhanced Data & Agents page - added Protocol-as-Code & USDM JSON data section (soa_usdm.json, eligibility_criteria.json, usdm_4.0.json), Vector Store & Semantic Index section, Structured Rules (YAML) section, and data sources layer in architecture diagram with agent mapping table
@@ -105,7 +129,8 @@ Apple-inspired design with:
 
 ## Current Status
 - Frontend: React + Vite + Tailwind running on port 5000
-- Backend: FastAPI running on port 8000
+- Backend: FastAPI reverse-proxying to Vite on port 5000
+- Database: All data loaded from PostgreSQL (37 patients, 15 AEs, 224 scores, 6 publications, 5 registries)
 - Chat: Gemini 2.0 Flash with context-aware prompts for each module
-- All 5 use case pages rendering with mock study data
+- All 5 use case pages rendering with real study data from database
 - Chat panel available on all study pages for contextual AI assistance
