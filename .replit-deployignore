@@ -1,0 +1,35 @@
+# Python development environment (7.9 GB)
+.pythonlibs/
+
+# Build and package caches (4.3 GB)
+.cache/
+.local/
+.upm/
+
+# Version control (351 MB)
+.git/
+
+# Frontend development files (190 MB)
+client/node_modules/
+client/src/
+client/tsconfig*.json
+client/eslint.config.js
+client/components.json
+
+# Data files not needed (in PostgreSQL database)
+data/raw/
+data/ml/
+data/generators/
+data/vectorstore/
+data/models/
+
+# Other development files
+attached_assets/
+tmp/
+__pycache__/
+*.pyc
+*.pyo
+.env*
+.env.template
+README.md
+replit.md
