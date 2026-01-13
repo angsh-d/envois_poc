@@ -40,7 +40,8 @@ Single consolidated workflow:
 - `/study/h34-delta/safety` - Safety Signals (UC2) with cross-source contextualization
 - `/study/h34-delta/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
 - `/study/h34-delta/risk` - Patient Risk (UC4) with ML-powered stratification
-- `/study/h34-delta/protocol` - Protocol digitization view
+- `/study/h34-delta/protocol` - Digital Protocol with SOA, Eligibility, and Domain views
+- `/study/h34-delta/data-agents` - Data & Agents catalog with data sources, AI/ML models, and agent architecture
 
 ## API Endpoints
 - `/health` - Health check
@@ -81,6 +82,9 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
+- 2026-01-13: Added Data & Agents page - moved data sources from Dashboard modal to dedicated page in side nav, added Agents tab with multi-agent architecture visualization and detailed agent documentation
+- 2026-01-13: Added download endpoints for protocol JSON files (SOA USDM, Eligibility Criteria, USDM 4.0) with download buttons on Digital Protocol tabs
+- 2026-01-13: Renamed "Protocol" to "Digital Protocol" in side navigation
 - 2026-01-13: Fixed Dashboard and Safety page routing - added `/study/:studyId/dashboard` route to App.tsx, updated React Query to use staleTime: 0 with refetchOnMount: 'always' for immediate data fetching
 - 2026-01-13: Fixed caching issues for Dashboard, Readiness, and Safety pages - updated global QueryClient settings (refetchOnMount: true, staleTime: 5min) and fixed cache warmup service method calls
 - 2026-01-13: Enhanced Concomitant Meds domain - now shows required medications, rescue/supportive medications, prohibited/restricted meds, washout requirements, drug interactions, herbal supplements policy, and vaccine policy with full detail cards (purpose, timing, dosing, impact on endpoints)

@@ -1,0 +1,953 @@
+import { useState } from 'react'
+import StudyLayout from './StudyLayout'
+import {
+  Database,
+  Bot,
+  FileText,
+  BookOpen,
+  Globe,
+  CheckCircle,
+  Beaker,
+  Sparkles,
+  TrendingUp,
+  Info,
+  AlertTriangle,
+  ChevronRight,
+  Cpu,
+  Network,
+  Layers,
+  Search,
+  Shield,
+  Activity,
+  GitBranch
+} from 'lucide-react'
+
+interface DataAgentsProps {
+  params: { studyId: string }
+}
+
+type TabType = 'data' | 'agents'
+type DataSubTab = 'real' | 'synthetic' | 'models' | 'lineage'
+
+export default function DataAgents({ params }: DataAgentsProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('data')
+  const [dataSubTab, setDataSubTab] = useState<DataSubTab>('real')
+
+  const tabs = [
+    { id: 'data' as const, label: 'Data Sources', icon: Database },
+    { id: 'agents' as const, label: 'Agents', icon: Bot },
+  ]
+
+  const dataSubTabs = [
+    { id: 'real' as const, label: 'Real Data', icon: CheckCircle },
+    { id: 'synthetic' as const, label: 'Synthetic Data', icon: Beaker },
+    { id: 'models' as const, label: 'AI & ML Models', icon: Sparkles },
+    { id: 'lineage' as const, label: 'Data Lineage', icon: GitBranch },
+  ]
+
+  const agents = [
+    {
+      id: 'orchestrator',
+      name: 'Orchestrator Agent',
+      icon: Network,
+      description: 'Central coordinator that routes requests to specialized agents and synthesizes responses',
+      capabilities: ['Request routing', 'Agent coordination', 'Response synthesis', 'Context management'],
+      inputs: ['User queries', 'API requests', 'System events'],
+      outputs: ['Synthesized responses', 'Agent task assignments', 'Execution plans'],
+      level: 0
+    },
+    {
+      id: 'data',
+      name: 'Data Agent',
+      icon: Database,
+      description: 'Processes and analyzes clinical study data from the H-34 Excel dataset',
+      capabilities: ['Patient data retrieval', 'Statistical analysis', 'Data validation', 'Cohort filtering'],
+      inputs: ['H-34 Excel (37 patients)', 'Unified schema', 'Query parameters'],
+      outputs: ['Patient records', 'Aggregate statistics', 'Data quality metrics'],
+      level: 1
+    },
+    {
+      id: 'registry',
+      name: 'Registry Agent',
+      icon: Globe,
+      description: 'Retrieves and compares data against international joint replacement registry benchmarks',
+      capabilities: ['Registry data lookup', 'Benchmark comparison', 'Survival analysis', 'Regional comparison'],
+      inputs: ['Registry YAML (5 registries)', 'Study metrics', 'Comparison parameters'],
+      outputs: ['Registry benchmarks', 'Comparison reports', 'Survival rates'],
+      level: 1
+    },
+    {
+      id: 'literature',
+      name: 'Literature Agent',
+      icon: BookOpen,
+      description: 'Searches and extracts insights from indexed peer-reviewed publications using RAG',
+      capabilities: ['Semantic search', 'Citation retrieval', 'Hazard ratio extraction', 'Evidence synthesis'],
+      inputs: ['Literature PDFs (12)', 'ChromaDB vectors', 'Search queries'],
+      outputs: ['Relevant citations', 'Extracted data points', 'Evidence summaries'],
+      level: 1
+    },
+    {
+      id: 'safety',
+      name: 'Safety Agent',
+      icon: Shield,
+      description: 'Monitors and analyzes adverse events, safety signals, and device-related issues',
+      capabilities: ['AE detection', 'Signal analysis', 'Causality assessment', 'Trend monitoring'],
+      inputs: ['Adverse event data', 'Device reports', 'Safety thresholds'],
+      outputs: ['Safety signals', 'Risk assessments', 'Alert recommendations'],
+      level: 1
+    },
+    {
+      id: 'protocol',
+      name: 'Protocol Agent',
+      icon: FileText,
+      description: 'Validates study conduct against digitized protocol rules and visit windows',
+      capabilities: ['Protocol validation', 'Deviation detection', 'Window checking', 'Compliance scoring'],
+      inputs: ['Protocol YAML rules', 'Visit data', 'Assessment schedules'],
+      outputs: ['Deviations', 'Compliance reports', 'Protocol adherence scores'],
+      level: 1
+    },
+    {
+      id: 'risk',
+      name: 'Risk Agent',
+      icon: Activity,
+      description: 'Predicts patient risk using ML models and literature-based hazard ratios',
+      capabilities: ['Risk prediction', 'Feature extraction', 'Hazard calculation', 'Cohort stratification'],
+      inputs: ['Patient features', 'XGBoost model', 'Literature HRs'],
+      outputs: ['Risk scores', 'Risk levels', 'Contributing factors'],
+      level: 1
+    },
+    {
+      id: 'synthesis',
+      name: 'Synthesis Agent',
+      icon: Sparkles,
+      description: 'Combines outputs from all agents using LLM to generate coherent narratives',
+      capabilities: ['Response generation', 'Context weaving', 'Insight synthesis', 'Natural language output'],
+      inputs: ['Agent outputs', 'LLM context', 'User preferences'],
+      outputs: ['Natural language responses', 'Executive summaries', 'Recommendations'],
+      level: 2
+    },
+  ]
+
+  const renderDataSources = () => (
+    <div className="space-y-6">
+      <div className="flex gap-2 border-b border-gray-100 pb-4">
+        {dataSubTabs.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setDataSubTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                dataSubTab === tab.id
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {dataSubTab === 'real' && (
+        <div className="space-y-6">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Real Data Sources</h3>
+            </div>
+            <p className="text-sm text-gray-600">These data sources contain real, provided data from actual clinical studies, published literature, and curated registry reports.</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">H-34 Clinical Study Data</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-500 w-44">Source File</td>
+                    <td className="py-2 font-mono text-xs text-gray-800">H-34DELTARevisionstudy_export_20250912.xlsx</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">File Size</td>
+                    <td className="py-2 text-gray-800">138 KB (21 Excel sheets)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Patient Count</td>
+                    <td className="py-2 font-medium text-gray-800">37 enrolled patients</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Data Elements</td>
+                    <td className="py-2 text-gray-800">Demographics, preoperative assessments, intraoperative data, surgery details, follow-up visits (6 timepoints), adverse events, HHS/OHS scores, revision outcomes</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Follow-up Schedule</td>
+                    <td className="py-2 text-gray-800">Discharge, 2 months, 6 months, 1 year, 2 years</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Data Loader</td>
+                    <td className="py-2 font-mono text-xs text-gray-600">H34ExcelLoader → Pydantic unified_schema.py</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Published Literature</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-gray-900">12</div>
+                  <div className="text-xs text-gray-500">Peer-reviewed PDFs indexed</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-gray-900">11.8 MB</div>
+                  <div className="text-xs text-gray-500">Total literature corpus</div>
+                </div>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">Publication</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Key Benchmarks Extracted</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-800">Bozic 2015 (n=51,345)</td>
+                    <td className="py-2 text-gray-600 text-xs">2yr revision: 6.2%, hazard ratios for age, BMI, diabetes</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">Della Valle 2020 (n=892)</td>
+                    <td className="py-2 text-gray-600 text-xs">Severe bone loss HR: 2.15, Osteoporosis HR: 2.42</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">Lombardi 2018 (n=456)</td>
+                    <td className="py-2 text-gray-600 text-xs">Paprosky 3B defect HR: 2.85, Smoking HR: 1.52</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">Berry 2022 (n=1,247)</td>
+                    <td className="py-2 text-gray-600 text-xs">RA HR: 1.68, CKD HR: 1.92</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">+ 8 more publications</td>
+                    <td className="py-2 text-gray-600 text-xs">Dixon 2025, Harris 2025, Kinoshita, Meding 2025, etc.</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                <strong>Storage:</strong> literature_benchmarks.yaml (curated), ChromaDB vector store (semantic search)
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Registry Benchmark Data</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA (Curated)</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Values curated from official annual reports of international joint replacement registries.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 text-gray-500 font-medium">Registry</th>
+                      <th className="text-left py-2 text-gray-500 font-medium">Region</th>
+                      <th className="text-right py-2 text-gray-500 font-medium">Procedures</th>
+                      <th className="text-left py-2 text-gray-500 font-medium">Data Years</th>
+                      <th className="text-left py-2 text-gray-500 font-medium">Metrics Available</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">AOANJRR</td>
+                      <td className="py-2 text-gray-600">Australia</td>
+                      <td className="py-2 text-right text-gray-800">45,892</td>
+                      <td className="py-2 text-gray-600">1999-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Survival (1-15yr), revision rates, reasons</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">NJR</td>
+                      <td className="py-2 text-gray-600">UK</td>
+                      <td className="py-2 text-right text-gray-800">38,456</td>
+                      <td className="py-2 text-gray-600">2003-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Survival, outcomes, implant tracking</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">SHAR</td>
+                      <td className="py-2 text-gray-600">Sweden</td>
+                      <td className="py-2 text-right text-gray-800">~25,000</td>
+                      <td className="py-2 text-gray-600">1979-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Long-term survival, PROMs</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">AJRR</td>
+                      <td className="py-2 text-gray-600">USA</td>
+                      <td className="py-2 text-right text-gray-800">~89,000</td>
+                      <td className="py-2 text-gray-600">2012-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision rates, complications</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">CJRR</td>
+                      <td className="py-2 text-gray-600">Canada</td>
+                      <td className="py-2 text-right text-gray-800">~15,000</td>
+                      <td className="py-2 text-gray-600">2001-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision rates, hospital outcomes</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Protocol Rules</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
+              </div>
+            </div>
+            <div className="p-4 text-sm text-gray-600">
+              Protocol rules extracted from H-34 protocol PDF and stored in YAML. Used for visit window validation and deviation detection.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dataSubTab === 'synthetic' && (
+        <div className="space-y-6">
+          <div className="bg-gray-100 border border-gray-300 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Synthetic Data Disclosure</h3>
+            </div>
+            <p className="text-sm text-gray-700">The following data is synthetically generated by this application. All synthetic records are marked with <code className="bg-gray-200 px-1 rounded text-xs">is_synthetic=True</code> for full transparency.</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Beaker className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Synthetic Patient Records</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded">SYNTHETIC</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-600 w-44">Purpose</td>
+                    <td className="py-2 text-gray-800">Data augmentation for ML model training</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Generator</td>
+                    <td className="py-2 font-mono text-xs text-gray-800">SyntheticH34Generator class</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Output File</td>
+                    <td className="py-2 font-mono text-xs text-gray-800">H-34_SYNTHETIC_PRODUCTION.xlsx (353 KB)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Records Generated</td>
+                    <td className="py-2 font-medium text-gray-800">300 synthetic patients</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Based On</td>
+                    <td className="py-2 text-gray-800">Real H-34 data distributions (68% female, age mean 66.4, BMI 28.6)</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-medium text-gray-800 mb-3">Synthetic Data Characteristics</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">Demographics</p>
+                    <p className="text-xs text-gray-600">Randomized within real data ranges</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">HHS Trajectory</p>
+                    <p className="text-xs text-gray-600">Recovery curve model with individual variation</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">Adverse Events</p>
+                    <p className="text-xs text-gray-600">35% AE rate, 80% serious (literature-aligned)</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">Revision Rate</p>
+                    <p className="text-xs text-gray-600">8% (aligned with literature benchmarks)</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">Follow-up Completion</p>
+                    <p className="text-xs text-gray-600">85% at 2mo → 45% at 2yr (realistic dropout)</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="font-medium text-gray-800 text-sm">Transparency Flag</p>
+                    <p className="text-xs text-gray-600">All records marked is_synthetic=True</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <h4 className="font-medium text-gray-800 mb-3">Summary: Real vs Synthetic</h4>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 text-gray-500 font-medium">Data Category</th>
+                  <th className="text-center py-2 text-gray-500 font-medium">Status</th>
+                  <th className="text-left py-2 text-gray-500 font-medium">Volume</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                <tr>
+                  <td className="py-2 text-gray-800">H-34 Study Data (Excel)</td>
+                  <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL</span></td>
+                  <td className="py-2 text-gray-600">37 patients</td>
+                </tr>
+                <tr>
+                  <td className="py-2 text-gray-800">Synthetic Training Data</td>
+                  <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">SYNTHETIC</span></td>
+                  <td className="py-2 text-gray-600">300 patients</td>
+                </tr>
+                <tr>
+                  <td className="py-2 text-gray-800">Literature Benchmarks</td>
+                  <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL</span></td>
+                  <td className="py-2 text-gray-600">12 publications</td>
+                </tr>
+                <tr>
+                  <td className="py-2 text-gray-800">Registry Norms</td>
+                  <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL (Curated)</span></td>
+                  <td className="py-2 text-gray-600">5 registries, 218K+ procedures</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {dataSubTab === 'models' && (
+        <div className="space-y-6">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">AI & ML Architecture</h3>
+            </div>
+            <p className="text-sm text-gray-600">This platform uses an ensemble of foundation LLMs combined with traditional machine learning for risk prediction.</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Foundation LLM Ensemble</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">RAG Architecture</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-500 w-44">Architecture</td>
+                    <td className="py-2 text-gray-800">Ensemble of foundation LLMs with Retrieval-Augmented Generation (RAG)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Orchestration</td>
+                    <td className="py-2 text-gray-800">Multi-agent system with specialized agents (Data, Registry, Literature, Safety, Protocol, Risk)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Context Injection</td>
+                    <td className="py-2 text-gray-800">Clinical data, registry benchmarks, and literature injected at inference time</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Custom Training</td>
+                    <td className="py-2 text-gray-800">None — pre-trained foundation models only. No fine-tuning on patient data.</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Fallback Strategy</td>
+                    <td className="py-2 text-gray-800">Automatic failover to secondary LLM if primary unavailable</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">XGBoost Risk Prediction Model</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">ML - Trained</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-500 w-44">Algorithm</td>
+                    <td className="py-2 text-gray-800">XGBoost Classifier (Gradient Boosting)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Training Data</td>
+                    <td className="py-2 text-gray-800">337 samples (37 real + 300 synthetic patients)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Train/Test Split</td>
+                    <td className="py-2 text-gray-800">80% train / 20% test</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Target Variable</td>
+                    <td className="py-2 text-gray-800">Binary: revision + device removal OR SAE OR severe device-related AE</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Model Files</td>
+                    <td className="py-2 font-mono text-xs text-gray-600">risk_model.joblib, risk_scaler.joblib, model_metadata.json</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="font-medium text-gray-800 mb-3">13 Input Features</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['age', 'bmi', 'is_female', 'is_smoker', 'is_former_smoker', 'has_osteoporosis', 'has_prior_surgery', 'bmi_over_30', 'bmi_over_35', 'age_over_70', 'age_over_80', 'poor_bone_quality', 'surgery_duration_long'].map((f) => (
+                    <span key={f} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-mono">{f}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="font-medium text-gray-800 mb-3">Model Performance</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-xl font-bold text-gray-900">0.54</div>
+                    <div className="text-xs text-gray-500">ROC AUC</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-xl font-bold text-gray-900">58%</div>
+                    <div className="text-xs text-gray-500">Accuracy</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div className="text-xl font-bold text-gray-900">0.51±0.07</div>
+                    <div className="text-xs text-gray-500">CV AUC</div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Note: Modest performance due to small training dataset. Combines with literature hazard ratios for ensemble scoring.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Literature Hazard Ratio Ensemble</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">Statistical</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">Published hazard ratios extracted from peer-reviewed literature via RAG + LLM, combined statistically for risk scoring.</p>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">Risk Factor</th>
+                    <th className="text-right py-2 text-gray-500 font-medium">Hazard Ratio</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Source</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr><td className="py-1.5 text-gray-800">Age &gt;80</td><td className="py-1.5 text-right font-mono text-gray-800">1.45</td><td className="py-1.5 text-gray-500 text-xs">Bozic 2015</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">BMI &gt;35</td><td className="py-1.5 text-right font-mono text-gray-800">1.38</td><td className="py-1.5 text-gray-500 text-xs">Bozic 2015</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Severe bone loss</td><td className="py-1.5 text-right font-mono text-gray-800">2.15</td><td className="py-1.5 text-gray-500 text-xs">Della Valle 2020</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Osteoporosis</td><td className="py-1.5 text-right font-mono text-gray-800">2.42</td><td className="py-1.5 text-gray-500 text-xs">Della Valle 2020</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Paprosky 3B defect</td><td className="py-1.5 text-right font-mono text-gray-800">2.85</td><td className="py-1.5 text-gray-500 text-xs">Lombardi 2018</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Smoking</td><td className="py-1.5 text-right font-mono text-gray-800">1.52</td><td className="py-1.5 text-gray-500 text-xs">Lombardi 2018</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Rheumatoid arthritis</td><td className="py-1.5 text-right font-mono text-gray-800">1.68</td><td className="py-1.5 text-gray-500 text-xs">Berry 2022</td></tr>
+                  <tr><td className="py-1.5 text-gray-800">Chronic kidney disease</td><td className="py-1.5 text-right font-mono text-gray-800">1.92</td><td className="py-1.5 text-gray-500 text-xs">Berry 2022</td></tr>
+                </tbody>
+              </table>
+              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
+                <strong>Ensemble Formula:</strong> Final Risk = 60% × ML Score + 40% × HR Score
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Info className="w-5 h-5 text-gray-400" />
+              <h4 className="font-medium text-gray-700">Deep Learning</h4>
+            </div>
+            <p className="text-sm text-gray-600">No custom deep learning models (neural networks, transformers, CNNs) are used. ChromaDB uses text-embedding-004 for vector indexing only.</p>
+          </div>
+        </div>
+      )}
+
+      {dataSubTab === 'lineage' && (
+        <div className="space-y-6">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <GitBranch className="w-5 h-5 text-gray-600" />
+              <h3 className="font-semibold text-gray-900">Data Flow & Lineage</h3>
+            </div>
+            <p className="text-sm text-gray-600">How data flows from sources through processing to AI agents and user interfaces.</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Data Architecture</h3>
+            </div>
+            <div className="p-4 font-mono text-xs leading-relaxed bg-gray-900 text-gray-100 rounded-lg mx-4 my-4 overflow-x-auto">
+              <pre>{`┌─────────────────────────────────────────────────────────────────────────┐
+│                           DATA SOURCES                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│  H-34 Excel (37 pts)  │  Literature PDFs (12)  │  Registry YAML (5)     │
+│         ↓             │          ↓              │         ↓              │
+│    Excel Loader       │    PDF Extractor        │    YAML Loader         │
+│         ↓             │          ↓              │         ↓              │
+│  Unified Schema       │   Vector Store          │  Registry Agent        │
+│  (Pydantic)           │   (ChromaDB)            │                        │
+└─────────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         AGENT LAYER                                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│  DataAgent  │ RegistryAgent │ LiteratureAgent │ SafetyAgent │ RiskAgent │
+│      ↓             ↓               ↓                ↓             ↓      │
+│                    └───────────────┴────────────────┴─────────────┘      │
+│                                    ↓                                     │
+│                          SynthesisAgent (LLM)                            │
+└─────────────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       ML/RISK SCORING                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Real + Synthetic Data (337)  →  Feature Extraction  →  XGBoost Model   │
+│  Literature Hazard Ratios     →  RiskModel.predict() →  Ensemble Score  │
+│                                                                          │
+│  Final Risk = 60% ML Score + 40% HR Score → Risk Level (High/Med/Low)   │
+└─────────────────────────────────────────────────────────────────────────┘`}</pre>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Source Attribution & Confidence</h3>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">Source Type</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Tracked Metadata</th>
+                    <th className="text-center py-2 text-gray-500 font-medium">Confidence Range</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-800">STUDY_DATA</td>
+                    <td className="py-2 text-gray-600 text-xs">Patient count, file source</td>
+                    <td className="py-2 text-center font-mono text-gray-800">1.0</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">REGISTRY</td>
+                    <td className="py-2 text-gray-600 text-xs">Abbreviation, year, n_procedures, data_years</td>
+                    <td className="py-2 text-center font-mono text-gray-800">0.85-0.98</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">LITERATURE</td>
+                    <td className="py-2 text-gray-600 text-xs">Citation, journal, year, n_patients</td>
+                    <td className="py-2 text-center font-mono text-gray-800">0.80-0.95</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">ML_MODEL</td>
+                    <td className="py-2 text-gray-600 text-xs">Training date, feature list, AUC</td>
+                    <td className="py-2 text-center font-mono text-gray-800">0.54-0.70</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">PROTOCOL</td>
+                    <td className="py-2 text-gray-600 text-xs">Protocol version, rule source</td>
+                    <td className="py-2 text-center font-mono text-gray-800">1.0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Key Data Files</h3>
+            </div>
+            <div className="p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">File</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Location</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Contents</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 font-mono text-xs">
+                  <tr>
+                    <td className="py-2 text-gray-800">H-34DELTARevisionstudy_export_20250912.xlsx</td>
+                    <td className="py-2 text-gray-600">/data/raw/study/</td>
+                    <td className="py-2 text-gray-600">Real patient data</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">H-34_SYNTHETIC_PRODUCTION.xlsx</td>
+                    <td className="py-2 text-gray-600">/data/processed/</td>
+                    <td className="py-2 text-gray-600">Synthetic training data</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">registry_norms.yaml</td>
+                    <td className="py-2 text-gray-600">/data/processed/document_as_code/</td>
+                    <td className="py-2 text-gray-600">Registry benchmarks</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">literature_benchmarks.yaml</td>
+                    <td className="py-2 text-gray-600">/data/processed/document_as_code/</td>
+                    <td className="py-2 text-gray-600">Literature hazard ratios</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-800">risk_model.joblib</td>
+                    <td className="py-2 text-gray-600">/data/ml/</td>
+                    <td className="py-2 text-gray-600">Trained XGBoost model</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-4 flex items-start gap-3 border border-gray-200">
+            <Info className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-gray-600">
+              <p className="font-medium text-gray-700 mb-1">Production Deployment</p>
+              <p>In production, this platform would integrate with validated clinical databases (EDC, CTMS, safety databases) through secure APIs with full audit trails, role-based access control, and 21 CFR Part 11 compliance.</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  const renderAgents = () => (
+    <div className="space-y-8">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Bot className="w-5 h-5 text-gray-600" />
+          <h3 className="font-semibold text-gray-900">Multi-Agent Architecture</h3>
+        </div>
+        <p className="text-sm text-gray-600">The platform uses specialized AI agents that work together to analyze clinical data, compare against benchmarks, and generate insights.</p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gray-900 px-4 py-3">
+          <h3 className="font-semibold text-white text-sm">System Architecture</h3>
+        </div>
+        <div className="p-6 bg-gray-50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-full max-w-2xl">
+              <div className="bg-gray-900 text-white rounded-xl p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Cpu className="w-5 h-5" />
+                  <span className="font-semibold">Orchestrator Agent</span>
+                </div>
+                <p className="text-xs text-gray-400">Central coordinator & request router</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-gray-400">
+              <div className="w-px h-6 bg-gray-300"></div>
+            </div>
+            
+            <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 w-full">
+              {agents.filter(a => a.level === 1).map((agent) => {
+                const Icon = agent.icon
+                return (
+                  <div key={agent.id} className="bg-white border border-gray-200 rounded-lg p-3 text-center hover:border-gray-400 transition-colors">
+                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                      <Icon className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <p className="text-xs font-medium text-gray-800">{agent.name.replace(' Agent', '')}</p>
+                  </div>
+                )
+              })}
+            </div>
+            
+            <div className="flex items-center gap-2 text-gray-400">
+              <div className="w-px h-6 bg-gray-300"></div>
+            </div>
+            
+            <div className="w-full max-w-md">
+              <div className="bg-gray-800 text-white rounded-xl p-4 text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Sparkles className="w-5 h-5" />
+                  <span className="font-semibold">Synthesis Agent</span>
+                </div>
+                <p className="text-xs text-gray-400">LLM-powered response generation</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-gray-400">
+              <div className="w-px h-6 bg-gray-300"></div>
+            </div>
+            
+            <div className="w-full max-w-lg grid grid-cols-3 gap-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                <Layers className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                <p className="text-xs text-gray-600">Dashboard</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                <Search className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                <p className="text-xs text-gray-600">Chat Interface</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                <FileText className="w-5 h-5 text-gray-400 mx-auto mb-1" />
+                <p className="text-xs text-gray-600">Reports</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-semibold text-gray-900">Agent Details</h3>
+        {agents.map((agent) => {
+          const Icon = agent.icon
+          return (
+            <div key={agent.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="p-4 flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  agent.level === 0 ? 'bg-gray-900' : agent.level === 2 ? 'bg-gray-800' : 'bg-gray-100'
+                }`}>
+                  <Icon className={`w-6 h-6 ${agent.level === 0 || agent.level === 2 ? 'text-white' : 'text-gray-600'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-gray-900">{agent.name}</h4>
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                      agent.level === 0 ? 'bg-gray-900 text-white' : 
+                      agent.level === 2 ? 'bg-gray-800 text-white' : 
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {agent.level === 0 ? 'COORDINATOR' : agent.level === 2 ? 'SYNTHESIS' : 'SPECIALIST'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">{agent.description}</p>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase mb-2">Capabilities</p>
+                      <ul className="space-y-1">
+                        {agent.capabilities.map((cap, i) => (
+                          <li key={i} className="flex items-center gap-1.5 text-xs text-gray-700">
+                            <ChevronRight className="w-3 h-3 text-gray-400" />
+                            {cap}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase mb-2">Inputs</p>
+                      <ul className="space-y-1">
+                        {agent.inputs.map((input, i) => (
+                          <li key={i} className="text-xs text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded">{input}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 uppercase mb-2">Outputs</p>
+                      <ul className="space-y-1">
+                        {agent.outputs.map((output, i) => (
+                          <li key={i} className="text-xs text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded">{output}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="bg-gray-50 rounded-xl p-4 flex items-start gap-3 border border-gray-200">
+        <Info className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+        <div className="text-xs text-gray-600">
+          <p className="font-medium text-gray-700 mb-1">Agent Communication</p>
+          <p>Agents communicate through a message-passing architecture. The Orchestrator routes requests to appropriate specialists, collects their outputs, and the Synthesis Agent generates coherent responses using the Gemini LLM.</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <StudyLayout studyId={params.studyId}>
+      <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Data & Agents</h1>
+          <p className="text-gray-500 mt-1">Data sources, AI models, and agent architecture</p>
+        </div>
+
+        <div className="flex gap-2 border-b border-gray-200 pb-4">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {activeTab === 'data' && renderDataSources()}
+        {activeTab === 'agents' && renderAgents()}
+      </div>
+    </StudyLayout>
+  )
+}

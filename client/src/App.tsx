@@ -6,6 +6,7 @@ import StudySafety from './pages/StudySafety'
 import StudyDeviations from './pages/StudyDeviations'
 import StudyRisk from './pages/StudyRisk'
 import StudyProtocol from './pages/StudyProtocol'
+import DataAgents from './pages/DataAgents'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/study/:studyId/deviations" component={StudyDeviations} />
       <Route path="/study/:studyId/risk" component={StudyRisk} />
       <Route path="/study/:studyId/protocol" component={StudyProtocol} />
+      <Route path="/study/:studyId/data-agents">{(params) => <DataAgents params={params} />}</Route>
     </Switch>
   )
 }
