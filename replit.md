@@ -82,6 +82,7 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
+- 2026-01-13: Redesigned Protocol Domains tab with modern UI - insight pills in card headers, visual timeline for study epochs, premium arm cards with interventions, improved generic renderer with better visual hierarchy, Apple-inspired greyscale styling
 - 2026-01-13: Migrated vector store from ChromaDB to PostgreSQL with pgvector - using Replit's managed database for persistent vector embeddings storage with HNSW index
 - 2026-01-13: Enhanced Data & Agents page - added Protocol-as-Code & USDM JSON data section (soa_usdm.json, eligibility_criteria.json, usdm_4.0.json), Vector Store & Semantic Index section, Structured Rules (YAML) section, and data sources layer in architecture diagram with agent mapping table
 - 2026-01-13: Added expandable detail rows to Safety Metrics table - clicking on active signals (Dislocation Rate, Fracture Rate) expands to show Affected Patients (with contributing factors), Literature Context (benchmarks from literature_benchmarks), and Recommendations panels
