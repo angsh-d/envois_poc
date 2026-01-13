@@ -1,5 +1,5 @@
 import { Link } from 'wouter'
-import { ArrowRight, Brain, Shield, Activity, Users } from 'lucide-react'
+import { ArrowRight, Brain, Shield, Activity, Users, Sparkles, Zap, Network, Database } from 'lucide-react'
 import { Card } from '@/components/Card'
 import { Navbar } from '@/components/Navbar'
 
@@ -17,24 +17,31 @@ const studies = [
 const features = [
   {
     icon: Brain,
-    title: 'AI-Powered Insights',
-    description: 'Multi-agent system analyzing study data, protocol, literature, and registry benchmarks',
+    title: 'Multi-Agent Intelligence',
+    description: 'Six specialized AI agents orchestrated in real-time: Data, Registry, Literature, Safety, Protocol, and Synthesis agents working in concert',
   },
   {
     icon: Shield,
     title: 'Regulatory Readiness',
-    description: 'Real-time gap analysis with automated submission readiness assessment',
+    description: 'Continuous gap analysis against FDA/EMA requirements with automated submission readiness scoring and actionable remediation paths',
   },
   {
     icon: Activity,
-    title: 'Safety Intelligence',
-    description: 'Cross-source contextualization of adverse events with literature and registry data',
+    title: 'Safety Signal Detection',
+    description: 'Cross-source contextualization of adverse events against 5 global registries, 6 literature benchmarks, and protocol thresholds',
   },
   {
     icon: Users,
-    title: 'Patient Risk Stratification',
-    description: 'ML-powered risk scoring with explainable factors and monitoring recommendations',
+    title: 'Predictive Risk Stratification',
+    description: 'Ensemble ML model combining XGBoost predictions with literature-derived hazard ratios for explainable patient risk scoring',
   },
+]
+
+const capabilities = [
+  { icon: Network, label: 'Protocol-as-Code', desc: 'USDM 4.0 digitization' },
+  { icon: Database, label: 'Unified Data Layer', desc: 'PostgreSQL + pgvector' },
+  { icon: Zap, label: 'Real-time RAG', desc: 'Semantic literature search' },
+  { icon: Sparkles, label: 'LLM Synthesis', desc: 'Gemini-powered narratives' },
 ]
 
 export default function Landing() {
@@ -43,16 +50,29 @@ export default function Landing() {
       <Navbar />
 
       <main>
-        <section className="py-24 px-6">
-          <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
-            <h1 className="text-5xl md:text-6xl font-semibold text-gray-900 tracking-tight leading-tight">
-              Clinical Intelligence
+        <section className="py-20 px-6 bg-gradient-to-b from-white to-gray-50">
+          <div className="max-w-5xl mx-auto text-center animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm text-gray-600 mb-8">
+              <Sparkles className="w-4 h-4" />
+              <span>Powered by Multi-Agent AI Architecture</span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-semibold text-gray-900 tracking-tight leading-[1.1]">
+              Transforming Clinical Data
               <br />
-              <span className="text-gray-400">Platform</span>
+              <span className="bg-gradient-to-r from-gray-600 to-gray-400 bg-clip-text text-transparent">Into Regulatory Intelligence</span>
             </h1>
-            <p className="mt-6 text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-              AI-powered insights for post-market clinical studies. Transform disparate data sources into actionable regulatory intelligence.
+            <p className="mt-8 text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
+              The first AI-native platform that unifies study data, global registry benchmarks, published literature, and digitized protocols into a single source of clinical truth.
             </p>
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
+              {capabilities.map((cap) => (
+                <div key={cap.label} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm">
+                  <cap.icon className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700">{cap.label}</span>
+                  <span className="text-xs text-gray-400">{cap.desc}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
