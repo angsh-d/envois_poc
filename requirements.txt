@@ -97,3 +97,5 @@ tenacity
 tqdm
 uvicorn
 xlrd
+pgvector
+psycopg2-binary

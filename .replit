@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["freetype", "glibcLocales", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "libxcrypt", "libyaml", "mupdf", "openjpeg", "pkg-config", "swig", "xcbuild", "xsimd"]
+packages = ["freetype", "glibcLocales", "gumbo", "harfbuzz", "jbig2dec", "libjpeg_turbo", "libxcrypt", "libyaml", "mupdf", "openjpeg", "pkg-config", "postgresql", "swig", "xcbuild", "xsimd"]
 
 [workflows]
 runButton = "Project"
