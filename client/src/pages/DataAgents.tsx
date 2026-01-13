@@ -331,13 +331,138 @@ export default function DataAgents({ params }: DataAgentsProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-gray-600" />
-                  <h3 className="font-semibold text-gray-900">Protocol Rules</h3>
+                  <h3 className="font-semibold text-gray-900">Protocol-as-Code & USDM Data</h3>
                 </div>
                 <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
               </div>
             </div>
-            <div className="p-4 text-sm text-gray-600">
-              Protocol rules extracted from H-34 protocol PDF and stored in YAML. Used for visit window validation and deviation detection.
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                The clinical study protocol has been digitized into machine-readable formats following the CDISC Unified Study Definitions Model (USDM) standard.
+              </p>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-gray-900">3</div>
+                  <div className="text-xs text-gray-500">USDM JSON files</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-2xl font-bold text-gray-900">USDM 4.0</div>
+                  <div className="text-xs text-gray-500">Standard version</div>
+                </div>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 text-gray-500 font-medium">File</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">Description</th>
+                    <th className="text-right py-2 text-gray-500 font-medium">Elements</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 font-mono text-xs text-gray-800">soa_usdm.json</td>
+                    <td className="py-2 text-gray-600 text-xs">Schedule of Activities - visits, procedures, timing windows</td>
+                    <td className="py-2 text-right text-gray-800">6 visits, 15+ procedures</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-mono text-xs text-gray-800">eligibility_criteria.json</td>
+                    <td className="py-2 text-gray-600 text-xs">Inclusion/exclusion criteria with coded terms</td>
+                    <td className="py-2 text-right text-gray-800">12 inclusion, 8 exclusion</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 font-mono text-xs text-gray-800">usdm_4.0.json</td>
+                    <td className="py-2 text-gray-600 text-xs">Full protocol digitization with study design, endpoints, domains</td>
+                    <td className="py-2 text-right text-gray-800">Complete protocol</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-medium text-gray-800 mb-3">Protocol Domains Extracted</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['Laboratory Tests', 'Physical Exam', 'Imaging', 'PROs (HHS/OHS)', 'Adverse Events', 'Concomitant Meds', 'Surgical Details', 'Follow-up Windows'].map((domain, i) => (
+                    <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-lg">{domain}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                <strong>Storage:</strong> data/raw/protocol/*.json | <strong>Standard:</strong> CDISC USDM 4.0 | <strong>Used by:</strong> Protocol Agent, Deviation Detection
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Vector Store & Semantic Index</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">DATA STORE</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Literature and protocol documents are embedded and stored in ChromaDB for semantic retrieval.
+              </p>
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="py-2 text-gray-500 w-44">Vector Database</td>
+                    <td className="py-2 text-gray-800">ChromaDB (persistent)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Embedding Model</td>
+                    <td className="py-2 font-mono text-xs text-gray-800">all-MiniLM-L6-v2 (384 dimensions)</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Documents Indexed</td>
+                    <td className="py-2 text-gray-800">12 literature PDFs + protocol sections</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Storage Location</td>
+                    <td className="py-2 font-mono text-xs text-gray-600">data/vectorstore/</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-500">Used By</td>
+                    <td className="py-2 text-gray-800">Literature Agent (RAG), Chat Interface</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-600" />
+                  <h3 className="font-semibold text-gray-900">Structured Rules (YAML)</h3>
+                </div>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">REAL DATA</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Protocol rules and benchmarks curated from source documents and stored as structured YAML.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p className="font-medium text-gray-800 text-sm font-mono">protocol_rules.yaml</p>
+                  <p className="text-xs text-gray-600">Visit windows, assessments, timing rules</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p className="font-medium text-gray-800 text-sm font-mono">literature_benchmarks.yaml</p>
+                  <p className="text-xs text-gray-600">Extracted hazard ratios, survival rates</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p className="font-medium text-gray-800 text-sm font-mono">registry_norms.yaml</p>
+                  <p className="text-xs text-gray-600">International registry benchmarks</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <p className="font-medium text-gray-800 text-sm font-mono">safety_thresholds.yaml</p>
+                  <p className="text-xs text-gray-600">AE thresholds, signal detection rules</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -766,6 +891,15 @@ export default function DataAgents({ params }: DataAgentsProps) {
     </div>
   )
 
+  const dataSources = [
+    { id: 'h34-data', name: 'H-34 Study Data', icon: FileText, type: 'Structured', format: 'Excel', agents: ['data', 'safety', 'risk'] },
+    { id: 'protocol-usdm', name: 'Protocol (USDM)', icon: FileText, type: 'Protocol-as-Code', format: 'JSON', agents: ['protocol'] },
+    { id: 'literature', name: 'Literature PDFs', icon: BookOpen, type: 'Unstructured', format: 'PDF → Vectors', agents: ['literature'] },
+    { id: 'registry', name: 'Registry Norms', icon: Globe, type: 'Curated', format: 'YAML', agents: ['registry'] },
+    { id: 'vectorstore', name: 'Vector Store', icon: Layers, type: 'Embeddings', format: 'ChromaDB', agents: ['literature', 'protocol'] },
+    { id: 'rules', name: 'Safety Thresholds', icon: Shield, type: 'Rules', format: 'YAML', agents: ['safety'] },
+  ]
+
   const renderAgents = () => (
     <div className="space-y-8">
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -782,6 +916,28 @@ export default function DataAgents({ params }: DataAgentsProps) {
         </div>
         <div className="p-6 bg-gray-50">
           <div className="flex flex-col items-center gap-4">
+            <div className="w-full">
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3 text-center font-medium">Data Sources</p>
+              <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
+                {dataSources.map((source) => {
+                  const Icon = source.icon
+                  return (
+                    <div key={source.id} className="bg-white border border-gray-300 rounded-lg p-2 text-center border-dashed">
+                      <div className="w-6 h-6 bg-gray-50 rounded flex items-center justify-center mx-auto mb-1">
+                        <Icon className="w-3 h-3 text-gray-500" />
+                      </div>
+                      <p className="text-[10px] font-medium text-gray-700 leading-tight">{source.name}</p>
+                      <p className="text-[9px] text-gray-400">{source.format}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-400">
+              <div className="w-px h-4 bg-gray-300"></div>
+            </div>
+
             <div className="w-full max-w-2xl">
               <div className="bg-gray-900 text-white rounded-xl p-4 text-center">
                 <div className="flex items-center justify-center gap-2 mb-1">
@@ -799,12 +955,20 @@ export default function DataAgents({ params }: DataAgentsProps) {
             <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 w-full">
               {agents.filter(a => a.level === 1).map((agent) => {
                 const Icon = agent.icon
+                const agentSources = dataSources.filter(s => s.agents.includes(agent.id))
                 return (
-                  <div key={agent.id} className="bg-white border border-gray-200 rounded-lg p-3 text-center hover:border-gray-400 transition-colors">
+                  <div key={agent.id} className="bg-white border border-gray-200 rounded-lg p-3 text-center hover:border-gray-400 transition-colors group">
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
                       <Icon className="w-4 h-4 text-gray-600" />
                     </div>
                     <p className="text-xs font-medium text-gray-800">{agent.name.replace(' Agent', '')}</p>
+                    {agentSources.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap justify-center gap-1">
+                        {agentSources.slice(0, 2).map((s) => (
+                          <span key={s.id} className="text-[8px] px-1 py-0.5 bg-gray-100 text-gray-500 rounded">{s.format.split(' ')[0]}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -843,6 +1007,40 @@ export default function DataAgents({ params }: DataAgentsProps) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900 text-sm">Data Sources → Agent Mapping</h3>
+        </div>
+        <div className="p-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-2 text-gray-500 font-medium">Data Source</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Type</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Format</th>
+                <th className="text-left py-2 text-gray-500 font-medium">Used By Agents</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {dataSources.map((source) => (
+                <tr key={source.id}>
+                  <td className="py-2 font-medium text-gray-800">{source.name}</td>
+                  <td className="py-2 text-gray-600">{source.type}</td>
+                  <td className="py-2 font-mono text-xs text-gray-600">{source.format}</td>
+                  <td className="py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {source.agents.map((a) => (
+                        <span key={a} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded capitalize">{a}</span>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
