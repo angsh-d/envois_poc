@@ -7,7 +7,7 @@ interface ResponseDisplayProps {
 }
 
 // Content block types - enhanced for new registry data
-type BlockType = 'text' | 'metric' | 'comparison' | 'table' | 'list' | 'alert' | 'highlight' | 'threshold' | 'registry' | 'revision'
+type BlockType = 'text' | 'metric' | 'comparison' | 'table' | 'list' | 'alert' | 'highlight' | 'threshold' | 'registry' | 'revision' | 'heading'
 
 interface ContentBlock {
   type: BlockType
@@ -43,6 +43,17 @@ function parseContent(content: string): ContentBlock[] {
         blocks.push({ type: 'text', content: currentTextBlock.trim() })
         currentTextBlock = ''
       }
+      continue
+    }
+
+    // Detect markdown headings (### Heading)
+    const headingMatch = trimmedLine.match(/^(#{1,4})\s+(.+)$/)
+    if (headingMatch) {
+      if (currentTextBlock) {
+        blocks.push({ type: 'text', content: currentTextBlock.trim() })
+        currentTextBlock = ''
+      }
+      blocks.push({ type: 'heading', content: headingMatch[2], data: { level: headingMatch[1].length } })
       continue
     }
 
@@ -513,7 +524,7 @@ export function ResponseDisplay({ content, isExpanded = false }: ResponseDisplay
               {block.items.map((item, j) => (
                 <li key={j} className="flex items-start gap-2 text-[13px] text-gray-700">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#007aff] mt-2 flex-shrink-0" />
-                  <span>{item}</span>
+                  <span>{parseMarkdown(item)}</span>
                 </li>
               ))}
             </ul>
@@ -521,6 +532,20 @@ export function ResponseDisplay({ content, isExpanded = false }: ResponseDisplay
         }
 
         switch (block.type) {
+          case 'heading': {
+            const level = (block.data?.level as number) || 3
+            const headingClasses = {
+              1: 'text-xl font-bold text-gray-900 mt-4 mb-2',
+              2: 'text-lg font-semibold text-gray-900 mt-3 mb-2',
+              3: 'text-[15px] font-semibold text-gray-800 mt-3 mb-1',
+              4: 'text-[14px] font-medium text-gray-700 mt-2 mb-1',
+            }
+            return (
+              <h3 key={i} className={headingClasses[level as keyof typeof headingClasses] || headingClasses[3]}>
+                {parseMarkdown(block.content)}
+              </h3>
+            )
+          }
           case 'threshold':
             return <ThresholdAlert key={i} content={block.content} />
 
