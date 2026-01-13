@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader, StatCard } from '@/components/Card'
 import { Badge } from '@/components/Badge'
+import { DashboardSkeleton } from '@/components/Skeleton'
 import {
   fetchDashboardExecutiveSummary,
   fetchDashboardStudyProgress,
@@ -814,8 +815,13 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full" />
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Executive Dashboard</h1>
+          <p className="text-gray-500 mt-1">H-34 DELTA Revision Cup Study Overview</p>
+        </div>
+        <DashboardSkeleton />
+        <p className="text-center text-sm text-gray-400 mt-4">Loading dashboard data... This may take a moment on first visit.</p>
       </div>
     )
   }

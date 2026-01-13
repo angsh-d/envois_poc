@@ -13,6 +13,7 @@ import asyncio
 
 from app.config import settings
 from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization
+from app.services.cache_service import warmup_cache, start_background_refresh, get_cache_service
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -53,6 +54,12 @@ http_client = httpx.AsyncClient(base_url=VITE_DEV_URL, timeout=60.0)
 async def startup_event():
     """Initialize resources on startup."""
     settings.get_log_dir()
+    
+    # Start cache warmup in background (non-blocking)
+    asyncio.create_task(warmup_cache())
+    
+    # Start periodic refresh task
+    asyncio.create_task(start_background_refresh(interval_minutes=15))
 
 
 @app.on_event("shutdown")

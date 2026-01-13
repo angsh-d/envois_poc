@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from app.services.dashboard_service import get_dashboard_service
+from app.services.cache_service import get_cache_service
 
 router = APIRouter()
 
@@ -129,8 +130,15 @@ async def get_executive_summary() -> ExecutiveSummaryResponse:
     - Key findings across all data sources
     - AI-generated narrative synthesis
     """
+    cache = get_cache_service()
+    cached = await cache.get("executive-summary")
+    
+    if cached and cached.get("data"):
+        return ExecutiveSummaryResponse(**cached["data"])
+    
     service = get_dashboard_service()
     result = await service.get_executive_summary()
+    await cache.set("executive-summary", result)
 
     return ExecutiveSummaryResponse(**result)
 
@@ -142,8 +150,15 @@ async def get_study_progress() -> StudyProgressResponse:
 
     Returns enrollment, follow-up, and completion status.
     """
+    cache = get_cache_service()
+    cached = await cache.get("study-progress")
+    
+    if cached and cached.get("data"):
+        return StudyProgressResponse(**cached["data"])
+    
     service = get_dashboard_service()
     result = await service.get_study_progress()
+    await cache.set("study-progress", result)
 
     return StudyProgressResponse(**result)
 
@@ -181,8 +196,15 @@ async def get_data_quality_summary() -> DataQualityResponse:
 
     Returns quality assessment by domain.
     """
+    cache = get_cache_service()
+    cached = await cache.get("data-quality")
+    
+    if cached and cached.get("data"):
+        return DataQualityResponse(**cached["data"])
+    
     service = get_dashboard_service()
     result = await service.get_data_quality_summary()
+    await cache.set("data-quality", result)
 
     return DataQualityResponse(**result)
 
@@ -194,8 +216,15 @@ async def get_safety_dashboard() -> SafetyDashboardResponse:
 
     Returns safety signals, metrics, and DSMB status.
     """
+    cache = get_cache_service()
+    cached = await cache.get("safety-dashboard")
+    
+    if cached and cached.get("data"):
+        return SafetyDashboardResponse(**cached["data"])
+    
     service = get_dashboard_service()
     result = await service.get_safety_dashboard()
+    await cache.set("safety-dashboard", result)
 
     return SafetyDashboardResponse(**result)
 
@@ -209,8 +238,15 @@ async def get_benchmark_comparison() -> BenchmarkComparisonResponse:
     - Literature benchmarks
     - Registry population norms
     """
+    cache = get_cache_service()
+    cached = await cache.get("benchmarks")
+    
+    if cached and cached.get("data"):
+        return BenchmarkComparisonResponse(**cached["data"])
+    
     service = get_dashboard_service()
     result = await service.get_benchmark_comparison()
+    await cache.set("benchmarks", result)
 
     return BenchmarkComparisonResponse(**result)
 
