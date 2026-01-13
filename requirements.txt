@@ -13,12 +13,10 @@ google-generativeai>=0.8.0
 openai>=1.0.0
 langchain>=0.3.0
 langchain-google-genai>=2.0.0
-langchain-openai>=0.2.0
 langgraph>=0.2.0
 
-# Vector Store and Embeddings
+# Vector Store (ChromaDB with default embeddings - no PyTorch needed)
 chromadb>=0.5.0
-sentence-transformers>=3.0.0
 
 # Web Framework
 fastapi>=0.115.0
@@ -26,74 +24,17 @@ uvicorn>=0.30.0
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
-# UI
-streamlit>=1.40.0
-
 # Utilities
 python-dotenv>=1.0.0
 pyyaml>=6.0.0
 httpx>=0.27.0
 tenacity>=8.2.0
 tqdm>=4.66.0
+websockets>=12.0
 
-# Statistics
+# Statistics (lightweight)
 scipy>=1.11.0
-statsmodels>=0.14.0
 
-# Testing
-pytest>=8.0.0
-pytest-asyncio>=0.24.0
-chromadb
-fastapi
-google-generativeai
-httpx
-langchain
-langchain-google-genai
-langchain-openai
-langgraph
-numpy
-openai
-openpyxl
-pandas
-pdfplumber
-pydantic
-pydantic-settings
-PyMuPDF
-pytest
-pytest-asyncio
-python-dotenv
-pyyaml
-scipy
-sentence-transformers
-statsmodels
-tenacity
-tqdm
-uvicorn
-xlrd
-chromadb
-fastapi
-google-generativeai
-httpx
-langchain
-langchain-google-genai
-langchain-openai
-langgraph
-numpy
-openai
-openpyxl
-pandas
-pdfplumber
-pydantic
-pydantic-settings
-PyMuPDF
-pytest
-pytest-asyncio
-python-dotenv
-pyyaml
-scipy
-sentence-transformers
-statsmodels
-tenacity
-tqdm
-uvicorn
-xlrd
+# Machine Learning (lightweight - sklearn for risk model)
+scikit-learn>=1.4.0
+joblib>=1.3.0

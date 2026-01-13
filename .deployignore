@@ -1,0 +1,54 @@
+# Exclude large data files from deployment
+data/vectorstore/
+data/ml/
+data/raw/
+data/processed/
+
+# Python libraries and cache (will be rebuilt during deployment)
+.pythonlibs/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env/
+env/
+.upm/
+
+# Node modules (will be rebuilt during deployment)
+node_modules/
+
+# Development files
+*.log
+*.tmp
+.git/
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+tests/
+test/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Temporary and cache files
+.cache/
+tmp/
+temp/
+*.sqlite
+*.db
+
+# Attached assets (development only)
+attached_assets/
