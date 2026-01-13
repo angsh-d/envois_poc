@@ -3,19 +3,21 @@ Clinical Intelligence Platform - FastAPI Application
 Main entry point for the API server.
 """
 import os
-import httpx
+import asyncio
+from pathlib import Path
+
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, StreamingResponse
-from starlette.background import BackgroundTask
-import websockets
-import asyncio
+from fastapi.responses import Response, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization
 from app.services.cache_service import warmup_cache, start_background_refresh, get_cache_service
 
-# Initialize FastAPI app
+IS_PRODUCTION = os.getenv("REPL_DEPLOYMENT", "").lower() == "true" or os.getenv("PRODUCTION", "").lower() == "true"
+STATIC_DIR = Path(__file__).parent.parent / "client" / "dist"
+
 app = FastAPI(
     title="Clinical Intelligence Platform API",
     description="AI-powered clinical study analytics for H-34 DELTA Revision Cup Study",
@@ -24,7 +26,6 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(health.router, tags=["Health"])
 app.include_router(uc1_readiness.router, prefix="/api/v1/uc1", tags=["UC1: Regulatory Readiness"])
 app.include_router(uc2_safety.router, prefix="/api/v1/uc2", tags=["UC2: Safety Signals"])
@@ -43,33 +43,38 @@ app.include_router(uc5_dashboard.router, prefix="/api/v1/uc5", tags=["UC5: Execu
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(protocol_digitization.router, prefix="/api/v1/protocol", tags=["Protocol Digitization"])
 
-# Vite dev server URL for proxying frontend requests
-VITE_DEV_URL = os.getenv("VITE_DEV_URL", "http://127.0.0.1:5173")
+http_client = None
 
-# HTTP client for proxying to Vite
-http_client = httpx.AsyncClient(base_url=VITE_DEV_URL, timeout=60.0)
+if IS_PRODUCTION:
+    if STATIC_DIR.exists():
+        app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+else:
+    import httpx
+    VITE_DEV_URL = os.getenv("VITE_DEV_URL", "http://127.0.0.1:5173")
+    http_client = httpx.AsyncClient(base_url=VITE_DEV_URL, timeout=60.0)
 
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize resources on startup."""
     settings.get_log_dir()
-    
-    # Start cache warmup in background (non-blocking)
     asyncio.create_task(warmup_cache())
-    
-    # Start periodic refresh task
     asyncio.create_task(start_background_refresh(interval_minutes=15))
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown."""
-    await http_client.aclose()
+    global http_client
+    if http_client:
+        await http_client.aclose()
 
 
 async def _proxy_request_to_vite(request: Request, path: str):
     """Internal function to proxy requests to Vite dev server."""
+    if http_client is None:
+        return Response(content="Vite proxy not available in production", status_code=500)
+    
     url = f"/{path}"
     if request.query_params:
         url = f"{url}?{request.query_params}"
@@ -97,88 +102,106 @@ async def _proxy_request_to_vite(request: Request, path: str):
             headers=response_headers,
             media_type=response.headers.get("content-type"),
         )
-    except httpx.RequestError as e:
+    except Exception as e:
         return Response(content=f"Vite server not available: {e}", status_code=502)
 
 
-# Explicit frontend routes - proxy to Vite dev server
+def serve_spa():
+    """Serve index.html for SPA routing in production."""
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path, media_type="text/html")
+    return HTMLResponse("<h1>Build not found. Run 'npm run build' in client/</h1>", status_code=404)
+
+
 @app.get("/")
 async def root(request: Request):
+    if IS_PRODUCTION:
+        return serve_spa()
     return await _proxy_request_to_vite(request, "")
+
 
 @app.get("/study/{study_id}")
 async def study_page(request: Request, study_id: str):
+    if IS_PRODUCTION:
+        return serve_spa()
     return await _proxy_request_to_vite(request, f"study/{study_id}")
+
 
 @app.get("/study/{study_id}/{path:path}")
 async def study_subpages(request: Request, study_id: str, path: str):
+    if IS_PRODUCTION:
+        return serve_spa()
     return await _proxy_request_to_vite(request, f"study/{study_id}/{path}")
 
-@app.get("/src/{path:path}")
-async def src_files(request: Request, path: str):
-    return await _proxy_request_to_vite(request, f"src/{path}")
 
-@app.get("/node_modules/{path:path}")
-async def node_modules(request: Request, path: str):
-    return await _proxy_request_to_vite(request, f"node_modules/{path}")
+if not IS_PRODUCTION:
+    @app.get("/src/{path:path}")
+    async def src_files(request: Request, path: str):
+        return await _proxy_request_to_vite(request, f"src/{path}")
 
-@app.get("/@vite/{path:path}")
-async def vite_internal(request: Request, path: str):
-    return await _proxy_request_to_vite(request, f"@vite/{path}")
+    @app.get("/node_modules/{path:path}")
+    async def node_modules(request: Request, path: str):
+        return await _proxy_request_to_vite(request, f"node_modules/{path}")
 
-@app.get("/@react-refresh")
-async def react_refresh(request: Request):
-    return await _proxy_request_to_vite(request, "@react-refresh")
+    @app.get("/@vite/{path:path}")
+    async def vite_internal(request: Request, path: str):
+        return await _proxy_request_to_vite(request, f"@vite/{path}")
 
-@app.get("/vite.svg")
-async def vite_svg(request: Request):
-    return await _proxy_request_to_vite(request, "vite.svg")
+    @app.get("/@react-refresh")
+    async def react_refresh(request: Request):
+        return await _proxy_request_to_vite(request, "@react-refresh")
 
-@app.get("/assets/{path:path}")
-async def assets(request: Request, path: str):
-    return await _proxy_request_to_vite(request, f"assets/{path}")
+    @app.get("/vite.svg")
+    async def vite_svg(request: Request):
+        return await _proxy_request_to_vite(request, "vite.svg")
 
+    @app.get("/assets/{path:path}")
+    async def assets(request: Request, path: str):
+        return await _proxy_request_to_vite(request, f"assets/{path}")
 
-@app.websocket("/")
-async def websocket_proxy(websocket: WebSocket):
-    """Proxy WebSocket connections to Vite dev server for HMR."""
-    subprotocol = None
-    if 'sec-websocket-protocol' in websocket.headers:
-        subprotocol = websocket.headers['sec-websocket-protocol'].split(',')[0].strip()
-    
-    await websocket.accept(subprotocol=subprotocol)
-    try:
-        vite_ws_url = "ws://127.0.0.1:5173/"
-        if websocket.query_params:
-            vite_ws_url = f"{vite_ws_url}?{websocket.query_params}"
+    import websockets
+
+    @app.websocket("/")
+    async def websocket_proxy(websocket: WebSocket):
+        """Proxy WebSocket connections to Vite dev server for HMR."""
+        subprotocol = None
+        if 'sec-websocket-protocol' in websocket.headers:
+            subprotocol = websocket.headers['sec-websocket-protocol'].split(',')[0].strip()
         
-        ws_kwargs = {}
-        if subprotocol:
-            ws_kwargs['subprotocols'] = [subprotocol]
-        
-        async with websockets.connect(vite_ws_url, **ws_kwargs) as vite_ws:
-            async def forward_to_vite():
-                try:
-                    async for message in websocket.iter_text():
-                        await vite_ws.send(message)
-                except Exception:
-                    pass
-            
-            async def forward_to_client():
-                try:
-                    async for message in vite_ws:
-                        await websocket.send_text(message)
-                except Exception:
-                    pass
-            
-            await asyncio.gather(forward_to_vite(), forward_to_client())
-    except Exception as e:
-        pass
-    finally:
+        await websocket.accept(subprotocol=subprotocol)
         try:
-            await websocket.close()
+            vite_ws_url = "ws://127.0.0.1:5173/"
+            if websocket.query_params:
+                vite_ws_url = f"{vite_ws_url}?{websocket.query_params}"
+            
+            ws_kwargs = {}
+            if subprotocol:
+                ws_kwargs['subprotocols'] = [subprotocol]
+            
+            async with websockets.connect(vite_ws_url, **ws_kwargs) as vite_ws:
+                async def forward_to_vite():
+                    try:
+                        async for message in websocket.iter_text():
+                            await vite_ws.send(message)
+                    except Exception:
+                        pass
+                
+                async def forward_to_client():
+                    try:
+                        async for message in vite_ws:
+                            await websocket.send_text(message)
+                    except Exception:
+                        pass
+                
+                await asyncio.gather(forward_to_vite(), forward_to_client())
         except Exception:
             pass
+        finally:
+            try:
+                await websocket.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
