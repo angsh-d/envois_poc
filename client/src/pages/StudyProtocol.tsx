@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import StudyLayout from './StudyLayout'
+import { useState } from 'react'
 import {
   Check, X, ChevronDown, ChevronRight, Database, GitBranch,
   Target, AlertTriangle, Shield, Pill, TestTube, FlaskConical,
@@ -657,7 +657,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     )
   }
 
-  const renderExpressionNode = (node: ExpressionNode, depth: number = 0): React.ReactElement => {
+  const renderExpressionNode = (node: ExpressionNode, depth: number = 0): JSX.Element => {
     const indent = depth * 16
 
     if (node.nodeType === 'operator') {
@@ -1079,9 +1079,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               AE Definition
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              {aeDef.definition ? (
-                <p className="text-sm text-gray-700"><span>{String(safeRenderValue(aeDef.definition))}</span></p>
-              ) : null}
+              {aeDef.definition && (
+                <p className="text-sm text-gray-700">{String(aeDef.definition)}</p>
+              )}
             </div>
           </div>
         )}
@@ -1094,16 +1094,16 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               SAE Criteria
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              {saeCriteria.regulatory_criteria && Array.isArray(saeCriteria.regulatory_criteria) ? (
+              {saeCriteria.regulatory_criteria && Array.isArray(saeCriteria.regulatory_criteria) && (
                 <ul className="space-y-1">
                   {(saeCriteria.regulatory_criteria as unknown[]).map((c, i) => (
                     <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                       <span className="text-gray-500 mt-1">•</span>
-                      <span>{String(safeRenderValue(c))}</span>
+                      {safeRenderValue(c)}
                     </li>
                   ))}
                 </ul>
-              ) : null}
+              )}
             </div>
           </div>
         )}
@@ -1147,43 +1147,43 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       return (
         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
           <div className="flex items-start justify-between mb-2">
-            <p className="font-semibold text-gray-900"><span>{String(safeRenderValue(name))}</span></p>
-            {concept?.conceptName ? (
+            <p className="font-semibold text-gray-900">{safeRenderValue(name)}</p>
+            {concept?.conceptName && (
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                <span>{String(safeRenderValue(concept.conceptName))}</span>
+                {safeRenderValue(concept.conceptName)}
               </span>
-            ) : null}
+            )}
           </div>
-          {purpose ? (
-            <p className={`text-sm ${colorClass} mb-2`}><span>{String(safeRenderValue(purpose))}</span></p>
-          ) : null}
-          {timing?.timing_description ? (
+          {purpose && (
+            <p className={`text-sm ${colorClass} mb-2`}>{safeRenderValue(purpose)}</p>
+          )}
+          {timing?.timing_description && (
             <div className="text-xs text-gray-500 flex items-center gap-1 mb-1">
               <Clock className="w-3 h-3" />
-              <span>{String(safeRenderValue(timing.timing_description))}</span>
+              {safeRenderValue(timing.timing_description)}
             </div>
-          ) : null}
-          {timing?.relative_to && !timing?.timing_description ? (
+          )}
+          {timing?.relative_to && !timing?.timing_description && (
             <div className="text-xs text-gray-500 flex items-center gap-1 mb-1">
               <Clock className="w-3 h-3" />
-              Relative to: <span>{String(safeRenderValue(timing.relative_to))}</span>
+              Relative to: {safeRenderValue(timing.relative_to)}
             </div>
-          ) : null}
-          {dosingInstructions ? (
+          )}
+          {dosingInstructions && (
             <div className="text-xs text-gray-500 mb-1">
-              <span className="font-medium">Dosing:</span> <span>{String(safeRenderValue(dosingInstructions))}</span>
+              <span className="font-medium">Dosing:</span> {safeRenderValue(dosingInstructions)}
             </div>
-          ) : null}
-          {dosing?.route && typeof dosing.route === 'object' && (dosing.route as Record<string, unknown>)?.decode && (dosing.route as Record<string, unknown>)?.decode !== 'not_specified' ? (
+          )}
+          {dosing?.route?.decode && dosing.route.decode !== 'not_specified' && (
             <div className="text-xs text-gray-500 mb-1">
-              <span className="font-medium">Route:</span> <span>{String(safeRenderValue((dosing.route as Record<string, unknown>)?.decode))}</span>
+              <span className="font-medium">Route:</span> {safeRenderValue(dosing.route)}
             </div>
-          ) : null}
-          {impactOnEndpoints ? (
+          )}
+          {impactOnEndpoints && (
             <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">
-              <span className="font-medium">Impact on Endpoints:</span> <span>{String(safeRenderValue(impactOnEndpoints))}</span>
+              <span className="font-medium">Impact on Endpoints:</span> {safeRenderValue(impactOnEndpoints)}
             </div>
-          ) : null}
+          )}
         </div>
       )
     }
@@ -1302,7 +1302,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="space-y-3">
               {interactions.map((int, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900"><span>{String(safeRenderValue(int.name || int))}</span></p>
+                  <p className="font-medium text-gray-900">{safeRenderValue(int.name || int)}</p>
                 </div>
               ))}
             </div>
@@ -1317,11 +1317,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               Herbal Supplements Policy
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              {herbalPolicy.provenance ? (
+              {herbalPolicy.provenance && (
                 <p className="text-sm text-gray-700">
-                  <span>{String(safeRenderValue((herbalPolicy.provenance as Record<string, unknown>)?.text_snippet))}</span>
+                  {safeRenderValue((herbalPolicy.provenance as Record<string, unknown>)?.text_snippet)}
                 </p>
-              ) : null}
+              )}
             </div>
           </div>
         )}
@@ -1365,21 +1365,21 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 return (
                   <div key={i} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex items-start justify-between mb-2">
-                      <p className="font-semibold text-gray-900"><span>{String(safeRenderValue(name))}</span></p>
-                      {category ? (
+                      <p className="font-semibold text-gray-900">{safeRenderValue(name)}</p>
+                      {category && (
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
-                          <span>{String(safeRenderValue(category))}</span>
+                          {safeRenderValue(category)}
                         </span>
-                      ) : null}
+                      )}
                     </div>
-                    {description ? (
-                      <p className="text-sm text-gray-600 mb-2"><span>{String(safeRenderValue(description))}</span></p>
-                    ) : null}
-                    {concept?.conceptName ? (
+                    {description && (
+                      <p className="text-sm text-gray-600 mb-2">{safeRenderValue(description)}</p>
+                    )}
+                    {concept?.conceptName && (
                       <div className="text-xs text-gray-500">
-                        CDISC: <span>{String(safeRenderValue(concept.conceptName))}</span> (<span>{String(safeRenderValue(concept.cdiscCode))}</span>)
+                        CDISC: {safeRenderValue(concept.conceptName)} ({safeRenderValue(concept.cdiscCode)})
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 )
               })}
@@ -1398,12 +1398,12 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               {tests.map((test, i) => (
                 <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900"><span>{String(safeRenderValue(test.test_name || test.name || test))}</span></p>
-                    {test.panel ? <p className="text-xs text-gray-500"><span>{String(safeRenderValue(test.panel))}</span></p> : null}
+                    <p className="font-medium text-gray-900">{safeRenderValue(test.test_name || test.name || test)}</p>
+                    {test.panel && <p className="text-xs text-gray-500">{safeRenderValue(test.panel)}</p>}
                   </div>
-                  {test.frequency ? (
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded"><span>{String(safeRenderValue(test.frequency))}</span></span>
-                  ) : null}
+                  {test.frequency && (
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{safeRenderValue(test.frequency)}</span>
+                  )}
                 </div>
               ))}
             </div>

@@ -4,8 +4,9 @@ import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
 import { fetchSafetySignals } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { Sparkles, AlertTriangle, CheckCircle, ExternalLink, XCircle, Activity, ChevronDown, Users, BookOpen, Lightbulb } from 'lucide-react'
+import { Sparkles, AlertTriangle, CheckCircle, Info, ExternalLink, XCircle, Activity, TrendingDown, ChevronDown, Users, BookOpen, Lightbulb } from 'lucide-react'
 
+// Type definitions for real API response
 interface SafetyMetric {
   metric: string
   rate: number
@@ -71,12 +72,9 @@ export default function Safety() {
   const studyId = params?.studyId || 'h34-delta'
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null)
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<SafetyResponse>({
     queryKey: ['safety-signals'],
-    queryFn: async (): Promise<SafetyResponse> => {
-      const result = await fetchSafetySignals()
-      return result as unknown as SafetyResponse
-    },
+    queryFn: fetchSafetySignals,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnMount: true,

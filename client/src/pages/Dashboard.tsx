@@ -104,7 +104,7 @@ export default function Dashboard() {
   const metricsMap = (summary?.metrics || []).reduce((acc, m) => {
     acc[m.name] = m
     return acc
-  }, {} as Record<string, { name: string; value: string | number; status: string; trend?: string }>)
+  }, {} as Record<string, { name: string; value: string; status: string; trend: string }>)
 
   const readinessMetric = metricsMap['Regulatory Readiness'] || { value: 'N/A', status: 'YELLOW' }
   const safetyMetric = metricsMap['Safety Signals'] || { value: 'N/A', status: 'GREEN' }
@@ -184,12 +184,12 @@ export default function Dashboard() {
             {(summary?.top_priorities || []).slice(0, 3).map((item, i) => (
               <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
                 <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${
-                  Number(item.priority) === 1 ? 'text-gray-700' :
-                  Number(item.priority) === 2 ? 'text-gray-500' : 'text-gray-400'
+                  item.priority === 1 ? 'text-gray-700' :
+                  item.priority === 2 ? 'text-gray-500' : 'text-gray-400'
                 }`} />
                 <div>
-                  <p className="font-medium text-gray-800 text-sm">{item.title || item.action || 'Action Required'}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.description || item.status}</p>
+                  <p className="font-medium text-gray-800 text-sm">{item.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -298,8 +298,8 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
         metric: metricName,
         studyValue,
         benchmarkValue,
-        source: c.source || c.benchmark_source || 'Unknown',
-        status: getComparisonStatus(c.comparison_status || c.status),
+        source: c.source || 'Unknown',
+        status: getComparisonStatus(c.comparison_status),
       }
     })
 }

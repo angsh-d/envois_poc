@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
-import { fetchReadiness, ReadinessResponse } from '@/lib/api'
+import { fetchReadiness } from '@/lib/api'
 import { useRoute } from 'wouter'
 import { Sparkles, CheckCircle, AlertTriangle, XCircle, Users, Shield, Activity, Database, ChevronDown, ChevronRight } from 'lucide-react'
 
+// Helper to safely render values that might be code objects
 const isCodeObject = (value: unknown): value is { code: string; decode: string; codeSystem?: string } => {
   return typeof value === 'object' && value !== null && 'code' in value && 'decode' in value
 }
@@ -21,6 +22,7 @@ const safeRenderValue = (value: unknown): string => {
   return String(value)
 }
 
+// Type definitions for real API response
 interface SafetySignalDetail {
   metric: string
   observed_rate: string
@@ -41,6 +43,79 @@ interface BlockingIssueProvenance {
   classification_rules?: Record<string, string>
   definitions?: Record<string, string>
   determination?: string
+}
+
+interface BlockingIssue {
+  category: string
+  issue: string
+  provenance?: BlockingIssueProvenance
+}
+
+interface EnrollmentData {
+  enrolled: number
+  target: number
+  interim_target: number
+  percent_complete: number
+  status: string
+  is_ready: boolean
+}
+
+interface ComplianceData {
+  deviation_rate: number
+  by_severity: Record<string, number>
+  status: string
+  is_ready: boolean
+}
+
+interface SafetyData {
+  n_signals: number
+  overall_status: string
+  is_ready: boolean
+}
+
+interface DataCompletenessData {
+  enrolled: number
+  completed: number
+  withdrawn: number
+  evaluable: number
+  completion_rate: number
+  is_ready: boolean
+}
+
+interface SourceDetails {
+  data_source?: string
+  data_fields?: string[]
+  query_types?: string[]
+  protocol_id?: string
+  sample_size_target?: number
+  primary_endpoint?: string
+  regulatory_reference?: string
+  calculation?: string
+  protocol_reference?: string
+  thresholds_source?: string
+  metrics_evaluated?: string[]
+}
+
+interface Source {
+  type: string
+  reference: string
+  confidence: number
+  details?: SourceDetails
+}
+
+interface ReadinessResponse {
+  success: boolean
+  assessment_date: string
+  protocol_id: string
+  protocol_version: string
+  is_ready: boolean
+  blocking_issues: BlockingIssue[]
+  enrollment: EnrollmentData
+  compliance: ComplianceData
+  safety: SafetyData
+  data_completeness: DataCompletenessData
+  narrative: string
+  sources: Source[]
 }
 
 // Helper to calculate overall readiness score
@@ -124,7 +199,7 @@ function buildBlockers(data: ReadinessResponse) {
     title: issue.category.charAt(0).toUpperCase() + issue.category.slice(1).replace('_', ' '),
     description: issue.issue,
     action: getActionForCategory(issue.category),
-    provenance: issue.provenance as BlockingIssueProvenance | undefined,
+    provenance: issue.provenance,
   }))
 }
 

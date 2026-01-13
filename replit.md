@@ -82,8 +82,6 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
-- 2026-01-13: Fixed deployment configuration - created .deployignore to exclude large files (.pythonlibs, data/, node_modules), configured production static file serving in FastAPI, cleaned up requirements.txt (removed unused sentence-transformers, streamlit, duplicates)
-- 2026-01-13: Updated agent architecture with greyscale styling, descriptive agent names, and "Ensemble of Foundation LLMs" in Tools Layer
 - 2026-01-13: Enhanced Data & Agents page - added Protocol-as-Code & USDM JSON data section (soa_usdm.json, eligibility_criteria.json, usdm_4.0.json), Vector Store & Semantic Index section (ChromaDB), Structured Rules (YAML) section, and data sources layer in architecture diagram with agent mapping table
 - 2026-01-13: Added expandable detail rows to Safety Metrics table - clicking on active signals (Dislocation Rate, Fracture Rate) expands to show Affected Patients (with contributing factors), Literature Context (benchmarks from literature_benchmarks), and Recommendations panels
 - 2026-01-13: Added Data & Agents page - moved data sources from Dashboard modal to dedicated page in side nav, added Agents tab with multi-agent architecture visualization and detailed agent documentation

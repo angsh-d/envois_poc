@@ -1,17 +1,63 @@
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
-import { fetchDeviations, DeviationsResponse } from '@/lib/api'
+import { fetchDeviations } from '@/lib/api'
 import { useRoute } from 'wouter'
 import { Sparkles, FileWarning, CheckCircle, XCircle, AlertTriangle, Clock, UserX, ClipboardList, FileText, Shield } from 'lucide-react'
 
+// Type definitions for real API response
+interface DeviationRecord {
+  patient_id: string
+  deviation_type: string
+  severity: string
+  classification: string
+  description: string
+  visit?: string
+  visit_id?: string
+  expected_day?: number
+  actual_day?: number
+  deviation_days?: number
+  window?: string
+  missing_assessment?: string
+  violated_criterion?: string
+  criterion_type?: string
+  actual_value?: unknown
+  required_value?: string
+  ae_id?: string
+  onset_date?: string
+  report_date?: string
+  days_delayed?: number
+  is_sae?: boolean
+  consent_date?: string
+  surgery_date?: string
+  action: string
+  requires_explanation: boolean
+  affects_evaluability: boolean
+}
+
 // Deviation type configuration
-const DEVIATION_TYPES: Record<string, { label: string; icon: typeof Clock; color: string; bgColor: string }> = {
+const DEVIATION_TYPES = {
   visit_timing: { label: 'Visit Timing', icon: Clock, color: 'text-gray-600', bgColor: 'bg-gray-100' },
   missing_assessment: { label: 'Missing Assessment', icon: ClipboardList, color: 'text-gray-600', bgColor: 'bg-gray-100' },
   ie_violation: { label: 'IE Violation', icon: UserX, color: 'text-gray-700', bgColor: 'bg-gray-100' },
   ae_reporting: { label: 'AE Reporting', icon: FileText, color: 'text-gray-600', bgColor: 'bg-gray-100' },
   consent_timing: { label: 'Consent Timing', icon: Shield, color: 'text-gray-600', bgColor: 'bg-gray-100' },
+}
+
+interface DeviationsResponse {
+  success: boolean
+  assessment_date: string
+  total_visits: number
+  total_deviations: number
+  deviation_rate: number
+  by_severity: Record<string, number>
+  by_type: Record<string, number>
+  by_visit: Record<string, number>
+  deviations: DeviationRecord[]
+  detector_results: Array<{ detector_name: string; deviation_type: string; n_deviations: number; patients_checked?: number; visits_checked?: number }>
+  protocol_version: string
+  sources: Array<{ type: string; reference: string; confidence: number; details?: Record<string, unknown> }>
+  execution_time_ms: number
 }
 
 export default function Deviations() {
