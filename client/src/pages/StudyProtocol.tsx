@@ -987,7 +987,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="space-y-2">
               {objectives.map((obj, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{obj.name || obj}</p>
+                  <p className="font-medium text-gray-900">{safeRenderValue(obj.name || obj)}</p>
                 </div>
               ))}
             </div>
@@ -1005,14 +1005,14 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               {endpointsList.map((ep, i) => (
                 <div key={i} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                   <div className="flex items-start justify-between">
-                    <p className="font-medium text-gray-900">{ep.name || ep.outcome_measure || ep}</p>
+                    <p className="font-medium text-gray-900">{safeRenderValue(ep.name || ep.outcome_measure || ep)}</p>
                     {ep.level && (
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                         ep.level === 'PRIMARY' ? 'bg-green-100 text-green-800' :
                         ep.level === 'SECONDARY' ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {ep.level}
+                        {safeRenderValue(ep.level)}
                       </span>
                     )}
                   </div>
@@ -1029,7 +1029,7 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="space-y-2">
               {estimands.map((est, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{est.name || est}</p>
+                  <p className="font-medium text-gray-900">{safeRenderValue(est.name || est)}</p>
                 </div>
               ))}
             </div>
@@ -1116,8 +1116,8 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="space-y-2">
               {prohibited.map((med, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{med.drug_class || med}</p>
-                  {med.reason && <p className="text-sm text-red-600 mt-1">{med.reason}</p>}
+                  <p className="font-medium text-gray-900">{safeRenderValue(med.drug_class || med)}</p>
+                  {med.reason && <p className="text-sm text-red-600 mt-1">{safeRenderValue(med.reason)}</p>}
                 </div>
               ))}
             </div>
@@ -1134,8 +1134,8 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="space-y-2">
               {restricted.map((med, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{med.drug_class || med}</p>
-                  {med.restriction && <p className="text-sm text-gray-600 mt-1">{med.restriction}</p>}
+                  <p className="font-medium text-gray-900">{safeRenderValue(med.drug_class || med)}</p>
+                  {med.restriction && <p className="text-sm text-gray-600 mt-1">{safeRenderValue(med.restriction)}</p>}
                 </div>
               ))}
             </div>
@@ -1410,6 +1410,25 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     const decode = obj.decode || obj.code || ''
     const code = obj.code && obj.decode ? ` (${obj.code})` : ''
     return `${decode}${code}`
+  }
+
+  // Safe value renderer that handles code objects and any non-primitive values
+  const safeRenderValue = (value: unknown): string => {
+    if (value === null || value === undefined) return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+    if (isCodeObject(value)) return formatCodeObject(value as Record<string, unknown>)
+    if (Array.isArray(value)) return value.map(v => safeRenderValue(v)).join(', ')
+    if (typeof value === 'object') {
+      // Check for common text properties
+      const obj = value as Record<string, unknown>
+      if (obj.name) return safeRenderValue(obj.name)
+      if (obj.text) return safeRenderValue(obj.text)
+      if (obj.description) return safeRenderValue(obj.description)
+      if (obj.value) return safeRenderValue(obj.value)
+      return JSON.stringify(value)
+    }
+    return String(value)
   }
 
   const renderObjectAsTable = (obj: Record<string, unknown>, depth: number = 0): React.ReactNode => {
