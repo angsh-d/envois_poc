@@ -131,6 +131,7 @@ class DashboardService:
             "completion_rate": data_completeness.get("completion_rate", 0),
             "protocol_id": protocol.get("protocol_id"),
             "primary_endpoint": protocol.get("primary_endpoint", {}),
+            "sources": readiness.get("sources", []),
         }
 
     async def get_action_items(self) -> Dict[str, Any]:
@@ -340,36 +341,42 @@ class DashboardService:
         comparisons = []
 
         # Add literature benchmark comparisons with actual study values
-        for benchmark in lit_benchmarks.aggregates:
-            study_value = study_metrics.get(benchmark.metric)
+        # aggregate_benchmarks is a Dict[str, Any] with metric names as keys
+        for metric_name, benchmark_data in lit_benchmarks.aggregate_benchmarks.items():
+            study_value = study_metrics.get(metric_name)
+            benchmark_median = benchmark_data.get("median") if isinstance(benchmark_data, dict) else None
+            benchmark_range = benchmark_data.get("range") if isinstance(benchmark_data, dict) else None
+            n_studies = benchmark_data.get("n_studies") if isinstance(benchmark_data, dict) else None
+
             comparison_status = self._get_comparison_status(
-                study_value, benchmark.median, benchmark.range, benchmark.metric
+                study_value, benchmark_median, benchmark_range, metric_name
             )
 
             comparisons.append({
-                "metric": benchmark.metric,
+                "metric": metric_name,
                 "study_value": study_value,
-                "benchmark_value": benchmark.median,
-                "benchmark_range": benchmark.range,
+                "benchmark_value": benchmark_median,
+                "benchmark_range": benchmark_range,
                 "source": "Literature Aggregate",
-                "n_studies": benchmark.n_studies,
+                "n_studies": n_studies,
                 "comparison_status": comparison_status,
             })
 
         # Add registry comparisons with actual survival rate
         study_survival_2yr = study_metrics.get("survival_2yr")
         for registry in registry_norms.registries:
-            benchmark_val = registry.survival_rates.get("2_year")
+            # Use direct attribute access for survival rates
+            benchmark_val = registry.survival_2yr
             comparison_status = None
             if study_survival_2yr is not None and benchmark_val is not None:
                 comparison_status = "favorable" if study_survival_2yr >= benchmark_val else "concerning"
 
             comparisons.append({
-                "metric": f"{registry.name} Survival Rate",
+                "metric": f"{registry.name} 2yr Survival",
                 "study_value": study_survival_2yr,
                 "benchmark_value": benchmark_val,
-                "source": registry.name,
-                "year": registry.year,
+                "source": registry.abbreviation or registry.name,
+                "year": registry.report_year,
                 "comparison_status": comparison_status,
             })
 
@@ -377,7 +384,7 @@ class DashboardService:
             "success": True,
             "generated_at": datetime.utcnow().isoformat(),
             "comparisons": comparisons,
-            "literature_sources": [s.publication_id for s in lit_benchmarks.sources],
+            "literature_sources": [p.id for p in lit_benchmarks.publications],
             "registry_sources": [r.name for r in registry_norms.registries],
             "study_metrics": study_metrics,
         }

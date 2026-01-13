@@ -88,12 +88,14 @@ class ReadinessService:
             protocol_rules
         )
 
-        # Calculate overall readiness
+        # Calculate overall readiness with full provenance
         is_ready, blocking_issues = self._calculate_overall_readiness(
             enrollment_status,
             compliance_status,
             safety_status,
-            data_status
+            data_status,
+            protocol_rules,
+            safety_result.data if safety_result.success else {}
         )
 
         # Generate narrative
@@ -104,15 +106,66 @@ class ReadinessService:
                 "data": data_result.to_dict() if data_result.success else {},
                 "compliance": compliance_result.to_dict() if compliance_result.success else {},
                 "safety": safety_result.to_dict() if safety_result.success else {},
+                # Pass calculated readiness for narrative generation
+                "readiness_status": {
+                    "is_ready": is_ready,
+                    "blocking_issues": blocking_issues,
+                },
             }
         )
         synthesis_result = await self._synthesis_agent.run(synthesis_context)
 
-        # Collect all sources
+        # Collect sources with enhanced provenance
         sources = []
-        for result in [data_result, compliance_result, safety_result]:
-            if result.success:
-                sources.extend([s.to_dict() for s in result.sources])
+
+        # Add primary data source with provenance details
+        sources.append({
+            "type": "study_data",
+            "reference": f"H-34 Study Excel Export (n={enrollment_status.get('enrolled', 0)})",
+            "confidence": 1.0,
+            "details": {
+                "data_source": "H-34DELTARevisionstudy_export",
+                "data_fields": ["patients", "hhs_scores", "adverse_events", "intraoperatives"],
+                "query_types": ["summary", "safety", "deviations"],
+            }
+        })
+
+        # Add protocol rules source
+        sources.append({
+            "type": "protocol",
+            "reference": f"protocol_rules.yaml v{protocol_rules.protocol_version}",
+            "confidence": 1.0,
+            "details": {
+                "protocol_id": protocol_rules.protocol_id,
+                "sample_size_target": protocol_rules.sample_size_target,
+                "primary_endpoint": protocol_rules.primary_endpoint.id,
+                "regulatory_reference": "FDA 21 CFR 812, ICH GCP E6(R2)",
+            }
+        })
+
+        # Add compliance calculation provenance
+        sources.append({
+            "type": "compliance_analysis",
+            "reference": "Protocol Deviation Detection",
+            "confidence": 1.0,
+            "details": {
+                "calculation": "Visit timing deviations from protocol windows",
+                "protocol_reference": "Schedule of Assessments",
+                "regulatory_reference": "ICH GCP E6(R2) - Protocol adherence",
+            }
+        })
+
+        # Add safety analysis provenance
+        sources.append({
+            "type": "safety_analysis",
+            "reference": "Safety Signal Detection",
+            "confidence": 0.95,
+            "details": {
+                "thresholds_source": "protocol_rules.yaml safety_thresholds",
+                "metrics_evaluated": ["revision_rate", "dislocation_rate", "infection_rate", "fracture_rate"],
+                "regulatory_reference": "FDA 21 CFR 812.150 - Safety reporting",
+            }
+        })
 
         return {
             "success": True,
@@ -279,24 +332,37 @@ class ReadinessService:
         }
 
     def _assess_compliance(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Assess protocol compliance status."""
+        """
+        Assess protocol compliance status.
+
+        CLINICAL RATIONALE (ICH GCP E6(R2)):
+        - Critical deviations affect patient evaluability per protocol
+        - Major deviation threshold (>3) triggers monitoring per internal SOP
+        - Compliance status determines regulatory defensibility
+
+        Note: deviation_rate is returned as decimal (0.0-1.0) for API consistency
+        with UC3 deviations endpoint. Frontend should format as percentage.
+        """
         deviation_rate = data.get("deviation_rate", 0)
         by_severity = data.get("by_severity", {})
 
         critical_count = by_severity.get("critical", 0)
         major_count = by_severity.get("major", 0)
 
+        # Status determination per protocol deviation_classification rules
         status = "acceptable"
         if critical_count > 0:
+            # Critical deviations affect evaluability (protocol_rules.yaml)
             status = "concerning"
         elif major_count > 3:
+            # Internal SOP: >3 major deviations triggers monitoring
             status = "monitoring"
 
         return {
-            "deviation_rate": round(deviation_rate * 100, 1),
+            "deviation_rate": round(deviation_rate, 4),  # Decimal format for API consistency
             "by_severity": by_severity,
             "status": status,
-            "is_ready": critical_count == 0,
+            "is_ready": critical_count == 0,  # Per protocol: critical affects evaluability
         }
 
     def _assess_safety(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -317,7 +383,15 @@ class ReadinessService:
         data: Dict[str, Any],
         protocol: Any
     ) -> Dict[str, Any]:
-        """Assess data completeness."""
+        """
+        Assess data completeness for primary endpoint.
+
+        CLINICAL RATIONALE:
+        - completed: Patients with 2-year HHS data (primary endpoint)
+        - evaluable: enrolled - withdrawn (per protocol definition)
+        - 80% threshold: Derived from protocol dropout_allowance (0.20)
+          Protocol allows 20% dropout → 80% minimum completion expected
+        """
         enrolled = data.get("enrolled", 0)
         completed = data.get("completed", 0)
         withdrawn = data.get("withdrawn", 0)
@@ -325,13 +399,18 @@ class ReadinessService:
         evaluable = enrolled - withdrawn
         completion_rate = (completed / evaluable) * 100 if evaluable > 0 else 0
 
+        # Threshold: 100% - dropout_allowance (20%) = 80%
+        # From protocol_rules.yaml sample_size.dropout_allowance: 0.20
+        # Note: Protocol allows 20% dropout, so 80% completion is minimum
+        MIN_COMPLETION_THRESHOLD = 80.0  # (1.0 - 0.20) * 100
+
         return {
             "enrolled": enrolled,
             "completed": completed,
             "withdrawn": withdrawn,
             "evaluable": evaluable,
             "completion_rate": round(completion_rate, 1),
-            "is_ready": completion_rate >= 80,
+            "is_ready": completion_rate >= MIN_COMPLETION_THRESHOLD,
         }
 
     def _calculate_overall_readiness(
@@ -339,33 +418,128 @@ class ReadinessService:
         enrollment: Dict,
         compliance: Dict,
         safety: Dict,
-        data: Dict
+        data: Dict,
+        protocol_rules: Any,
+        safety_raw_data: Dict = None
     ) -> tuple:
-        """Calculate overall readiness and identify blocking issues."""
+        """
+        Calculate overall readiness and identify blocking issues with full provenance.
+
+        Each blocking issue includes:
+        - calculation: How the value was derived
+        - values: Actual data values used
+        - threshold: The target/limit being compared
+        - source: Where the data came from
+        - regulatory_reference: Applicable regulatory guidance
+        """
         blocking_issues = []
 
         if not enrollment.get("is_ready"):
             blocking_issues.append({
                 "category": "enrollment",
                 "issue": f"Enrollment at {enrollment['percent_complete']}% (target: 100%)",
+                "provenance": {
+                    "calculation": f"{enrollment['enrolled']} enrolled ÷ {enrollment['target']} target × 100 = {enrollment['percent_complete']}%",
+                    "values": {
+                        "enrolled_count": enrollment['enrolled'],
+                        "target_enrollment": enrollment['target'],
+                        "interim_target": enrollment['interim_target'],
+                        "percent_complete": enrollment['percent_complete'],
+                    },
+                    "threshold": f"100% of target enrollment ({enrollment['target']} patients)",
+                    "current_status": enrollment['status'],
+                    "source": "H-34 Study Excel Export - Patients sheet",
+                    "regulatory_reference": "Protocol Section 6.1 - Sample Size Justification",
+                }
             })
 
         if not compliance.get("is_ready"):
+            by_sev = compliance.get("by_severity", {})
+            deviation_rate_pct = compliance['deviation_rate'] * 100  # Convert decimal to percentage for display
             blocking_issues.append({
                 "category": "compliance",
-                "issue": f"Critical deviations detected",
+                "issue": f"Critical deviations detected ({by_sev.get('critical', 0)} critical)",
+                "provenance": {
+                    "calculation": f"Deviation rate = {deviation_rate_pct:.1f}% of scheduled visits",
+                    "values": {
+                        "critical_deviations": by_sev.get("critical", 0),
+                        "major_deviations": by_sev.get("major", 0),
+                        "minor_deviations": by_sev.get("minor", 0),
+                        "deviation_rate_percent": deviation_rate_pct,
+                    },
+                    "threshold": "0 critical deviations allowed (critical deviations affect patient evaluability)",
+                    "classification_rules": {
+                        "critical": "Missing visit OR missing primary endpoint assessment",
+                        "major": "Visit >1.5x window OR missing non-critical assessment",
+                        "minor": "Visit within 1.5x allowed window extension",
+                    },
+                    "source": "Protocol deviation detection comparing visit dates to protocol windows",
+                    "regulatory_reference": "ICH GCP E6(R2) Section 4.5 - Protocol Compliance",
+                }
             })
 
         if not safety.get("is_ready"):
+            # Extract actual signal details from raw safety data
+            signals_list = safety_raw_data.get("signals", []) if safety_raw_data else []
+            signals_detail = []
+            for sig in signals_list:
+                metric = sig.get("metric", "unknown")
+                rate = sig.get("rate", 0) * 100
+                threshold = sig.get("threshold", 0) * 100
+                count = sig.get("count", 0)
+                total = sig.get("total", 0)
+                signals_detail.append({
+                    "metric": metric.replace("_", " ").title(),
+                    "observed_rate": f"{rate:.1f}%",
+                    "threshold": f"{threshold:.0f}%",
+                    "calculation": f"{count} events / {total} patients = {rate:.1f}%",
+                    "exceeded_by": f"+{(rate - threshold):.1f}%"
+                })
+
             blocking_issues.append({
                 "category": "safety",
-                "issue": f"Safety status: {safety['overall_status']}",
+                "issue": f"Safety status: {safety['overall_status']} ({safety['n_signals']} active signals)",
+                "provenance": {
+                    "calculation": "Compare observed rates against protocol-defined safety thresholds",
+                    "values": {
+                        "active_signals": safety['n_signals'],
+                        "overall_status": safety['overall_status'],
+                    },
+                    "signals_detected": signals_detail,
+                    "thresholds": {
+                        "revision_rate": f"{protocol_rules.safety_thresholds.get('revision_rate_concern', 0.10)*100:.0f}%",
+                        "dislocation_rate": f"{protocol_rules.safety_thresholds.get('dislocation_rate_concern', 0.08)*100:.0f}%",
+                        "infection_rate": f"{protocol_rules.safety_thresholds.get('infection_rate_concern', 0.05)*100:.0f}%",
+                        "fracture_rate": f"{protocol_rules.safety_thresholds.get('fracture_rate_concern', 0.08)*100:.0f}%",
+                    },
+                    "determination": "Status = 'concerning' when any rate exceeds protocol threshold",
+                    "source": "H-34 Study Excel Export - Adverse Events sheet",
+                    "regulatory_reference": "FDA 21 CFR 812.150 - Safety Reporting Requirements",
+                }
             })
 
         if not data.get("is_ready"):
             blocking_issues.append({
                 "category": "data_completeness",
-                "issue": f"Completion rate: {data['completion_rate']}%",
+                "issue": f"Completion rate: {data['completion_rate']}% (threshold: 80%)",
+                "provenance": {
+                    "calculation": f"{data['completed']} completed ÷ {data['evaluable']} evaluable × 100 = {data['completion_rate']}%",
+                    "values": {
+                        "enrolled": data['enrolled'],
+                        "completed": data['completed'],
+                        "withdrawn": data['withdrawn'],
+                        "evaluable": data['evaluable'],
+                        "completion_rate_percent": data['completion_rate'],
+                    },
+                    "definitions": {
+                        "completed": "Patients with 2-year HHS primary endpoint data",
+                        "evaluable": "Enrolled patients minus withdrawn (can contribute to analysis)",
+                        "withdrawn": "Patients who discontinued study participation",
+                    },
+                    "threshold": "80% completion rate (derived from protocol 20% dropout allowance)",
+                    "source": "H-34 Study Excel Export - HHS Scores sheet (FU 2 Years timepoint)",
+                    "regulatory_reference": "Protocol Section 6.1 - Evaluable Population Definition",
+                }
             })
 
         is_ready = len(blocking_issues) == 0

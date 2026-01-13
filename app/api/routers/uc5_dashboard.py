@@ -65,6 +65,7 @@ class StudyProgressResponse(BaseModel):
     completion_rate: float = Field(..., description="Completion rate")
     protocol_id: Optional[str] = Field(None)
     primary_endpoint: Dict[str, Any] = Field(default_factory=dict)
+    sources: List[Dict[str, Any]] = Field(default_factory=list, description="Data sources with provenance")
 
 
 class ActionItemsResponse(BaseModel):

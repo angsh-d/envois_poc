@@ -52,8 +52,11 @@ class DeviationSummaryResponse(BaseModel):
     total_visits: int = Field(default=0, description="Total visits assessed")
     total_deviations: int = Field(default=0, description="Total deviations detected")
     deviation_rate: float = Field(default=0.0, description="Deviation rate")
-    by_severity: Dict[str, int] = Field(default_factory=dict)
-    by_visit: Dict[str, int] = Field(default_factory=dict)
+    by_severity: Dict[str, int] = Field(default_factory=dict, description="Deviations by severity")
+    by_type: Dict[str, int] = Field(default_factory=dict, description="Deviations by type")
+    by_visit: Dict[str, int] = Field(default_factory=dict, description="Deviations by visit")
+    deviations: List[Dict[str, Any]] = Field(default_factory=list, description="Individual deviation records")
+    detector_results: List[Dict[str, Any]] = Field(default_factory=list, description="Results from each detector")
     protocol_version: Optional[str] = Field(None, description="Protocol version")
     sources: List[Dict[str, Any]] = Field(default_factory=list)
     execution_time_ms: float = Field(default=0.0, description="Execution time")
@@ -122,6 +125,12 @@ async def get_deviation_summary() -> DeviationSummaryResponse:
     """
     service = get_deviations_service()
     result = await service.get_study_deviations()
+
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("error", "Failed to load study data")
+        )
 
     return DeviationSummaryResponse(**result)
 

@@ -1,10 +1,12 @@
 """
 UC3 Deviations Service for Clinical Intelligence Platform.
 
-Orchestrates agents for protocol deviation detection and classification.
+Orchestrates modular detectors for comprehensive protocol deviation detection.
 """
 import logging
+import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 import uuid
 
@@ -13,7 +15,15 @@ from app.agents.protocol_agent import ProtocolAgent
 from app.agents.data_agent import DataAgent
 from app.agents.compliance_agent import ComplianceAgent
 from app.agents.synthesis_agent import SynthesisAgent
+from app.detectors import (
+    get_all_detectors,
+    DeviationType,
+    DeviationSeverity,
+    DetectorResult,
+)
+from app.config import settings
 from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.excel_loader import H34ExcelLoader
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +32,11 @@ class DeviationsService:
     """
     Service for UC3: Protocol Deviation Detection.
 
-    Orchestrates multiple agents to:
+    Orchestrates modular detectors to:
     - Load protocol rules (Document-as-Code)
-    - Query patient visit data
-    - Detect and classify deviations
+    - Load study data from H-34 Excel
+    - Run all deviation detectors
+    - Aggregate and classify results
     - Generate narratives with recommendations
     """
 
@@ -37,50 +48,157 @@ class DeviationsService:
         self._compliance_agent = ComplianceAgent()
         self._synthesis_agent = SynthesisAgent()
         self._doc_loader = get_doc_loader()
+        self._study_data = None
+
+    def _get_study_data(self):
+        """
+        Load and cache H-34 study data from Excel.
+
+        Uses same data source as DataAgent for consistency across all use cases.
+        Primary data takes precedence over synthetic data.
+        """
+        if self._study_data is None:
+            # Use centralized path configuration (same as DataAgent)
+            # This ensures Readiness and Deviations pages use identical data
+            excel_path = settings.get_h34_study_data_path()
+
+            # Fall back to synthetic if primary doesn't exist
+            if not excel_path.exists():
+                excel_path = settings.get_h34_synthetic_data_path()
+
+            if excel_path.exists():
+                loader = H34ExcelLoader(excel_path)
+                self._study_data = loader.load()
+                logger.info(f"Loaded H-34 study data from {excel_path.name}: {self._study_data.total_patients} patients")
+            else:
+                logger.warning(f"H-34 Excel file not found at {excel_path}")
+
+        return self._study_data
+
+    def run_all_detectors(self) -> Dict[str, Any]:
+        """
+        Run all deviation detectors and aggregate results.
+
+        Returns:
+            Dict with comprehensive deviation analysis across all types
+        """
+        start_time = time.time()
+
+        # Load protocol rules and study data
+        protocol_rules = self._doc_loader.load_protocol_rules()
+        study_data = self._get_study_data()
+
+        if not study_data:
+            return {
+                "success": False,
+                "error": "Could not load study data",
+            }
+
+        # Get all detectors
+        detectors = get_all_detectors(protocol_rules)
+
+        # Run each detector and collect results
+        all_deviations = []
+        detector_results = []
+        by_type = {}
+        by_severity = {"minor": 0, "major": 0, "critical": 0}
+        total_execution_time = 0
+
+        for detector in detectors:
+            try:
+                result = detector.detect(study_data)
+                detector_results.append(result.to_dict())
+                total_execution_time += result.execution_time_ms
+
+                # Aggregate deviations
+                for dev in result.deviations:
+                    all_deviations.append(dev.to_dict())
+
+                # Count by type
+                type_key = result.deviation_type.value
+                by_type[type_key] = by_type.get(type_key, 0) + result.n_deviations
+
+                # Count by severity
+                for sev, count in result.by_severity.items():
+                    by_severity[sev] += count
+
+            except Exception as e:
+                logger.error(f"Detector {detector.detector_name} failed: {e}")
+                detector_results.append({
+                    "detector_name": detector.detector_name,
+                    "deviation_type": detector.deviation_type.value,
+                    "error": str(e),
+                    "n_deviations": 0,
+                })
+
+        # Calculate total visits (from visit timing detector)
+        total_visits = 0
+        for result in detector_results:
+            if result.get("deviation_type") == "visit_timing":
+                total_visits = result.get("visits_checked", 0)
+                break
+
+        return {
+            "success": True,
+            "assessment_date": datetime.utcnow().isoformat(),
+            "total_deviations": len(all_deviations),
+            "total_visits": total_visits,
+            "deviation_rate": len(all_deviations) / total_visits if total_visits > 0 else 0,
+            "by_type": by_type,
+            "by_severity": by_severity,
+            "deviations": all_deviations,
+            "detector_results": detector_results,
+            "protocol_version": protocol_rules.protocol_version,
+            "execution_time_ms": total_execution_time,
+        }
 
     async def get_study_deviations(self) -> Dict[str, Any]:
         """
         Get all protocol deviations across the study.
 
+        Uses modular detectors to comprehensively check:
+        - Visit timing windows
+        - Missing assessments
+        - IE criteria violations
+        - AE reporting delays
+        - Consent timing issues
+
         Returns:
             Dict with deviation summary and details
         """
-        request_id = str(uuid.uuid4())
+        # Run all detectors
+        detector_results = self.run_all_detectors()
 
-        # Create context for study-wide deviation check
-        context = AgentContext(
-            request_id=request_id,
-            parameters={"query_type": "study"}
-        )
-
-        # Run compliance agent
-        compliance_result = await self._compliance_agent.run(context)
-
-        if not compliance_result.success:
-            return {
-                "success": False,
-                "error": compliance_result.error,
-                "assessment_date": datetime.utcnow().isoformat(),
-            }
-
-        data = compliance_result.data
-        deviations = data.get("deviations_by_visit", {})
+        if not detector_results.get("success"):
+            return detector_results
 
         # Get protocol rules for context
         protocol_rules = self._doc_loader.load_protocol_rules()
 
-        # Build response
+        # Group deviations by visit for backward compatibility
+        by_visit = {}
+        for dev in detector_results.get("deviations", []):
+            visit = dev.get("visit", "unknown")
+            by_visit[visit] = by_visit.get(visit, 0) + 1
+
+        # Build response compatible with existing frontend
         return {
             "success": True,
-            "assessment_date": datetime.utcnow().isoformat(),
-            "total_visits": data.get("total_visits", 0),
-            "total_deviations": data.get("n_deviations", 0),
-            "deviation_rate": data.get("deviation_rate", 0),
-            "by_severity": data.get("by_severity", {}),
-            "by_visit": deviations,
+            "assessment_date": detector_results.get("assessment_date"),
+            "total_visits": detector_results.get("total_visits", 0),
+            "total_deviations": detector_results.get("total_deviations", 0),
+            "deviation_rate": detector_results.get("deviation_rate", 0),
+            "by_severity": detector_results.get("by_severity", {}),
+            "by_type": detector_results.get("by_type", {}),
+            "by_visit": by_visit,
+            "deviations": detector_results.get("deviations", []),
+            "detector_results": detector_results.get("detector_results", []),
             "protocol_version": protocol_rules.protocol_version,
-            "sources": [s.to_dict() for s in compliance_result.sources],
-            "execution_time_ms": compliance_result.execution_time_ms,
+            "sources": [
+                {"type": "protocol", "reference": "protocol_rules.yaml", "confidence": 1.0},
+                {"type": "study_data", "reference": "H-34 Study Database", "confidence": 1.0},
+            ],
+            "execution_time_ms": detector_results.get("execution_time_ms", 0),
         }
 
     async def get_patient_deviations(self, patient_id: str) -> Dict[str, Any]:

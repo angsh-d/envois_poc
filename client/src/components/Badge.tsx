@@ -6,9 +6,10 @@ interface BadgeProps {
   children: ReactNode
   variant?: BadgeVariant
   size?: 'sm' | 'md'
+  className?: string
 }
 
-export function Badge({ children, variant = 'neutral', size = 'md' }: BadgeProps) {
+export function Badge({ children, variant = 'neutral', size = 'md', className = '' }: BadgeProps) {
   const variants = {
     success: 'bg-green-100 text-green-700 border-green-200',
     warning: 'bg-amber-100 text-amber-700 border-amber-200',
@@ -28,6 +29,7 @@ export function Badge({ children, variant = 'neutral', size = 'md' }: BadgeProps
         inline-flex items-center font-medium rounded-full border
         ${variants[variant]}
         ${sizes[size]}
+        ${className}
       `}
     >
       {children}

@@ -207,7 +207,17 @@ async def get_risk_summary() -> Dict[str, Any]:
     service = get_risk_service()
     model = service._risk_model
 
+    # Get risk factors with full provenance
+    risk_factors_result = await service.get_risk_factors()
+
+    # Extract unique literature sources from model factors
+    literature_sources = list(set(
+        f.get("source", "literature_aggregate")
+        for f in risk_factors_result.get("model_factors", [])
+    ))
+
     return {
+        "success": True,
         "generated_at": datetime.utcnow().isoformat(),
         "model_version": "v1.0",
         "n_risk_factors": len(model.HAZARD_RATIOS),
@@ -217,13 +227,8 @@ async def get_risk_summary() -> Dict[str, Any]:
             "low": "score < 0.3"
         },
         "hazard_ratios": model.HAZARD_RATIOS,
-        "literature_sources": [
-            "Dixon et al 2025",
-            "Harris et al 2025",
-            "Meding et al 2025",
-            "AOANJRR Registry 2024",
-            "NJR Registry 2024"
-        ]
+        "literature_sources": literature_sources,
+        "sources": risk_factors_result.get("sources", []),
     }
 
 

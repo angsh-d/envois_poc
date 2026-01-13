@@ -9,6 +9,7 @@ from app.api.routers import (
     uc3_deviations,
     uc4_risk,
     uc5_dashboard,
+    protocol_digitization,
 )
 
 __all__ = [
@@ -18,4 +19,5 @@ __all__ = [
     "uc3_deviations",
     "uc4_risk",
     "uc5_dashboard",
+    "protocol_digitization",
 ]

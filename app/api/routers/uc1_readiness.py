@@ -48,10 +48,35 @@ class DataCompletenessStatus(BaseModel):
     is_ready: bool = Field(..., description="Meets completeness requirement")
 
 
+class SafetySignalDetail(BaseModel):
+    """Detail of a detected safety signal."""
+    metric: str = Field(..., description="Signal metric name")
+    observed_rate: str = Field(..., description="Observed rate as percentage string")
+    threshold: str = Field(..., description="Threshold as percentage string")
+    calculation: str = Field(..., description="Calculation formula")
+    exceeded_by: str = Field(..., description="Amount exceeded threshold")
+
+
+class BlockingIssueProvenance(BaseModel):
+    """Full provenance for a blocking issue - supports regulatory defensibility."""
+    calculation: Optional[str] = Field(None, description="How the value was calculated")
+    values: Optional[Dict[str, Any]] = Field(None, description="Raw data values used")
+    threshold: Optional[str] = Field(None, description="Single threshold description")
+    thresholds: Optional[Dict[str, str]] = Field(None, description="Multiple thresholds by category")
+    signals_detected: Optional[List[SafetySignalDetail]] = Field(None, description="Safety signals detail")
+    current_status: Optional[str] = Field(None, description="Current status value")
+    source: Optional[str] = Field(None, description="Data source reference")
+    regulatory_reference: Optional[str] = Field(None, description="Regulatory citation")
+    classification_rules: Optional[Dict[str, str]] = Field(None, description="Classification criteria")
+    definitions: Optional[Dict[str, str]] = Field(None, description="Term definitions")
+    determination: Optional[str] = Field(None, description="How status was determined")
+
+
 class BlockingIssue(BaseModel):
-    """A blocking issue for submission."""
+    """A blocking issue for submission with full provenance."""
     category: str = Field(..., description="Issue category")
     issue: str = Field(..., description="Issue description")
+    provenance: Optional[BlockingIssueProvenance] = Field(None, description="Full provenance for regulatory defensibility")
 
 
 class ReadinessAssessmentResponse(BaseModel):

@@ -1,88 +1,47 @@
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
-import { fetchRiskPatients } from '@/lib/api'
+import { fetchRiskSummary } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { Sparkles, User, AlertTriangle, TrendingUp, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { Sparkles, AlertTriangle, TrendingUp, XCircle, Activity, BookOpen } from 'lucide-react'
 
-const mockData = {
-  summary: "4 patients flagged as high risk (>20% revision probability). Primary risk factors are osteoporosis (HR 2.4) and prior revision history (HR 2.1). 8 patients at moderate risk require enhanced monitoring. ML model confidence: 78%.",
-  distribution: {
-    high: 4,
-    moderate: 8,
-    low: 25,
-  },
-  patients: [
-    {
-      id: '017',
-      riskScore: 82,
-      tier: 'high',
-      factors: [
-        { name: 'Osteoporosis', contribution: 35, source: 'Dixon 2025, HR 2.4' },
-        { name: 'Low baseline HHS (22)', contribution: 25, source: 'Vasios et al, HR 1.8' },
-        { name: 'Age > 75', contribution: 12, source: 'Harris 2025, HR 1.4' },
-        { name: 'Poor compliance', contribution: 10, source: 'UC3 Output' },
-      ],
-      recommendation: 'Enhanced surveillance with 3-month check-ins',
-      demographics: { age: 78, gender: 'F', bmi: 24.2 },
-    },
-    {
-      id: '031',
-      riskScore: 71,
-      tier: 'high',
-      factors: [
-        { name: 'Prior revision', contribution: 40, source: 'Meding 2025, HR 2.1' },
-        { name: 'BMI > 35', contribution: 18, source: 'AOANJRR, HR 1.6' },
-        { name: 'Missing imaging', contribution: 13, source: 'UC3 Output' },
-      ],
-      recommendation: 'Schedule additional 6-month imaging',
-      demographics: { age: 65, gender: 'M', bmi: 36.8 },
-    },
-    {
-      id: '023',
-      riskScore: 68,
-      tier: 'high',
-      factors: [
-        { name: 'Osteoporosis', contribution: 35, source: 'Dixon 2025, HR 2.4' },
-        { name: 'Lost to follow-up risk', contribution: 20, source: 'UC3 Output' },
-        { name: 'Low baseline HHS (28)', contribution: 13, source: 'Vasios et al' },
-      ],
-      recommendation: 'Urgent site contact for 2-year visit scheduling',
-      demographics: { age: 72, gender: 'F', bmi: 27.1 },
-    },
-    {
-      id: '009',
-      riskScore: 55,
-      tier: 'high',
-      factors: [
-        { name: 'Prior revision', contribution: 40, source: 'Meding 2025, HR 2.1' },
-        { name: 'Slow HHS recovery', contribution: 15, source: 'Trajectory Analysis' },
-      ],
-      recommendation: 'Continue standard monitoring with close observation',
-      demographics: { age: 68, gender: 'M', bmi: 29.4 },
-    },
-  ],
-  modelInfo: {
-    type: 'Ensemble (XGBoost + Literature HR + Registry)',
-    confidence: 78,
-    features: 12,
-    lastUpdated: 'Jan 11, 2026',
-  },
+// Type definitions for real API response
+interface RiskSummaryResponse {
+  generated_at: string
+  model_version: string
+  n_risk_factors: number
+  risk_thresholds: {
+    high: string
+    moderate: string
+    low: string
+  }
+  hazard_ratios: Record<string, number>
+  literature_sources: string[]
+}
+
+// Format factor name for display
+function formatFactorName(factor: string): string {
+  return factor
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
+
+// Get priority level based on hazard ratio
+function getPriority(hr: number): 'high' | 'medium' | 'low' {
+  if (hr >= 2.0) return 'high'
+  if (hr >= 1.5) return 'medium'
+  return 'low'
 }
 
 export default function Risk() {
   const [, params] = useRoute('/study/:studyId/risk')
   const studyId = params?.studyId || 'h34-delta'
-  const [expandedPatient, setExpandedPatient] = useState<string | null>(null)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery<RiskSummaryResponse>({
     queryKey: ['risk', studyId],
-    queryFn: () => fetchRiskPatients(studyId),
+    queryFn: () => fetchRiskSummary(studyId),
     retry: false,
   })
-
-  const risk = data || mockData
 
   if (isLoading) {
     return (
@@ -92,157 +51,205 @@ export default function Risk() {
     )
   }
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'high': return 'text-red-600'
-      case 'moderate': return 'text-amber-600'
-      case 'low': return 'text-green-600'
-      default: return 'text-gray-600'
-    }
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-600">Failed to load risk data</p>
+        </div>
+      </div>
+    )
   }
 
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case 'high': return <Badge variant="danger">High Risk</Badge>
-      case 'moderate': return <Badge variant="warning">Moderate</Badge>
+  // Sort hazard ratios by value (descending)
+  const sortedFactors = Object.entries(data.hazard_ratios)
+    .sort(([, a], [, b]) => b - a)
+    .map(([factor, hr]) => ({
+      factor,
+      hr,
+      priority: getPriority(hr),
+    }))
+
+  // Count factors by priority
+  const highPriorityCount = sortedFactors.filter(f => f.priority === 'high').length
+  const mediumPriorityCount = sortedFactors.filter(f => f.priority === 'medium').length
+  const lowPriorityCount = sortedFactors.filter(f => f.priority === 'low').length
+
+  // Generate summary based on data
+  const topFactors = sortedFactors.slice(0, 3)
+  const summary = `Risk model identifies ${data.n_risk_factors} risk factors for revision prediction. ` +
+    `Top risk factors are ${topFactors.map(f => `${formatFactorName(f.factor)} (HR ${f.hr.toFixed(2)})`).join(', ')}. ` +
+    `Model version: ${data.model_version}.`
+
+  const getPriorityBadge = (priority: 'high' | 'medium' | 'low') => {
+    switch (priority) {
+      case 'high': return <Badge variant="danger">High</Badge>
+      case 'medium': return <Badge variant="warning">Medium</Badge>
       case 'low': return <Badge variant="success">Low</Badge>
-      default: return <Badge variant="neutral">{tier}</Badge>
     }
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Patient Risk Stratification</h1>
-        <p className="text-gray-500 mt-1">ML-powered risk scoring with explainable factors</p>
+        <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Risk Factor Analysis</h1>
+        <p className="text-gray-500 mt-1">Literature-derived hazard ratios for patient risk stratification</p>
       </div>
 
+      {/* AI Summary */}
       <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-100">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="font-semibold text-gray-800 mb-2">AI Assessment</h3>
-            <p className="text-gray-600 leading-relaxed">{risk.summary}</p>
+            <p className="text-gray-600 leading-relaxed">{summary}</p>
+            <p className="text-xs text-gray-400 mt-2">
+              Generated: {new Date(data.generated_at).toLocaleString()}
+            </p>
           </div>
         </div>
       </Card>
 
+      {/* Risk Factor Distribution */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="text-center border-l-4 border-red-500">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">High Risk</p>
-          <p className="text-4xl font-semibold text-red-600 mt-2">{risk.distribution.high}</p>
-          <p className="text-sm text-gray-500 mt-1">&gt;20% revision risk</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">High Priority</p>
+          <p className="text-4xl font-semibold text-red-600 mt-2">{highPriorityCount}</p>
+          <p className="text-sm text-gray-500 mt-1">HR ≥ 2.0</p>
         </Card>
         <Card className="text-center border-l-4 border-amber-500">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Moderate Risk</p>
-          <p className="text-4xl font-semibold text-amber-600 mt-2">{risk.distribution.moderate}</p>
-          <p className="text-sm text-gray-500 mt-1">10-20% revision risk</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Medium Priority</p>
+          <p className="text-4xl font-semibold text-amber-600 mt-2">{mediumPriorityCount}</p>
+          <p className="text-sm text-gray-500 mt-1">HR 1.5 - 2.0</p>
         </Card>
         <Card className="text-center border-l-4 border-green-500">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Low Risk</p>
-          <p className="text-4xl font-semibold text-green-600 mt-2">{risk.distribution.low}</p>
-          <p className="text-sm text-gray-500 mt-1">&lt;10% revision risk</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Lower Priority</p>
+          <p className="text-4xl font-semibold text-green-600 mt-2">{lowPriorityCount}</p>
+          <p className="text-sm text-gray-500 mt-1">HR &lt; 1.5</p>
         </Card>
       </div>
 
+      {/* Risk Thresholds */}
       <Card>
-        <CardHeader
-          title="High-Risk Patients"
-          subtitle="Patients requiring enhanced surveillance"
-          action={<Badge variant="danger">{risk.patients.length} patients</Badge>}
-        />
-        <div className="mt-4 space-y-3">
-          {risk.patients.map((patient) => (
-            <div
-              key={patient.id}
-              className="border border-gray-100 rounded-xl overflow-hidden hover:border-gray-200 transition-colors"
-            >
-              <button
-                onClick={() => setExpandedPatient(expandedPatient === patient.id ? null : patient.id)}
-                className="w-full p-4 flex items-center gap-4 text-left hover:bg-gray-50 transition-colors"
-              >
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-gray-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-semibold text-gray-800">Patient {patient.id}</span>
-                    {getTierBadge(patient.tier)}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    {patient.demographics.age}y, {patient.demographics.gender}, BMI {patient.demographics.bmi}
-                  </p>
-                </div>
-                <div className="text-right mr-4">
-                  <span className={`text-3xl font-semibold ${getTierColor(patient.tier)}`}>
-                    {patient.riskScore}%
-                  </span>
-                  <p className="text-xs text-gray-500">risk score</p>
-                </div>
-                <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
-                  expandedPatient === patient.id ? 'rotate-90' : ''
-                }`} />
-              </button>
-
-              {expandedPatient === patient.id && (
-                <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50/50 animate-fade-in">
-                  <div className="py-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Risk Factor Breakdown</h4>
-                    <div className="space-y-2">
-                      {patient.factors.map((factor, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                          <div className="w-32 text-sm text-gray-600 truncate">{factor.name}</div>
-                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-amber-400 to-red-500 rounded-full"
-                              style={{ width: `${factor.contribution}%` }}
-                            />
-                          </div>
-                          <div className="w-12 text-sm font-medium text-gray-700 text-right">
-                            +{factor.contribution}%
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-3">Sources: {patient.factors.map(f => f.source).join(', ')}</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-blue-800">Recommendation</p>
-                        <p className="text-sm text-blue-700">{patient.recommendation}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+        <CardHeader title="Risk Stratification Thresholds" subtitle="Model-defined risk categories" />
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <span className="font-medium text-red-800">High Risk</span>
             </div>
-          ))}
+            <p className="text-sm text-red-700">{data.risk_thresholds.high}</p>
+          </div>
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-4 h-4 text-amber-600" />
+              <span className="font-medium text-amber-800">Moderate Risk</span>
+            </div>
+            <p className="text-sm text-amber-700">{data.risk_thresholds.moderate}</p>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-green-600" />
+              <span className="font-medium text-green-800">Low Risk</span>
+            </div>
+            <p className="text-sm text-green-700">{data.risk_thresholds.low}</p>
+          </div>
         </div>
       </Card>
 
+      {/* Hazard Ratios Table */}
+      <Card>
+        <CardHeader
+          title="Risk Factors & Hazard Ratios"
+          subtitle="Literature-derived hazard ratios for revision prediction"
+          action={<Badge variant="neutral">{data.n_risk_factors} factors</Badge>}
+        />
+        <table className="w-full mt-4">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Risk Factor</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Hazard Ratio</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Relative Risk</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedFactors.map((item, i) => (
+              <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                <td className="py-4 px-4">
+                  <span className="font-medium text-gray-800">{formatFactorName(item.factor)}</span>
+                </td>
+                <td className="py-4 px-4 text-center">
+                  <span className={`font-semibold ${
+                    item.hr >= 2.0 ? 'text-red-600' :
+                    item.hr >= 1.5 ? 'text-amber-600' :
+                    item.hr < 1 ? 'text-green-600' : 'text-gray-800'
+                  }`}>
+                    {item.hr.toFixed(2)}
+                  </span>
+                </td>
+                <td className="py-4 px-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          item.hr >= 2.0 ? 'bg-red-500' :
+                          item.hr >= 1.5 ? 'bg-amber-500' :
+                          item.hr < 1 ? 'bg-green-500' : 'bg-gray-400'
+                        }`}
+                        style={{ width: `${Math.min(100, (item.hr / 4.5) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {item.hr >= 1 ? `+${((item.hr - 1) * 100).toFixed(0)}%` : `${((item.hr - 1) * 100).toFixed(0)}%`}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-4 px-4 text-center">
+                  {getPriorityBadge(item.priority)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      {/* Model Information */}
       <Card>
         <CardHeader title="Model Information" />
-        <div className="grid grid-cols-4 gap-6 mt-4">
+        <div className="grid grid-cols-3 gap-6 mt-4">
           <div>
-            <p className="text-sm text-gray-500">Model Type</p>
-            <p className="font-medium text-gray-800 mt-1">{risk.modelInfo.type}</p>
+            <p className="text-sm text-gray-500">Model Version</p>
+            <p className="font-medium text-gray-800 mt-1">{data.model_version}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Confidence</p>
-            <p className="font-medium text-gray-800 mt-1">{risk.modelInfo.confidence}%</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Features</p>
-            <p className="font-medium text-gray-800 mt-1">{risk.modelInfo.features}</p>
+            <p className="text-sm text-gray-500">Risk Factors</p>
+            <p className="font-medium text-gray-800 mt-1">{data.n_risk_factors}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Last Updated</p>
-            <p className="font-medium text-gray-800 mt-1">{risk.modelInfo.lastUpdated}</p>
+            <p className="font-medium text-gray-800 mt-1">{new Date(data.generated_at).toLocaleDateString()}</p>
           </div>
+        </div>
+      </Card>
+
+      {/* Literature Sources */}
+      <Card>
+        <CardHeader
+          title="Literature Sources"
+          subtitle="Publications used to derive hazard ratios"
+          action={<Badge variant="neutral">{data.literature_sources.length} sources</Badge>}
+        />
+        <div className="mt-4 flex flex-wrap gap-2">
+          {data.literature_sources.map((source, i) => (
+            <div key={i} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+              <BookOpen className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-700">{source}</span>
+            </div>
+          ))}
         </div>
       </Card>
     </div>

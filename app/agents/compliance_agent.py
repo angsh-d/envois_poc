@@ -222,15 +222,17 @@ class ComplianceAgent(BaseAgent):
 
         deviation_data = data_result.data
 
+        deviations_list = deviation_data.get("deviations", [])
         return {
             "total_visits": deviation_data.get("total_visits", 0),
-            "n_deviations": len(deviation_data.get("deviations", [])),
+            "n_deviations": len(deviations_list),
             "by_severity": deviation_data.get("by_severity", {}),
             "deviation_rate": self._calc_rate(
-                len(deviation_data.get("deviations", [])),
+                len(deviations_list),
                 deviation_data.get("total_visits", 0)
             ),
-            "deviations_by_visit": self._group_by_visit(deviation_data.get("deviations", [])),
+            "deviations_by_visit": self._group_by_visit(deviations_list),
+            "deviations": deviations_list,  # Include individual deviation records
         }
 
     def _check_missing_assessments(self, visits: List[Dict]) -> List[Dict]:
@@ -306,8 +308,9 @@ class ComplianceAgent(BaseAgent):
         """Group deviations by visit type."""
         by_visit = {}
         for dev in deviations:
-            visit_id = dev.get("visit_id", "unknown")
-            by_visit[visit_id] = by_visit.get(visit_id, 0) + 1
+            # Support both 'visit' (from data_agent) and 'visit_id' field names
+            visit_name = dev.get("visit") or dev.get("visit_id", "unknown")
+            by_visit[visit_name] = by_visit.get(visit_name, 0) + 1
         return by_visit
 
     async def _generate_deviation_narrative(

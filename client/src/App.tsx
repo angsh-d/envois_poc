@@ -5,6 +5,7 @@ import StudyReadiness from './pages/StudyReadiness'
 import StudySafety from './pages/StudySafety'
 import StudyDeviations from './pages/StudyDeviations'
 import StudyRisk from './pages/StudyRisk'
+import StudyProtocol from './pages/StudyProtocol'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/study/:studyId/safety" component={StudySafety} />
       <Route path="/study/:studyId/deviations" component={StudyDeviations} />
       <Route path="/study/:studyId/risk" component={StudyRisk} />
+      <Route path="/study/:studyId/protocol" component={StudyProtocol} />
     </Switch>
   )
 }

@@ -221,7 +221,19 @@ class SafetyAgent(BaseAgent):
             )
 
     async def _analyze_study_safety(self, context: AgentContext) -> Dict[str, Any]:
-        """Analyze safety across entire study."""
+        """Analyze safety across entire study.
+
+        CLINICAL RATIONALE:
+        Per FDA 21 CFR 812 and ICH GCP, safety monitoring is required throughout
+        the study with defined action limits. This analysis compares observed rates
+        against protocol-defined concern thresholds.
+
+        THRESHOLDS (from protocol_rules.yaml):
+        - revision_rate_concern: 10% (major surgical failure)
+        - dislocation_rate_concern: 8% (common early complication)
+        - infection_rate_concern: 5% (serious complication)
+        - fracture_rate_concern: 8% (intraoperative complication)
+        """
         # Get study safety data
         data_context = AgentContext(
             request_id=context.request_id,
@@ -241,64 +253,79 @@ class SafetyAgent(BaseAgent):
         # Get protocol thresholds
         protocol_thresholds = self._protocol_agent.get_safety_thresholds()
 
+        # Extract rates from nested 'rates' dict returned by data_agent
+        rates = safety_data.get("rates", {})
+        ae_by_type = safety_data.get("ae_by_type", {})
+
         # Calculate rates and compare to thresholds
         metrics = []
         signals = []
 
-        # Revision rate
-        revision_rate = safety_data.get("revision_rate", 0)
+        # Revision rate (device removal)
+        revision_rate = rates.get("revision_rate", 0)
+        revision_count = safety_data.get("n_revisions", 0)
         threshold = protocol_thresholds.get("revision_rate_concern", 0.10)
         metric = self._analyze_metric(
             "revision_rate", revision_rate, threshold,
-            safety_data.get("revisions", 0), n_patients
+            revision_count, n_patients
         )
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
 
         # Dislocation rate
-        dislocation_rate = safety_data.get("dislocation_rate", 0)
+        dislocation_rate = rates.get("dislocation_rate", 0)
+        dislocation_count = ae_by_type.get("dislocation", 0)
         threshold = protocol_thresholds.get("dislocation_rate_concern", 0.08)
         metric = self._analyze_metric(
             "dislocation_rate", dislocation_rate, threshold,
-            safety_data.get("dislocations", 0), n_patients
+            dislocation_count, n_patients
         )
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
 
         # Infection rate
-        infection_rate = safety_data.get("infection_rate", 0)
+        infection_rate = rates.get("infection_rate", 0)
+        infection_count = ae_by_type.get("infection", 0)
         threshold = protocol_thresholds.get("infection_rate_concern", 0.05)
         metric = self._analyze_metric(
             "infection_rate", infection_rate, threshold,
-            safety_data.get("infections", 0), n_patients
+            infection_count, n_patients
         )
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
 
         # Fracture rate
-        fracture_rate = safety_data.get("fracture_rate", 0)
+        fracture_rate = rates.get("fracture_rate", 0)
+        fracture_count = ae_by_type.get("fracture", 0)
         threshold = protocol_thresholds.get("fracture_rate_concern", 0.08)
         metric = self._analyze_metric(
             "fracture_rate", fracture_rate, threshold,
-            safety_data.get("fractures", 0), n_patients
+            fracture_count, n_patients
         )
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
 
-        # Compare to registry
-        registry_comparison = await self._compare_to_registry({
-            "revision_rate": revision_rate,
-            "dislocation_rate": dislocation_rate,
-            "infection_rate": infection_rate,
-            "fracture_rate": fracture_rate,
-        }, context)
+        # Compare to registry (may timeout - handle gracefully)
+        registry_comparison = {}
+        try:
+            registry_comparison = await self._compare_to_registry({
+                "revision_rate": revision_rate,
+                "dislocation_rate": dislocation_rate,
+                "infection_rate": infection_rate,
+                "fracture_rate": fracture_rate,
+            }, context)
+        except Exception as e:
+            logger.warning(f"Registry comparison failed: {e}")
+            registry_comparison = {"error": str(e)}
 
         return {
             "n_patients": n_patients,
+            "n_adverse_events": safety_data.get("n_adverse_events", 0),
+            "n_sae": safety_data.get("n_sae", 0),
             "metrics": metrics,
             "signals": signals,
             "n_signals": len(signals),

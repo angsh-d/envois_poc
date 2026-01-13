@@ -140,14 +140,25 @@ class SynthesisAgent(BaseAgent):
             )
 
         # Check if any successful agent has actual data
+        # Handle both formats:
+        # - Agent result format: {"success": True, "data": {...}}
+        # - Service result format: {"success": True, "enrollment": {...}, ...}
         has_valid_data = False
         for agent_type, agent_data in shared_data.items():
-            if agent_data.get("success") and agent_data.get("data"):
-                data = agent_data["data"]
-                # Check it's not just an error message
-                if not data.get("error") and not data.get("insufficient_data"):
-                    has_valid_data = True
-                    break
+            if agent_data.get("success"):
+                # Check for nested data key (agent format)
+                if agent_data.get("data"):
+                    data = agent_data["data"]
+                    if not data.get("error") and not data.get("insufficient_data"):
+                        has_valid_data = True
+                        break
+                # Check for flat structure (service format) - has success but no nested data key
+                elif not agent_data.get("error") and not agent_data.get("insufficient_data"):
+                    # Has meaningful data keys beyond just success
+                    data_keys = [k for k in agent_data.keys() if k not in ("success", "generated_at", "assessment_date")]
+                    if data_keys:
+                        has_valid_data = True
+                        break
 
         if not has_valid_data:
             return AgentResult.insufficient_data(
@@ -167,7 +178,7 @@ class SynthesisAgent(BaseAgent):
             "uc2_safety": ["safety"],
             "uc3_deviations": ["compliance"],
             "uc4_risk": ["safety"],
-            "uc5_dashboard": ["data"],
+            "uc5_dashboard": ["readiness"],  # Dashboard uses readiness, safety, deviations
         }
         return requirements.get(synthesis_type, [])
 
@@ -353,6 +364,15 @@ class SynthesisAgent(BaseAgent):
         if protocol:
             readiness["visit_status"]["scheduled_visits"] = len(protocol.get("visit_windows", []))
 
+        # Use passed readiness status if available (from readiness_service)
+        readiness_status = shared.get("readiness_status", {})
+        if readiness_status:
+            readiness["is_ready"] = readiness_status.get("is_ready", readiness["is_ready"])
+            # Merge blocking issues from service calculation
+            service_blocking = readiness_status.get("blocking_issues", [])
+            if service_blocking:
+                readiness["blocking_issues"] = service_blocking
+
         # Generate narrative
         readiness["narrative"] = await self._generate_readiness_narrative(readiness)
 
@@ -493,27 +513,31 @@ class SynthesisAgent(BaseAgent):
             "narrative": "",
         }
 
-        # Collect from all agents
-        data = shared.get("data", {}).get("data", {})
-        if data:
+        # Collect from readiness data (passed from dashboard_service)
+        readiness = shared.get("readiness", {})
+        if readiness:
+            enrollment = readiness.get("enrollment", {})
             dashboard["study_overview"] = {
-                "enrolled": data.get("enrolled", 0),
-                "active": data.get("active", 0),
-                "completed": data.get("completed", 0),
+                "enrolled": enrollment.get("enrolled", 0),
+                "active": enrollment.get("enrolled", 0) - readiness.get("data_completeness", {}).get("completed", 0),
+                "completed": readiness.get("data_completeness", {}).get("completed", 0),
             }
+            dashboard["enrollment_status"] = enrollment
 
-        safety = shared.get("safety", {}).get("data", {})
+        # Collect from safety data
+        safety = shared.get("safety", {})
         if safety:
             dashboard["safety_summary"] = {
                 "status": safety.get("overall_status", "unknown"),
-                "signals": len(safety.get("signals", [])),
+                "signals": safety.get("n_signals", 0),
             }
 
-        compliance = shared.get("compliance", {}).get("data", {})
-        if compliance:
+        # Collect from deviations data
+        deviations = shared.get("deviations", {})
+        if deviations:
             dashboard["compliance_summary"] = {
-                "deviation_rate": 1 - compliance.get("compliance_rate", 1.0),
-                "critical_deviations": compliance.get("deviation_summary", {}).get("critical", 0),
+                "deviation_rate": deviations.get("deviation_rate", 0),
+                "critical_deviations": deviations.get("by_severity", {}).get("critical", 0),
             }
 
         # Generate alerts
@@ -636,8 +660,8 @@ class SynthesisAgent(BaseAgent):
         """Generate dashboard alerts from agent outputs."""
         alerts = []
 
-        # Check safety signals
-        safety = shared_data.get("safety", {}).get("data", {})
+        # Check safety signals (data passed directly from dashboard_service)
+        safety = shared_data.get("safety", {})
         for signal in safety.get("signals", []):
             alerts.append({
                 "type": "safety",
@@ -645,9 +669,9 @@ class SynthesisAgent(BaseAgent):
                 "message": f"Safety signal: {signal.get('metric')} exceeds threshold",
             })
 
-        # Check compliance
-        compliance = shared_data.get("compliance", {}).get("data", {})
-        critical = compliance.get("deviation_summary", {}).get("critical", 0)
+        # Check deviations
+        deviations = shared_data.get("deviations", {})
+        critical = deviations.get("by_severity", {}).get("critical", 0)
         if critical > 0:
             alerts.append({
                 "type": "compliance",
@@ -674,12 +698,12 @@ class SynthesisAgent(BaseAgent):
         return await self.call_llm(prompt, model="gemini-3-pro-preview", temperature=0.3)
 
     async def _generate_readiness_narrative(self, readiness: Dict) -> str:
-        """Generate readiness narrative."""
+        """Generate readiness narrative for study-level regulatory submission readiness."""
         if readiness.get("is_ready"):
-            return "Patient is ready for the scheduled visit with no blocking issues identified."
+            return "Study is ready for regulatory submission with all readiness criteria met."
         else:
             n_blocking = len(readiness.get("blocking_issues", []))
-            return f"Patient has {n_blocking} blocking issue(s) that must be resolved before the visit."
+            return f"Study has {n_blocking} blocking issue(s) that must be resolved before regulatory submission."
 
     async def _generate_safety_synthesis_narrative(self, safety: Dict) -> str:
         """Generate safety synthesis narrative."""

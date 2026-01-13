@@ -46,7 +46,7 @@ class LLMService:
     - Consensus mode for critical decisions
     """
 
-    # Model mappings - primary: gemini-3-pro-preview, fallback: gpt-5-mini
+    # Model mappings - primary: gemini-3-pro-preview, fallback: gpt-5.1
     GEMINI_MODELS = {
         "gemini-3-pro-preview": "gemini-3-pro-preview",  # Primary model
         "gemini-3-pro": "gemini-3-pro-preview",
@@ -67,7 +67,7 @@ class LLMService:
         "gemini-2.0-flash": 8192,
         "gemini-1.5-pro": 8192,
         "gemini-1.5-flash": 8192,
-        "gpt-5-mini": 16384,  # Fallback model
+        "gpt-5.1": 16384,  # Fallback model
         "gpt-4": 16384,
         "gpt-4o": 16384,
     }
@@ -330,7 +330,7 @@ class LLMService:
         if models is None:
             models = ["gemini-3-pro-preview"]
             if self.azure_client:
-                models.append("gpt-5-mini")  # Azure OpenAI fallback
+                models.append("gpt-5.1")  # Azure OpenAI fallback
 
         # Get responses in parallel
         responses = await asyncio.gather(*[

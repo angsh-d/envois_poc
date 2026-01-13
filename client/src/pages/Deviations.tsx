@@ -3,50 +3,72 @@ import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
 import { fetchDeviations } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { Sparkles, FileWarning, Calendar, TrendingUp } from 'lucide-react'
+import { Sparkles, FileWarning, CheckCircle, XCircle, AlertTriangle, Clock, UserX, ClipboardList, FileText, Shield } from 'lucide-react'
 
-const mockData = {
-  summary: "6 protocol deviations detected across 148 visit-assessments (4.1% rate). 3 minor timing deviations, 2 major window violations, and 1 critical deviation affecting primary endpoint evaluability. Most common cause: 6-month visit scheduling delays.",
-  stats: {
-    total: 148,
-    compliant: 142,
-    deviations: 6,
-    rate: '4.1%',
-  },
-  deviations: [
-    { patient: '015', visit: '6-Month', expected: 'Mar 15, 2025', actual: 'Apr 22, 2025', delta: '+38 days', class: 'minor', impact: 'None', rule: 'Window: Day 180 ± 30' },
-    { patient: '023', visit: '2-Year', expected: 'Sep 10, 2025', actual: 'Missing', delta: '-', class: 'critical', impact: 'Primary endpoint', rule: 'Day 730 ± 60' },
-    { patient: '031', visit: '1-Year', expected: 'Jun 15, 2025', actual: 'Aug 20, 2025', delta: '+66 days', class: 'major', impact: 'Imaging delay', rule: 'Window: Day 365 ± 60' },
-    { patient: '008', visit: '6-Month', expected: 'Feb 28, 2025', actual: 'Mar 25, 2025', delta: '+25 days', class: 'minor', impact: 'None', rule: 'Window: Day 180 ± 30' },
-    { patient: '019', visit: '6-Month', expected: 'Apr 10, 2025', actual: 'May 15, 2025', delta: '+35 days', class: 'minor', impact: 'None', rule: 'Window: Day 180 ± 30' },
-    { patient: '027', visit: '1-Year', expected: 'Aug 01, 2025', actual: 'Oct 05, 2025', delta: '+65 days', class: 'major', impact: 'Imaging delay', rule: 'Window: Day 365 ± 60' },
-  ],
-  breakdown: {
-    minor: 3,
-    major: 2,
-    critical: 1,
-  },
-  trendData: [
-    { month: 'Aug 2025', count: 0 },
-    { month: 'Sep 2025', count: 1 },
-    { month: 'Oct 2025', count: 2 },
-    { month: 'Nov 2025', count: 1 },
-    { month: 'Dec 2025', count: 1 },
-    { month: 'Jan 2026', count: 1 },
-  ],
+// Type definitions for real API response
+interface DeviationRecord {
+  patient_id: string
+  deviation_type: string
+  severity: string
+  classification: string
+  description: string
+  visit?: string
+  visit_id?: string
+  expected_day?: number
+  actual_day?: number
+  deviation_days?: number
+  window?: string
+  missing_assessment?: string
+  violated_criterion?: string
+  criterion_type?: string
+  actual_value?: unknown
+  required_value?: string
+  ae_id?: string
+  onset_date?: string
+  report_date?: string
+  days_delayed?: number
+  is_sae?: boolean
+  consent_date?: string
+  surgery_date?: string
+  action: string
+  requires_explanation: boolean
+  affects_evaluability: boolean
+}
+
+// Deviation type configuration
+const DEVIATION_TYPES = {
+  visit_timing: { label: 'Visit Timing', icon: Clock, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  missing_assessment: { label: 'Missing Assessment', icon: ClipboardList, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  ie_violation: { label: 'IE Violation', icon: UserX, color: 'text-red-600', bgColor: 'bg-red-100' },
+  ae_reporting: { label: 'AE Reporting', icon: FileText, color: 'text-orange-600', bgColor: 'bg-orange-100' },
+  consent_timing: { label: 'Consent Timing', icon: Shield, color: 'text-amber-600', bgColor: 'bg-amber-100' },
+}
+
+interface DeviationsResponse {
+  success: boolean
+  assessment_date: string
+  total_visits: number
+  total_deviations: number
+  deviation_rate: number
+  by_severity: Record<string, number>
+  by_type: Record<string, number>
+  by_visit: Record<string, number>
+  deviations: DeviationRecord[]
+  detector_results: Array<{ detector_name: string; deviation_type: string; n_deviations: number; patients_checked?: number; visits_checked?: number }>
+  protocol_version: string
+  sources: Array<{ type: string; reference: string; confidence: number; details?: Record<string, unknown> }>
+  execution_time_ms: number
 }
 
 export default function Deviations() {
   const [, params] = useRoute('/study/:studyId/deviations')
   const studyId = params?.studyId || 'h34-delta'
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery<DeviationsResponse>({
     queryKey: ['deviations', studyId],
     queryFn: () => fetchDeviations(studyId),
     retry: false,
   })
-
-  const deviations = data || mockData
 
   if (isLoading) {
     return (
@@ -56,12 +78,81 @@ export default function Deviations() {
     )
   }
 
-  const getClassBadge = (cls: string) => {
-    switch (cls) {
-      case 'minor': return <Badge variant="neutral">Minor</Badge>
-      case 'major': return <Badge variant="warning">Major</Badge>
-      case 'critical': return <Badge variant="danger">Critical</Badge>
-      default: return <Badge variant="neutral">{cls}</Badge>
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-600">Failed to load deviations data</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate derived values
+  const compliantVisits = data.total_visits - data.total_deviations
+  // Backend returns decimal (e.g., 0.104), convert to percentage display
+  const deviationRatePercent = data.deviation_rate * 100
+  const deviationRate = deviationRatePercent > 0 ? `${deviationRatePercent.toFixed(1)}%` : '0%'
+
+  // Get severity breakdown
+  const minorCount = data.by_severity['minor'] || 0
+  const majorCount = data.by_severity['major'] || 0
+  const criticalCount = data.by_severity['critical'] || 0
+
+  // Get visit breakdown for display
+  const visitBreakdown = Object.entries(data.by_visit).map(([visit, count]) => ({
+    visit,
+    count,
+  }))
+
+  // Determine primary deviation type for dynamic descriptions
+  const primaryDeviationType = Object.entries(data.by_type || {})
+    .sort(([, a], [, b]) => b - a)[0]?.[0] || 'visit_timing'
+
+  // Dynamic severity descriptions based on actual deviation types
+  const getSeverityDescription = (severity: 'minor' | 'major' | 'critical') => {
+    if (primaryDeviationType === 'ae_reporting') {
+      switch (severity) {
+        case 'minor': return 'SAE reported 2-3 days late'
+        case 'major': return 'SAE reported 4-8 days late'
+        case 'critical': return 'SAE reported >8 days late'
+      }
+    } else if (primaryDeviationType === 'missing_assessment') {
+      switch (severity) {
+        case 'minor': return 'Missing non-primary assessment'
+        case 'major': return 'Missing required assessment'
+        case 'critical': return 'Missing primary endpoint data'
+      }
+    }
+    // Default visit timing descriptions
+    switch (severity) {
+      case 'minor': return 'Within 1.5x window extension'
+      case 'major': return 'Beyond window or missing assessment'
+      case 'critical': return 'Affects endpoint evaluability'
+    }
+  }
+
+  // Generate AI summary based on real data
+  const generateSummary = () => {
+    if (data.total_deviations === 0) {
+      return `No protocol deviations detected across ${data.total_visits} visit-assessments. All visits are within protocol-defined windows. Protocol compliance rate: 100%.`
+    }
+    const parts = []
+    parts.push(`${data.total_deviations} protocol deviation(s) detected across ${data.total_visits} visit-assessments (${deviationRate} rate).`)
+    if (minorCount > 0) parts.push(`${minorCount} minor`)
+    if (majorCount > 0) parts.push(`${majorCount} major`)
+    if (criticalCount > 0) parts.push(`${criticalCount} critical`)
+    return parts.join(', ') + ' deviation(s).'
+  }
+
+  const getStatusIcon = () => {
+    if (data.total_deviations === 0) {
+      return <CheckCircle className="w-5 h-5 text-green-500" />
+    } else if (criticalCount > 0) {
+      return <XCircle className="w-5 h-5 text-red-500" />
+    } else {
+      return <AlertTriangle className="w-5 h-5 text-amber-500" />
     }
   }
 
@@ -69,7 +160,7 @@ export default function Deviations() {
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Protocol Deviations</h1>
-        <p className="text-gray-500 mt-1">Automated deviation detection using Document-as-Code rules</p>
+        <p className="text-gray-500 mt-1">Automated deviation detection using Document-as-Code rules (v{data.protocol_version})</p>
       </div>
 
       <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-100">
@@ -79,27 +170,30 @@ export default function Deviations() {
           </div>
           <div>
             <h3 className="font-semibold text-gray-800 mb-2">AI Summary</h3>
-            <p className="text-gray-600 leading-relaxed">{deviations.summary}</p>
+            <p className="text-gray-600 leading-relaxed">{generateSummary()}</p>
+            <p className="text-xs text-gray-400 mt-2">
+              Assessment Date: {new Date(data.assessment_date).toLocaleString()}
+            </p>
           </div>
         </div>
       </Card>
 
       <div className="grid grid-cols-4 gap-4">
         <Card className="text-center">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Evaluations</p>
-          <p className="text-3xl font-semibold text-gray-800 mt-2">{deviations.stats.total}</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Visits</p>
+          <p className="text-3xl font-semibold text-gray-800 mt-2">{data.total_visits}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Compliant</p>
-          <p className="text-3xl font-semibold text-green-600 mt-2">{deviations.stats.compliant}</p>
+          <p className="text-3xl font-semibold text-green-600 mt-2">{compliantVisits}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Deviations</p>
-          <p className="text-3xl font-semibold text-red-600 mt-2">{deviations.stats.deviations}</p>
+          <p className="text-3xl font-semibold text-red-600 mt-2">{data.total_deviations}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Rate</p>
-          <p className="text-3xl font-semibold text-gray-800 mt-2">{deviations.stats.rate}</p>
+          <p className="text-3xl font-semibold text-gray-800 mt-2">{deviationRate}</p>
         </Card>
       </div>
 
@@ -108,79 +202,206 @@ export default function Deviations() {
           <div className="flex items-center gap-3 mb-4">
             <div className="w-3 h-3 rounded-full bg-gray-400" />
             <span className="font-medium text-gray-800">Minor</span>
-            <span className="ml-auto text-2xl font-semibold text-gray-600">{deviations.breakdown.minor}</span>
+            <span className="ml-auto text-2xl font-semibold text-gray-600">{minorCount}</span>
           </div>
-          <p className="text-sm text-gray-500">Within 1.5x window extension</p>
+          <p className="text-sm text-gray-500">{getSeverityDescription('minor')}</p>
         </Card>
         <Card>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
             <span className="font-medium text-gray-800">Major</span>
-            <span className="ml-auto text-2xl font-semibold text-amber-600">{deviations.breakdown.major}</span>
+            <span className="ml-auto text-2xl font-semibold text-amber-600">{majorCount}</span>
           </div>
-          <p className="text-sm text-gray-500">Beyond window or missing assessment</p>
+          <p className="text-sm text-gray-500">{getSeverityDescription('major')}</p>
         </Card>
         <Card>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-3 h-3 rounded-full bg-red-500" />
             <span className="font-medium text-gray-800">Critical</span>
-            <span className="ml-auto text-2xl font-semibold text-red-600">{deviations.breakdown.critical}</span>
+            <span className="ml-auto text-2xl font-semibold text-red-600">{criticalCount}</span>
           </div>
-          <p className="text-sm text-gray-500">Affects endpoint evaluability</p>
+          <p className="text-sm text-gray-500">{getSeverityDescription('critical')}</p>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader
-          title="Deviation Registry"
-          action={<Badge variant="neutral">{deviations.deviations.length} total</Badge>}
-        />
-        <table className="w-full mt-4">
-          <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left py-3 px-3 text-sm font-medium text-gray-500">Patient</th>
-              <th className="text-left py-3 px-3 text-sm font-medium text-gray-500">Visit</th>
-              <th className="text-left py-3 px-3 text-sm font-medium text-gray-500">Expected</th>
-              <th className="text-left py-3 px-3 text-sm font-medium text-gray-500">Actual</th>
-              <th className="text-center py-3 px-3 text-sm font-medium text-gray-500">Delta</th>
-              <th className="text-center py-3 px-3 text-sm font-medium text-gray-500">Class</th>
-              <th className="text-left py-3 px-3 text-sm font-medium text-gray-500">Impact</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deviations.deviations.map((dev, i) => (
-              <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                <td className="py-3 px-3">
-                  <div className="flex items-center gap-2">
-                    <FileWarning className={`w-4 h-4 ${
-                      dev.class === 'critical' ? 'text-red-500' :
-                      dev.class === 'major' ? 'text-amber-500' : 'text-gray-400'
-                    }`} />
-                    <span className="font-mono text-sm font-medium text-gray-800">{dev.patient}</span>
+      {/* Deviations by Type */}
+      {data.by_type && Object.keys(data.by_type).length > 0 && (
+        <Card>
+          <CardHeader
+            title="Deviations by Type"
+            subtitle="Breakdown by deviation category"
+            action={<Badge variant="neutral">{Object.keys(data.by_type).length} types detected</Badge>}
+          />
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {Object.entries(data.by_type).map(([type, count]) => {
+              const config = DEVIATION_TYPES[type as keyof typeof DEVIATION_TYPES] || {
+                label: type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+                icon: FileWarning,
+                color: 'text-gray-600',
+                bgColor: 'bg-gray-100'
+              }
+              const Icon = config.icon
+              return (
+                <div key={type} className={`flex items-center gap-3 p-3 rounded-lg ${config.bgColor}`}>
+                  <Icon className={`w-5 h-5 ${config.color}`} />
+                  <div>
+                    <p className="text-xs text-gray-500">{config.label}</p>
+                    <p className={`text-lg font-semibold ${config.color}`}>{count}</p>
                   </div>
-                </td>
-                <td className="py-3 px-3 text-sm text-gray-600">{dev.visit}</td>
-                <td className="py-3 px-3 text-sm text-gray-500">{dev.expected}</td>
-                <td className="py-3 px-3 text-sm text-gray-800">{dev.actual}</td>
-                <td className="py-3 px-3 text-center text-sm font-medium text-gray-600">{dev.delta}</td>
-                <td className="py-3 px-3 text-center">{getClassBadge(dev.class)}</td>
-                <td className="py-3 px-3 text-sm text-gray-500">{dev.impact}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      )}
+
+      {/* Status Summary Card */}
+      <Card>
+        <div className="flex items-center gap-4">
+          {getStatusIcon()}
+          <div>
+            <h3 className="font-semibold text-gray-800">
+              {data.total_deviations === 0 ? 'Excellent Compliance' :
+               criticalCount > 0 ? 'Critical Issues Detected' : 'Review Required'}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {data.total_deviations === 0
+                ? 'All visits are within protocol-defined windows'
+                : `${data.total_deviations} deviation(s) require attention`}
+            </p>
+          </div>
+          <Badge
+            variant={data.total_deviations === 0 ? 'success' : criticalCount > 0 ? 'danger' : 'warning'}
+            className="ml-auto"
+          >
+            {data.total_deviations === 0 ? '100% Compliant' : `${(100 - deviationRatePercent).toFixed(1)}% Compliant`}
+          </Badge>
+        </div>
       </Card>
 
+      {/* Visit Breakdown */}
+      {visitBreakdown.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Deviations by Visit Type"
+            action={<Badge variant="neutral">{visitBreakdown.length} visit types</Badge>}
+          />
+          <div className="mt-4 space-y-3">
+            {visitBreakdown.map((item, i) => (
+              <div key={i} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileWarning className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-medium text-gray-800">{item.visit}</span>
+                </div>
+                <Badge variant="warning">{item.count} deviation(s)</Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Individual Deviations Table */}
+      {data.deviations && data.deviations.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Deviation Details"
+            subtitle="Individual deviation records with analysis"
+            action={<Badge variant="neutral">{data.deviations.length} records</Badge>}
+          />
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Patient</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Description</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-600">Severity</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">Action</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-600">Flags</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.deviations.map((dev, i) => {
+                  const typeConfig = DEVIATION_TYPES[dev.deviation_type as keyof typeof DEVIATION_TYPES] || {
+                    label: dev.deviation_type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Unknown',
+                    icon: FileWarning,
+                    color: 'text-gray-600',
+                    bgColor: 'bg-gray-100'
+                  }
+                  const TypeIcon = typeConfig.icon
+                  return (
+                    <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 font-mono text-gray-800">{dev.patient_id}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <TypeIcon className={`w-4 h-4 ${typeConfig.color}`} />
+                          <span className="text-gray-700 text-xs">{typeConfig.label}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 max-w-xs">
+                        <p className="truncate" title={dev.description}>{dev.description}</p>
+                        {dev.visit && (
+                          <p className="text-xs text-gray-400 mt-0.5">Visit: {dev.visit}</p>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <Badge
+                          variant={
+                            dev.severity?.toLowerCase() === 'critical' ? 'danger' :
+                            dev.severity?.toLowerCase() === 'major' ? 'warning' : 'neutral'
+                          }
+                        >
+                          {dev.severity || dev.classification}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-gray-500 text-xs max-w-xs">
+                        <p className="truncate" title={dev.action}>{dev.action}</p>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {dev.requires_explanation && (
+                            <span className="w-2 h-2 rounded-full bg-amber-500" title="Requires explanation" />
+                          )}
+                          {dev.affects_evaluability && (
+                            <span className="w-2 h-2 rounded-full bg-red-500" title="Affects evaluability" />
+                          )}
+                          {!dev.requires_explanation && !dev.affects_evaluability && (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 px-4">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span>Requires PI Explanation</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-red-500" />
+              <span>Affects Evaluability</span>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Data Sources */}
       <Card>
-        <CardHeader title="Deviation Trend" subtitle="Monthly deviation count over study period" />
-        <div className="mt-6 flex items-end gap-4 h-32">
-          {deviations.trendData.map((point, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center">
-              <div
-                className="w-full bg-gray-200 rounded-t transition-all duration-500 hover:bg-gray-300"
-                style={{ height: `${(point.count / 3) * 100}%`, minHeight: point.count > 0 ? '8px' : '0' }}
-              />
-              <p className="text-xs text-gray-500 mt-2 transform -rotate-45 origin-top-left translate-y-2">{point.month}</p>
+        <CardHeader title="Data Sources" subtitle={`${data.sources.length} sources used for this assessment`} />
+        <div className="mt-4 space-y-2">
+          {data.sources.map((source, i) => (
+            <div key={i} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Badge variant="neutral" className="text-xs">{source.type}</Badge>
+                <span className="text-sm text-gray-700">{source.reference}</span>
+              </div>
+              <span className="text-xs text-gray-400">
+                Confidence: {(source.confidence * 100).toFixed(0)}%
+              </span>
             </div>
           ))}
         </div>

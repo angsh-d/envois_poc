@@ -342,7 +342,13 @@ class DataAgent(BaseAgent):
         Get overall study summary statistics.
 
         Returns:
-            Dictionary with enrollment, status counts, follow-up rates
+            Dictionary with enrollment, status counts, follow-up rates,
+            and completion metrics for regulatory readiness assessment.
+
+        CLINICAL DEFINITIONS:
+        - enrolled: Patients with enrolled="Yes" OR status="Enrolled"
+        - completed: Patients who have 2-year primary endpoint data (HHS at FU 2 Years)
+        - withdrawn: Patients marked as withdrawn in intraoperatives data
         """
         study_data = self._load_data()
 
@@ -353,10 +359,20 @@ class DataAgent(BaseAgent):
             status_counts[status] = status_counts.get(status, 0) + 1
 
         # Count enrolled patients
-        enrolled_count = sum(
-            1 for p in study_data.patients
-            if p.enrolled and p.enrolled.lower() == "yes"
-        )
+        # Check both 'enrolled' field (Yes/No) and 'status' field (Enrolled)
+        enrolled_count = 0
+        for p in study_data.patients:
+            if p.enrolled and p.enrolled.lower() == "yes":
+                enrolled_count += 1
+            elif p.status and p.status.lower() == "enrolled":
+                enrolled_count += 1
+
+        # If neither field indicates enrollment, use total patients with surgery
+        if enrolled_count == 0:
+            enrolled_count = len([
+                i for i in study_data.intraoperatives
+                if i.surgery_date is not None
+            ])
 
         # Get HHS completion by follow-up
         hhs_by_followup = {}
@@ -376,9 +392,30 @@ class DataAgent(BaseAgent):
             if i.surgery_date is not None
         ])
 
+        # Count COMPLETED patients (have 2-year primary endpoint HHS data)
+        # Per protocol, completion = having primary endpoint data at 2-year visit
+        two_year_patient_ids = set()
+        for hhs in study_data.hhs_scores:
+            fu = (hhs.follow_up or "").lower()
+            # Match various 2-year follow-up naming conventions:
+            # "FU 2 Years", "2 Years", "FU 2 Year", "24 Months", etc.
+            if "2 year" in fu or "24 month" in fu:
+                if hhs.total_score is not None:  # Must have actual score
+                    two_year_patient_ids.add(hhs.patient_id)
+        completed_count = len(two_year_patient_ids)
+
+        # Count WITHDRAWN patients
+        # Check intraoperatives.withdrawn field
+        withdrawn_count = sum(
+            1 for i in study_data.intraoperatives
+            if i.withdrawn and i.withdrawn.lower() == "yes"
+        )
+
         return {
             "total_patients": study_data.total_patients,
             "enrolled": enrolled_count,
+            "completed": completed_count,
+            "withdrawn": withdrawn_count,
             "status_breakdown": status_counts,
             "surgeries_performed": surgeries_performed,
             "total_adverse_events": study_data.total_adverse_events,
@@ -637,12 +674,14 @@ class DataAgent(BaseAgent):
         study_data = self._load_data()
 
         # Visit window definitions (days from surgery)
+        # Keys match actual follow-up names in H-34 study data
+        # VALUES MUST MATCH protocol_rules.yaml schedule_of_assessments
         visit_windows = {
-            "Discharge": {"target": 3, "minus": 0, "plus": 7},
-            "2 Months": {"target": 60, "minus": 14, "plus": 28},
-            "6 Months": {"target": 180, "minus": 30, "plus": 30},
-            "1 Year": {"target": 365, "minus": 30, "plus": 60},
-            "2 Years": {"target": 730, "minus": 60, "plus": 90},
+            "Discharge": {"target": 3, "minus": 2, "plus": 4},       # Protocol: day 3, -2/+4
+            "FU 2 Months": {"target": 60, "minus": 14, "plus": 28},  # Protocol: day 60, -14/+28
+            "FU 6 Months": {"target": 180, "minus": 30, "plus": 30}, # Protocol: day 180, -30/+30
+            "FU 1 Year": {"target": 365, "minus": 30, "plus": 60},   # Protocol: day 365, -30/+60
+            "FU 2 Years": {"target": 730, "minus": 60, "plus": 60},  # Protocol: day 730, -60/+60
         }
 
         deviations = []
@@ -693,25 +732,26 @@ class DataAgent(BaseAgent):
                     "window": f"[{window_min}, {window_max}]",
                 })
 
-        # Count by classification
-        by_classification = {"MINOR": 0, "MAJOR": 0, "CRITICAL": 0}
+        # Count by severity (lowercase keys for frontend compatibility)
+        by_severity = {"minor": 0, "major": 0, "critical": 0}
         for d in deviations:
-            by_classification[d["classification"]] = by_classification.get(d["classification"], 0) + 1
+            classification = d["classification"].lower()
+            by_severity[classification] = by_severity.get(classification, 0) + 1
 
         # Count by visit
         by_visit = {}
         for d in deviations:
             by_visit[d["visit"]] = by_visit.get(d["visit"], 0) + 1
 
-        # Calculate total assessments expected
-        total_expected = len(surgery_dates) * len(visit_windows)
+        # Calculate total visits (assessments expected)
+        total_visits = len(surgery_dates) * len(visit_windows)
 
         return {
-            "total_expected_assessments": total_expected,
+            "total_visits": total_visits,
             "total_deviations": len(deviations),
-            "deviation_rate": round(len(deviations) / total_expected, 4) if total_expected > 0 else 0,
+            "deviation_rate": round(len(deviations) / total_visits, 4) if total_visits > 0 else 0,
             "deviations": deviations,
-            "by_classification": by_classification,
+            "by_severity": by_severity,
             "by_visit": by_visit,
         }
 
