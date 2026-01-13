@@ -35,12 +35,12 @@ Single consolidated workflow:
 
 ## Frontend Pages
 - `/` - Landing page with platform overview
-- `/study/H-34` - Executive Dashboard (UC5) with KPIs, readiness, safety signals
-- `/study/H-34/readiness` - Regulatory Readiness (UC1) with gap analysis
-- `/study/H-34/safety` - Safety Signals (UC2) with cross-source contextualization
-- `/study/H-34/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
-- `/study/H-34/risk` - Patient Risk (UC4) with ML-powered stratification
-- `/study/H-34/protocol` - Protocol digitization view
+- `/study/h34-delta` or `/study/h34-delta/dashboard` - Executive Dashboard (UC5) with KPIs, readiness, safety signals
+- `/study/h34-delta/readiness` - Regulatory Readiness (UC1) with gap analysis
+- `/study/h34-delta/safety` - Safety Signals (UC2) with cross-source contextualization
+- `/study/h34-delta/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
+- `/study/h34-delta/risk` - Patient Risk (UC4) with ML-powered stratification
+- `/study/h34-delta/protocol` - Protocol digitization view
 
 ## API Endpoints
 - `/health` - Health check
@@ -81,6 +81,7 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
+- 2026-01-13: Fixed Dashboard and Safety page routing - added `/study/:studyId/dashboard` route to App.tsx, updated React Query to use staleTime: 0 with refetchOnMount: 'always' for immediate data fetching
 - 2026-01-13: Fixed caching issues for Dashboard, Readiness, and Safety pages - updated global QueryClient settings (refetchOnMount: true, staleTime: 5min) and fixed cache warmup service method calls
 - 2026-01-13: Enhanced Concomitant Meds domain - now shows required medications, rescue/supportive medications, prohibited/restricted meds, washout requirements, drug interactions, herbal supplements policy, and vaccine policy with full detail cards (purpose, timing, dosing, impact on endpoints)
 - 2026-01-13: Fixed Protocol Domains rendering - applied safeRenderValue helper across all domain renderers (Laboratory, PRO, Imaging, etc.) to handle code objects

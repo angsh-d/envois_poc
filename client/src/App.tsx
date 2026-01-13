@@ -12,6 +12,7 @@ function App() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/study/:studyId" component={StudyDashboard} />
+      <Route path="/study/:studyId/dashboard" component={StudyDashboard} />
       <Route path="/study/:studyId/readiness" component={StudyReadiness} />
       <Route path="/study/:studyId/safety" component={StudySafety} />
       <Route path="/study/:studyId/deviations" component={StudyDeviations} />

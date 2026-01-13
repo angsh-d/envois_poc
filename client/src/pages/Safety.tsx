@@ -71,11 +71,11 @@ export default function Safety() {
   const studyId = params?.studyId || 'h34-delta'
 
   const { data, isLoading, error } = useQuery<SafetyResponse>({
-    queryKey: ['safety', studyId],
-    queryFn: () => fetchSafetySignals(),
+    queryKey: ['safety-signals'],
+    queryFn: fetchSafetySignals,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
     retry: 2,
   })
