@@ -12,7 +12,7 @@ from app.agents.base_agent import (
     BaseAgent, AgentContext, AgentResult, AgentType, SourceType
 )
 from data.loaders.yaml_loader import (
-    get_doc_loader, LiteratureBenchmarks, RiskFactor, PublicationBenchmark
+    get_hybrid_loader, LiteratureBenchmarks, RiskFactor, PublicationBenchmark
 )
 from data.vectorstore import get_vector_store, PgVectorStore
 from data.loaders.hazard_ratio_extractor import HazardRatioExtractor
@@ -37,7 +37,7 @@ class LiteratureAgent(BaseAgent):
     def __init__(self, **kwargs):
         """Initialize literature agent."""
         super().__init__(**kwargs)
-        self._loader = get_doc_loader()
+        self._loader = get_hybrid_loader()
         self._benchmarks: Optional[LiteratureBenchmarks] = None
         self._vector_store: Optional[PgVectorStore] = None
 

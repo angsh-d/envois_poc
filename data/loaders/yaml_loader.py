@@ -630,3 +630,68 @@ def get_doc_loader() -> DocumentAsCodeLoader:
     if _loader is None:
         _loader = DocumentAsCodeLoader()
     return _loader
+
+
+class HybridLoader:
+    """
+    Hybrid loader that tries database first, then falls back to files.
+    Provides seamless transition from file-based to database-backed storage.
+    """
+
+    def __init__(self):
+        self._file_loader = get_doc_loader()
+        self._db_loader = None
+
+    def _get_db_loader(self):
+        """Lazy-load database loader to avoid import issues."""
+        if self._db_loader is None:
+            try:
+                from data.loaders.db_loader import get_db_loader
+                self._db_loader = get_db_loader()
+            except Exception as e:
+                logger.warning(f"Database loader not available: {e}")
+        return self._db_loader
+
+    def load_protocol_rules(self) -> ProtocolRules:
+        """Load protocol rules from DB or files."""
+        db_loader = self._get_db_loader()
+        if db_loader and db_loader.is_available():
+            result = db_loader.load_protocol_rules()
+            if result:
+                logger.debug("Loaded protocol rules from database")
+                return result
+        logger.debug("Loading protocol rules from files (fallback)")
+        return self._file_loader.load_protocol_rules()
+
+    def load_literature_benchmarks(self) -> LiteratureBenchmarks:
+        """Load literature benchmarks from DB or files."""
+        db_loader = self._get_db_loader()
+        if db_loader and db_loader.is_available():
+            result = db_loader.load_literature_benchmarks()
+            if result:
+                logger.debug("Loaded literature benchmarks from database")
+                return result
+        logger.debug("Loading literature benchmarks from files (fallback)")
+        return self._file_loader.load_literature_benchmarks()
+
+    def load_registry_norms(self) -> RegistryNorms:
+        """Load registry norms from DB or files."""
+        db_loader = self._get_db_loader()
+        if db_loader and db_loader.is_available():
+            result = db_loader.load_registry_norms()
+            if result:
+                logger.debug("Loaded registry norms from database")
+                return result
+        logger.debug("Loading registry norms from files (fallback)")
+        return self._file_loader.load_registry_norms()
+
+
+_hybrid_loader: Optional[HybridLoader] = None
+
+
+def get_hybrid_loader() -> HybridLoader:
+    """Get singleton hybrid loader instance."""
+    global _hybrid_loader
+    if _hybrid_loader is None:
+        _hybrid_loader = HybridLoader()
+    return _hybrid_loader

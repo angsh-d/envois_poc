@@ -13,7 +13,7 @@ from app.agents.safety_agent import SafetyAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.registry_agent import RegistryAgent
 from app.agents.synthesis_agent import SynthesisAgent
-from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class SafetyService:
         self._literature_agent = LiteratureAgent()
         self._registry_agent = RegistryAgent()
         self._synthesis_agent = SynthesisAgent()
-        self._doc_loader = get_doc_loader()
+        self._doc_loader = get_hybrid_loader()
 
     async def get_safety_summary(self) -> Dict[str, Any]:
         """

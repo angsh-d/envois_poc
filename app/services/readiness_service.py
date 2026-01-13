@@ -15,7 +15,7 @@ from app.agents.compliance_agent import ComplianceAgent
 from app.agents.safety_agent import SafetyAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.synthesis_agent import SynthesisAgent
-from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class ReadinessService:
         self._safety_agent = SafetyAgent()
         self._literature_agent = LiteratureAgent()
         self._synthesis_agent = SynthesisAgent()
-        self._doc_loader = get_doc_loader()
+        self._doc_loader = get_hybrid_loader()
 
     async def get_readiness_assessment(self) -> Dict[str, Any]:
         """

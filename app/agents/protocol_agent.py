@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 from app.agents.base_agent import (
     BaseAgent, AgentContext, AgentResult, AgentType, SourceType
 )
-from data.loaders.yaml_loader import get_doc_loader, ProtocolRules, VisitWindow
+from data.loaders.yaml_loader import get_hybrid_loader, ProtocolRules, VisitWindow
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class ProtocolAgent(BaseAgent):
     def __init__(self, **kwargs):
         """Initialize protocol agent."""
         super().__init__(**kwargs)
-        self._loader = get_doc_loader()
+        self._loader = get_hybrid_loader()
         self._protocol_rules: Optional[ProtocolRules] = None
 
     def _load_protocol(self) -> ProtocolRules:

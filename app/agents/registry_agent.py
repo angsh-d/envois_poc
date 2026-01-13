@@ -16,7 +16,7 @@ from app.agents.base_agent import (
     BaseAgent, AgentContext, AgentResult, AgentType, SourceType
 )
 from data.loaders.yaml_loader import (
-    get_doc_loader, RegistryNorms, RegistryBenchmark, PooledNorms
+    get_hybrid_loader, RegistryNorms, RegistryBenchmark, PooledNorms
 )
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class RegistryAgent(BaseAgent):
     def __init__(self, **kwargs):
         """Initialize registry agent."""
         super().__init__(**kwargs)
-        self._loader = get_doc_loader()
+        self._loader = get_hybrid_loader()
         self._norms: Optional[RegistryNorms] = None
 
     def _load_norms(self) -> RegistryNorms:

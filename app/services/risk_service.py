@@ -17,7 +17,7 @@ from app.agents.safety_agent import SafetyAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.synthesis_agent import SynthesisAgent
 from app.agents.data_agent import get_study_data
-from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class RiskModel:
 
     def _load_hazard_ratios_from_yaml(self) -> Dict[str, float]:
         """Load hazard ratios from literature_benchmarks.yaml."""
-        doc_loader = get_doc_loader()
+        doc_loader = get_hybrid_loader()
         try:
             lit_benchmarks = doc_loader.load_literature_benchmarks()
             # Extract pooled hazard ratios from risk_factor_summary

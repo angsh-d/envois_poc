@@ -22,7 +22,7 @@ from app.detectors import (
     DetectorResult,
 )
 from app.config import settings
-from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.yaml_loader import get_hybrid_loader
 from data.loaders.excel_loader import H34ExcelLoader
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class DeviationsService:
         self._data_agent = DataAgent()
         self._compliance_agent = ComplianceAgent()
         self._synthesis_agent = SynthesisAgent()
-        self._doc_loader = get_doc_loader()
+        self._doc_loader = get_hybrid_loader()
         self._study_data = None
 
     def _get_study_data(self):

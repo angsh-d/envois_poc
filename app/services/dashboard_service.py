@@ -15,7 +15,7 @@ from app.services.readiness_service import get_readiness_service
 from app.services.safety_service import get_safety_service
 from app.services.deviations_service import get_deviations_service
 from app.services.risk_service import get_risk_service
-from data.loaders.yaml_loader import get_doc_loader
+from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class DashboardService:
         self._deviations_service = get_deviations_service()
         self._risk_service = get_risk_service()
         self._synthesis_agent = SynthesisAgent()
-        self._doc_loader = get_doc_loader()
+        self._doc_loader = get_hybrid_loader()
 
     async def get_executive_summary(self) -> Dict[str, Any]:
         """
