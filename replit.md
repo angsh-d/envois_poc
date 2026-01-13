@@ -127,10 +127,18 @@ Data loading uses a hybrid approach (database-first with file fallback):
 - 2026-01-11: Chat API endpoint with context-aware prompting
 - 2026-01-11: Initial setup in Replit environment
 
+## Deployment Configuration
+- **Deployment Target**: Autoscale (stateless, scales based on traffic)
+- **Build Command**: `cd client && npm install && npm run build`
+- **Run Command**: `uvicorn app.main:app --host 0.0.0.0 --port 5000`
+- **Production Detection**: `REPLIT_DEPLOYMENT=1` environment variable
+- **Static Files**: Served from `client/dist` in production mode
+
 ## Current Status
 - Frontend: React + Vite + Tailwind running on port 5000
-- Backend: FastAPI reverse-proxying to Vite on port 5000
+- Backend: FastAPI reverse-proxying to Vite on port 5000 (development) or serving static files (production)
 - Database: All data loaded from PostgreSQL (37 patients, 15 AEs, 224 scores, 6 publications, 5 registries)
 - Chat: Gemini 2.0 Flash with context-aware prompts for each module
 - All 5 use case pages rendering with real study data from database
 - Chat panel available on all study pages for contextual AI assistance
+- Production-ready with optimized 486KB JS bundle
