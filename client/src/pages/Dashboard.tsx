@@ -22,35 +22,35 @@ import {
 const METRIC_INFO: Record<string, { displayName: string; tooltip: string }> = {
   hhs_improvement: {
     displayName: 'HHS Improvement',
-    tooltip: 'Harris Hip Score change from baseline to 2 years. Example: A patient improving from 38 to 73 shows +35 point improvement. Higher is better.'
+    tooltip: 'Mean change in Harris Hip Score from baseline to 2 years. Includes only patients with both baseline and 2-year scores. Example: +34.9 means patients improved by ~35 points on average. Higher is better.'
   },
   hhs_baseline: {
     displayName: 'HHS Baseline',
-    tooltip: 'Average Harris Hip Score at study enrollment. Example: Score of 37.7 indicates moderate hip dysfunction before surgery. Range: 0-100.'
+    tooltip: 'Mean Harris Hip Score at study enrollment. Includes all patients with baseline HHS recorded. Example: 37.7 indicates moderate hip dysfunction before surgery. Range: 0-100.'
   },
   hhs_2yr: {
     displayName: 'HHS 2-Year',
-    tooltip: 'Harris Hip Score at 2-year follow-up. Example: Score of 72.6 indicates good hip function post-surgery. Range: 0-100, higher is better.'
+    tooltip: 'Mean Harris Hip Score at 2-year follow-up. Includes patients who have reached 2-year visit. Example: 72.6 indicates good hip function post-surgery. Range: 0-100, higher is better.'
   },
   mcid_achievement: {
     displayName: 'MCID Achievement',
-    tooltip: 'Percentage of patients achieving Minimal Clinically Important Difference (>10 point HHS improvement). Example: 62.5% means 62.5 of 100 patients had meaningful improvement.'
+    tooltip: 'Percentage of patients achieving Minimal Clinically Important Difference (20+ point HHS improvement). Includes only patients with both baseline and 2-year scores. Example: 62.5% means 62.5 of 100 eligible patients had meaningful improvement.'
   },
   ohs_improvement: {
     displayName: 'OHS Improvement',
-    tooltip: 'Oxford Hip Score change from baseline. Example: Improvement of +15.8 points indicates functional gains. Higher is better.'
+    tooltip: 'Mean change in Oxford Hip Score from baseline. Includes only patients with both baseline and follow-up OHS scores. Example: +15.8 means patients improved by ~16 points on average. Higher is better.'
   },
   survival_2yr: {
     displayName: '2-Year Survival',
-    tooltip: 'Implant survival rate at 2 years (no revision surgery required). Example: 94.6% means 94.6 of 100 implants still functioning. Higher is better.'
+    tooltip: 'Implant survival rate at 2 years (no revision surgery required). Calculated from all enrolled patients. Example: 94.6% means 94.6 of 100 implants still functioning. Higher is better.'
   },
   dislocation_rate: {
     displayName: 'Dislocation Rate',
-    tooltip: 'Percentage of patients experiencing hip dislocation. Example: 2.5% means 2.5 dislocations per 100 patients. Lower is better.'
+    tooltip: 'Percentage of patients experiencing hip dislocation. Calculated from all adverse events across enrolled patients. Example: 2.5% means 2.5 dislocations per 100 patients. Lower is better.'
   },
   infection_rate: {
     displayName: 'Infection Rate',
-    tooltip: 'Percentage of patients developing infection. Example: 1.2% means 1.2 infections per 100 procedures. Lower is better.'
+    tooltip: 'Percentage of patients developing infection. Calculated from all adverse events across enrolled patients. Example: 1.2% means 1.2 infections per 100 procedures. Lower is better.'
   }
 }
 
@@ -250,8 +250,8 @@ export default function Dashboard() {
                   H-34 Study
                   <span className="group relative cursor-help">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                      Values from H-34 DELTA study patient data
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed text-left">
+                      Mean values calculated from H-34 DELTA study patient data. Scores and rates include only patients with data at the relevant timepoints.
                     </span>
                   </span>
                 </span>
