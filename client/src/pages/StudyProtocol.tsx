@@ -5,7 +5,8 @@ import {
   Check, X, ChevronDown, ChevronRight, Database, GitBranch,
   Target, AlertTriangle, Shield, Pill, TestTube, FlaskConical,
   FileSignature, ClipboardList, Building, CheckCircle, LogOut,
-  Scan, Activity, Users, Beaker, FileText, Heart, Stethoscope
+  Scan, Activity, Users, Beaker, FileText, Heart, Stethoscope,
+  Clock, Leaf, Syringe
 } from 'lucide-react'
 
 interface StudyProtocolProps {
@@ -1071,10 +1072,10 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
               {saeCriteria.regulatory_criteria && Array.isArray(saeCriteria.regulatory_criteria) && (
                 <ul className="space-y-1">
-                  {(saeCriteria.regulatory_criteria as string[]).map((c, i) => (
+                  {(saeCriteria.regulatory_criteria as unknown[]).map((c, i) => (
                     <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                      <span className="text-orange-500 mt-1">•</span>
-                      {c}
+                      <span className="text-gray-500 mt-1">•</span>
+                      {safeRenderValue(c)}
                     </li>
                   ))}
                 </ul>
@@ -1100,62 +1101,216 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
   }
 
   const renderConcomitantMeds = (data: Record<string, unknown>) => {
-    const prohibited = (data.prohibited_medications as Array<{ drug_class?: string; examples?: string[]; reason?: string }>) || []
-    const restricted = (data.restricted_medications as Array<{ drug_class?: string; restriction?: string }>) || []
-    const required = (data.required_medications as Array<{ medication?: string; indication?: string }>) || []
+    const prohibited = (data.prohibited_medications as Array<Record<string, unknown>>) || []
+    const restricted = (data.restricted_medications as Array<Record<string, unknown>>) || []
+    const required = (data.required_medications as Array<Record<string, unknown>>) || []
+    const rescue = (data.rescue_medications as Array<Record<string, unknown>>) || []
+    const allowed = (data.allowed_medications as Array<Record<string, unknown>>) || []
+    const washout = (data.washout_requirements as Array<Record<string, unknown>>) || []
+    const interactions = (data.drug_interactions as Array<Record<string, unknown>>) || []
+    const herbalPolicy = data.herbal_supplements_policy as Record<string, unknown> || {}
+    const vaccinePolicy = data.vaccine_policy as Record<string, unknown> || {}
+
+    const renderMedCard = (med: Record<string, unknown>, colorClass: string = 'text-gray-600') => {
+      const name = med.medication_name || med.medication_class || med.drug_class || med.name
+      const purpose = med.purpose || med.indication || med.reason || med.restriction
+      const timing = med.timing as Record<string, unknown> | undefined
+      const dosing = med.dosing as Record<string, unknown> | undefined
+      const concept = med.biomedicalConcept as Record<string, unknown> | undefined
+      const impactOnEndpoints = med.impact_on_endpoints as string | undefined
+      const dosingInstructions = med.dosing_instructions as string | undefined
+      
+      return (
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex items-start justify-between mb-2">
+            <p className="font-semibold text-gray-900">{safeRenderValue(name)}</p>
+            {concept?.conceptName && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                {safeRenderValue(concept.conceptName)}
+              </span>
+            )}
+          </div>
+          {purpose && (
+            <p className={`text-sm ${colorClass} mb-2`}>{safeRenderValue(purpose)}</p>
+          )}
+          {timing?.timing_description && (
+            <div className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+              <Clock className="w-3 h-3" />
+              {safeRenderValue(timing.timing_description)}
+            </div>
+          )}
+          {timing?.relative_to && !timing?.timing_description && (
+            <div className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+              <Clock className="w-3 h-3" />
+              Relative to: {safeRenderValue(timing.relative_to)}
+            </div>
+          )}
+          {dosingInstructions && (
+            <div className="text-xs text-gray-500 mb-1">
+              <span className="font-medium">Dosing:</span> {safeRenderValue(dosingInstructions)}
+            </div>
+          )}
+          {dosing?.route?.decode && dosing.route.decode !== 'not_specified' && (
+            <div className="text-xs text-gray-500 mb-1">
+              <span className="font-medium">Route:</span> {safeRenderValue(dosing.route)}
+            </div>
+          )}
+          {impactOnEndpoints && (
+            <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">
+              <span className="font-medium">Impact on Endpoints:</span> {safeRenderValue(impactOnEndpoints)}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    const hasNoData = prohibited.length === 0 && restricted.length === 0 && required.length === 0 && 
+                      rescue.length === 0 && allowed.length === 0 && Object.keys(herbalPolicy).length <= 1
+
+    if (hasNoData) {
+      return (
+        <div className="text-center py-8 text-gray-400">
+          <Pill className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No medication restrictions specified for this study</p>
+        </div>
+      )
+    }
 
     return (
       <div className="space-y-6">
-        {/* Prohibited */}
-        {prohibited.length > 0 && (
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <X className="w-4 h-4 text-red-500" />
-              Prohibited Medications ({prohibited.length})
-            </h4>
-            <div className="space-y-2">
-              {prohibited.map((med, i) => (
-                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{safeRenderValue(med.drug_class || med)}</p>
-                  {med.reason && <p className="text-sm text-red-600 mt-1">{safeRenderValue(med.reason)}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Restricted */}
-        {restricted.length > 0 && (
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-yellow-500" />
-              Restricted Medications ({restricted.length})
-            </h4>
-            <div className="space-y-2">
-              {restricted.map((med, i) => (
-                <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{safeRenderValue(med.drug_class || med)}</p>
-                  {med.restriction && <p className="text-sm text-gray-600 mt-1">{safeRenderValue(med.restriction)}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Required */}
+        {/* Required Medications */}
         {required.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-500" />
+              <Check className="w-4 h-4 text-gray-600" />
               Required Medications ({required.length})
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {required.map((med, i) => (
+                <div key={i}>{renderMedCard(med, 'text-gray-700')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Rescue Medications */}
+        {rescue.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Pill className="w-4 h-4 text-gray-600" />
+              Rescue/Supportive Medications ({rescue.length})
+            </h4>
+            <div className="space-y-3">
+              {rescue.map((med, i) => (
+                <div key={i}>{renderMedCard(med, 'text-gray-600')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Allowed Medications */}
+        {allowed.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Check className="w-4 h-4 text-gray-500" />
+              Allowed Medications ({allowed.length})
+            </h4>
+            <div className="space-y-3">
+              {allowed.map((med, i) => (
+                <div key={i}>{renderMedCard(med, 'text-gray-600')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Prohibited Medications */}
+        {prohibited.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <X className="w-4 h-4 text-gray-600" />
+              Prohibited Medications ({prohibited.length})
+            </h4>
+            <div className="space-y-3">
+              {prohibited.map((med, i) => (
+                <div key={i}>{renderMedCard(med, 'text-gray-700')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Restricted Medications */}
+        {restricted.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-gray-500" />
+              Restricted Medications ({restricted.length})
+            </h4>
+            <div className="space-y-3">
+              {restricted.map((med, i) => (
+                <div key={i}>{renderMedCard(med, 'text-gray-600')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Washout Requirements */}
+        {washout.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-gray-500" />
+              Washout Requirements ({washout.length})
+            </h4>
+            <div className="space-y-3">
+              {washout.map((req, i) => (
+                <div key={i}>{renderMedCard(req, 'text-gray-600')}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Drug Interactions */}
+        {interactions.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-gray-500" />
+              Drug Interactions ({interactions.length})
+            </h4>
+            <div className="space-y-3">
+              {interactions.map((int, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{med.medication || med}</p>
-                  {med.indication && <p className="text-sm text-green-700 mt-1">{med.indication}</p>}
+                  <p className="font-medium text-gray-900">{safeRenderValue(int.name || int)}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Herbal Supplements Policy */}
+        {Object.keys(herbalPolicy).length > 1 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Leaf className="w-4 h-4 text-gray-500" />
+              Herbal Supplements Policy
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+              {herbalPolicy.provenance && (
+                <p className="text-sm text-gray-700">
+                  {safeRenderValue((herbalPolicy.provenance as Record<string, unknown>)?.text_snippet)}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Vaccine Policy */}
+        {Object.keys(vaccinePolicy).length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Syringe className="w-4 h-4 text-gray-500" />
+              Vaccine Policy
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+              {renderObjectAsTable(vaccinePolicy)}
             </div>
           </div>
         )}
@@ -1197,11 +1352,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               {tests.map((test, i) => (
                 <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{test.test_name || test}</p>
-                    {test.panel && <p className="text-xs text-gray-500">{test.panel}</p>}
+                    <p className="font-medium text-gray-900">{safeRenderValue(test.test_name || test)}</p>
+                    {test.panel && <p className="text-xs text-gray-500">{safeRenderValue(test.panel)}</p>}
                   </div>
                   {test.frequency && (
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{test.frequency}</span>
+                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">{safeRenderValue(test.frequency)}</span>
                   )}
                 </div>
               ))}
@@ -1287,11 +1442,11 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
         <div className="grid gap-3">
           {instruments.map((inst, i) => (
             <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-              <p className="font-medium text-gray-900">{inst.name || inst.full_name || inst}</p>
+              <p className="font-medium text-gray-900">{safeRenderValue(inst.name || inst.full_name || inst)}</p>
               {inst.domains && Array.isArray(inst.domains) && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {inst.domains.map((d, j) => (
-                    <span key={j} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">{d}</span>
+                    <span key={j} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">{safeRenderValue(d)}</span>
                   ))}
                 </div>
               )}
@@ -1318,13 +1473,13 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div className="grid gap-3">
               {modalities.map((mod, i) => (
                 <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-900">{mod.modality_type || mod}</p>
+                  <p className="font-medium text-gray-900">{safeRenderValue(mod.modality_type || mod)}</p>
                   {mod.anatomical_region && (
-                    <p className="text-sm text-gray-600 mt-1">Region: {mod.anatomical_region}</p>
+                    <p className="text-sm text-gray-600 mt-1">Region: {safeRenderValue(mod.anatomical_region)}</p>
                   )}
                   {mod.frequency && (
-                    <span className="inline-block mt-2 text-xs bg-sky-100 text-sky-700 px-2 py-0.5 rounded">
-                      {mod.frequency}
+                    <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                      {safeRenderValue(mod.frequency)}
                     </span>
                   )}
                 </div>

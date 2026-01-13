@@ -81,7 +81,8 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
-- 2026-01-13: Fixed Protocol Domains blank screen issue - added safeRenderValue helper to handle code objects in domain renderers
+- 2026-01-13: Enhanced Concomitant Meds domain - now shows required medications, rescue/supportive medications, prohibited/restricted meds, washout requirements, drug interactions, herbal supplements policy, and vaccine policy with full detail cards (purpose, timing, dosing, impact on endpoints)
+- 2026-01-13: Fixed Protocol Domains rendering - applied safeRenderValue helper across all domain renderers (Laboratory, PRO, Imaging, etc.) to handle code objects
 - 2026-01-13: Enhanced Patient Risk module with detailed cohorts, factor prevalence, and actionable recommendations
 - 2026-01-13: Fixed React rendering error in Readiness.tsx - added safeRenderValue helpers for code objects
 - 2026-01-12: Added Saama-branded top navbar with search and user profile
