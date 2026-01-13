@@ -124,6 +124,7 @@ class ProtocolRequirementsResponse(BaseModel):
 
 
 @router.get("/readiness", response_model=ReadinessAssessmentResponse)
+@router.get("/readiness/assessment", response_model=ReadinessAssessmentResponse)
 async def get_regulatory_readiness() -> ReadinessAssessmentResponse:
     """
     Get current regulatory submission readiness assessment.

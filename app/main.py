@@ -103,6 +103,10 @@ async def root(request: Request):
 async def study_page(request: Request, study_id: str):
     return await _proxy_request_to_vite(request, f"study/{study_id}")
 
+@app.get("/study/{study_id}/{path:path}")
+async def study_subpages(request: Request, study_id: str, path: str):
+    return await _proxy_request_to_vite(request, f"study/{study_id}/{path}")
+
 @app.get("/src/{path:path}")
 async def src_files(request: Request, path: str):
     return await _proxy_request_to_vite(request, f"src/{path}")

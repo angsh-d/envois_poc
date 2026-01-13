@@ -118,6 +118,7 @@ class ThresholdsResponse(BaseModel):
 
 
 @router.get("/safety/overview", response_model=SafetySummaryResponse)
+@router.get("/safety/summary", response_model=SafetySummaryResponse)
 async def get_safety_overview() -> SafetySummaryResponse:
     """
     Get comprehensive safety signal overview with contextualization.
