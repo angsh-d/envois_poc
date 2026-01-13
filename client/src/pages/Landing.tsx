@@ -57,12 +57,15 @@ export default function Landing() {
               <span>Powered by Multi-Agent AI Architecture</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-semibold text-gray-900 tracking-tight leading-[1.1]">
-              Transforming Clinical Data
+              Clinical Intelligence
               <br />
-              <span className="bg-gradient-to-r from-gray-600 to-gray-400 bg-clip-text text-transparent">Into Regulatory Intelligence</span>
+              <span className="bg-gradient-to-r from-gray-600 to-gray-400 bg-clip-text text-transparent">Reimagined</span>
             </h1>
             <p className="mt-8 text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto leading-relaxed">
-              The first AI-native platform that unifies study data, global registry benchmarks, published literature, and digitized protocols into a single source of clinical truth.
+              AI-native platform unifying clinical studies, global registries, published literature, and real-world evidence into actionable insights for faster, smarter decision-making.
+            </p>
+            <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
+              Empowering Clinical Strategy, Scientific Affairs, Operations, and cross-functional teams with automated analytics that replace manual tasks with high-level strategic work.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               {capabilities.map((cap) => (
