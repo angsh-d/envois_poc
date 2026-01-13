@@ -1,10 +1,10 @@
 """Vector store module for document embeddings and retrieval.
 
 Components:
-    ChromaVectorStore: Main vector store class with Gemini embeddings
+    PgVectorStore: Main vector store class with PostgreSQL/pgvector
     DocumentChunk: Data class representing a document chunk
     PDFExtractor: Extract and chunk PDF documents
-    get_vector_store: Get singleton ChromaVectorStore instance
+    get_vector_store: Get singleton PgVectorStore instance
     index_all_documents: Utility to index all documents
 
 Usage:
@@ -20,8 +20,8 @@ Usage:
     # Search
     results = store.search("visit windows", source_type="protocol")
 """
-from data.vectorstore.chroma_store import (
-    ChromaVectorStore,
+from data.vectorstore.pg_vector_store import (
+    PgVectorStore,
     get_vector_store,
     DocumentChunk,
 )
@@ -31,7 +31,7 @@ from data.vectorstore.pdf_extractor import (
 )
 
 __all__ = [
-    "ChromaVectorStore",
+    "PgVectorStore",
     "get_vector_store",
     "DocumentChunk",
     "PDFExtractor",

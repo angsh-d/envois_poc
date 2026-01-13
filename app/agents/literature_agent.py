@@ -14,7 +14,7 @@ from app.agents.base_agent import (
 from data.loaders.yaml_loader import (
     get_doc_loader, LiteratureBenchmarks, RiskFactor, PublicationBenchmark
 )
-from data.vectorstore import get_vector_store, ChromaVectorStore
+from data.vectorstore import get_vector_store, PgVectorStore
 from data.loaders.hazard_ratio_extractor import HazardRatioExtractor
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class LiteratureAgent(BaseAgent):
     Agent for literature benchmark extraction and comparison.
 
     Capabilities:
-    - Semantic search over literature PDFs via ChromaDB RAG
+    - Semantic search over literature PDFs via PostgreSQL pgvector RAG
     - Load literature benchmarks from Document-as-Code YAML
     - Extract risk factors with hazard ratios
     - Compare study results against published benchmarks
@@ -39,9 +39,9 @@ class LiteratureAgent(BaseAgent):
         super().__init__(**kwargs)
         self._loader = get_doc_loader()
         self._benchmarks: Optional[LiteratureBenchmarks] = None
-        self._vector_store: Optional[ChromaVectorStore] = None
+        self._vector_store: Optional[PgVectorStore] = None
 
-    def _get_vector_store(self) -> ChromaVectorStore:
+    def _get_vector_store(self) -> PgVectorStore:
         """Get vector store with lazy initialization."""
         if self._vector_store is None:
             self._vector_store = get_vector_store()

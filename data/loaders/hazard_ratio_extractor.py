@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Optional
 
 import yaml
 
-from data.vectorstore.chroma_store import get_vector_store, ChromaVectorStore
+from data.vectorstore.pg_vector_store import get_vector_store, PgVectorStore
 from app.services.llm_service import get_llm_service, LLMService
 from app.services.prompt_service import get_prompt_service, PromptService
 
@@ -44,7 +44,7 @@ class HazardRatioExtractor:
 
     def __init__(
         self,
-        vector_store: Optional[ChromaVectorStore] = None,
+        vector_store: Optional[PgVectorStore] = None,
         llm_service: Optional[LLMService] = None,
         prompt_service: Optional[PromptService] = None,
     ):

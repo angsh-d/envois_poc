@@ -12,7 +12,7 @@ from typing import List, Optional, Generator
 import logging
 import re
 
-from data.vectorstore.chroma_store import DocumentChunk
+from data.vectorstore.pg_vector_store import DocumentChunk
 
 logger = logging.getLogger(__name__)
 

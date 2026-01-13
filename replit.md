@@ -62,7 +62,7 @@ The application uses the following environment variables (optional):
 - Python 3.11
 - FastAPI (web framework)
 - LangChain (LLM orchestration)
-- ChromaDB (vector store)
+- PostgreSQL with pgvector (vector store)
 - Google Gemini (LLM provider)
 
 ### Frontend
@@ -82,7 +82,8 @@ Apple-inspired design with:
 - Smooth transitions and hover states
 
 ## Recent Changes
-- 2026-01-13: Enhanced Data & Agents page - added Protocol-as-Code & USDM JSON data section (soa_usdm.json, eligibility_criteria.json, usdm_4.0.json), Vector Store & Semantic Index section (ChromaDB), Structured Rules (YAML) section, and data sources layer in architecture diagram with agent mapping table
+- 2026-01-13: Migrated vector store from ChromaDB to PostgreSQL with pgvector - using Replit's managed database for persistent vector embeddings storage with HNSW index
+- 2026-01-13: Enhanced Data & Agents page - added Protocol-as-Code & USDM JSON data section (soa_usdm.json, eligibility_criteria.json, usdm_4.0.json), Vector Store & Semantic Index section, Structured Rules (YAML) section, and data sources layer in architecture diagram with agent mapping table
 - 2026-01-13: Added expandable detail rows to Safety Metrics table - clicking on active signals (Dislocation Rate, Fracture Rate) expands to show Affected Patients (with contributing factors), Literature Context (benchmarks from literature_benchmarks), and Recommendations panels
 - 2026-01-13: Added Data & Agents page - moved data sources from Dashboard modal to dedicated page in side nav, added Agents tab with multi-agent architecture visualization and detailed agent documentation
 - 2026-01-13: Added download endpoints for protocol JSON files (SOA USDM, Eligibility Criteria, USDM 4.0) with download buttons on Digital Protocol tabs
