@@ -103,6 +103,7 @@ Data loading uses a hybrid approach (database-first with file fallback):
 - All services and agents use database-backed loaders
 
 ## Recent Changes
+- 2026-01-13: Enhanced Benchmarking table in Dashboard - fixed metric casing (HHS, OHS, MCID), added tooltips with explanations and examples, clarified data sources (H-34 Study vs Published Literature)
 - 2026-01-13: CRITICAL BUG FIX - Fixed compliance rate calculation showing -54% instead of ~70%. Changed deviation_rate from (total_deviations/total_visits) to (visits_with_timing_deviations/total_visits). Added visits_with_deviations and compliant_visits fields to API response.
 - 2026-01-13: Migrated all structured data from files to PostgreSQL - protocol rules, literature benchmarks, registry norms, study data (patients, AEs, scores, surgeries)
 - 2026-01-13: Created hybrid data loader with database-first and file-fallback strategy

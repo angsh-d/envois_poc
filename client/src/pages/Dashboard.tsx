@@ -15,8 +15,44 @@ import {
   Sparkles,
   TrendingUp,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  HelpCircle
 } from 'lucide-react'
+
+const METRIC_INFO: Record<string, { displayName: string; tooltip: string }> = {
+  hhs_improvement: {
+    displayName: 'HHS Improvement',
+    tooltip: 'Harris Hip Score change from baseline to 2 years. Example: A patient improving from 38 to 73 shows +35 point improvement. Higher is better.'
+  },
+  hhs_baseline: {
+    displayName: 'HHS Baseline',
+    tooltip: 'Average Harris Hip Score at study enrollment. Example: Score of 37.7 indicates moderate hip dysfunction before surgery. Range: 0-100.'
+  },
+  hhs_2yr: {
+    displayName: 'HHS 2-Year',
+    tooltip: 'Harris Hip Score at 2-year follow-up. Example: Score of 72.6 indicates good hip function post-surgery. Range: 0-100, higher is better.'
+  },
+  mcid_achievement: {
+    displayName: 'MCID Achievement',
+    tooltip: 'Percentage of patients achieving Minimal Clinically Important Difference (>10 point HHS improvement). Example: 62.5% means 62.5 of 100 patients had meaningful improvement.'
+  },
+  ohs_improvement: {
+    displayName: 'OHS Improvement',
+    tooltip: 'Oxford Hip Score change from baseline. Example: Improvement of +15.8 points indicates functional gains. Higher is better.'
+  },
+  survival_2yr: {
+    displayName: '2-Year Survival',
+    tooltip: 'Implant survival rate at 2 years (no revision surgery required). Example: 94.6% means 94.6 of 100 implants still functioning. Higher is better.'
+  },
+  dislocation_rate: {
+    displayName: 'Dislocation Rate',
+    tooltip: 'Percentage of patients experiencing hip dislocation. Example: 2.5% means 2.5 dislocations per 100 patients. Lower is better.'
+  },
+  infection_rate: {
+    displayName: 'Infection Rate',
+    tooltip: 'Percentage of patients developing infection. Example: 1.2% means 1.2 infections per 100 procedures. Lower is better.'
+  }
+}
 
 function statusToVariant(status: string): 'success' | 'warning' | 'danger' {
   switch (status?.toUpperCase()) {
@@ -204,24 +240,54 @@ export default function Dashboard() {
       </div>
 
       <Card>
-        <CardHeader title="Benchmarking" subtitle="H-34 performance vs literature and registry data" />
+        <CardHeader title="Benchmarking" subtitle="H-34 study data compared against published literature and registry benchmarks" />
         <table className="w-full mt-4">
           <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Metric</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">H-34</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Benchmark</th>
-              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Source</th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1">
+                  H-34 Study
+                  <span className="group relative cursor-help">
+                    <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                      Values from H-34 DELTA study patient data
+                    </span>
+                  </span>
+                </span>
+              </th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1">
+                  Benchmark
+                  <span className="group relative cursor-help">
+                    <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                      Reference values from published literature
+                    </span>
+                  </span>
+                </span>
+              </th>
+              <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Benchmark Source</th>
               <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Status</th>
             </tr>
           </thead>
           <tbody>
             {benchmarkRows.map((row, i) => (
-              <tr key={i} className="border-b border-gray-50 last:border-0">
-                <td className="py-3 px-4 text-sm font-medium text-gray-800">{row.metric}</td>
+              <tr key={i} className="border-b border-gray-50 last:border-0 group/row">
+                <td className="py-3 px-4 text-sm font-medium text-gray-800">
+                  <span className="inline-flex items-center gap-1.5">
+                    {row.metric}
+                    <span className="group relative cursor-help">
+                      <HelpCircle className="w-3.5 h-3.5 text-gray-400 opacity-60 group-hover/row:opacity-100 transition-opacity" />
+                      <span className="absolute bottom-full left-0 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed">
+                        {row.tooltip}
+                      </span>
+                    </span>
+                  </span>
+                </td>
                 <td className="py-3 px-4 text-sm text-center font-semibold text-gray-900">{row.studyValue}</td>
                 <td className="py-3 px-4 text-sm text-center text-gray-500">{row.benchmarkValue}</td>
-                <td className="py-3 px-4 text-sm text-center text-gray-500">{row.source}</td>
+                <td className="py-3 px-4 text-sm text-center text-gray-500">{row.benchmarkSource}</td>
                 <td className="py-3 px-4 text-center">
                   {row.status === 'success' ? (
                     <CheckCircle className="w-5 h-5 text-gray-600 mx-auto" />
@@ -249,9 +315,11 @@ export default function Dashboard() {
 
 function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<{
   metric: string
+  metricKey: string
+  tooltip: string
   studyValue: string
   benchmarkValue: string
-  source: string
+  benchmarkSource: string
   status: 'success' | 'warning' | 'danger'
 }> {
   if (!benchmarks?.comparisons) return []
@@ -260,9 +328,15 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
     .filter(c => c.study_value !== undefined && c.study_value !== null)
     .slice(0, 6)
     .map(c => {
-      let metricName = c.metric
+      const metricInfo = METRIC_INFO[c.metric]
+      const metricName = metricInfo?.displayName || c.metric
         .replace(/_/g, ' ')
         .replace(/\b\w/g, l => l.toUpperCase())
+        .replace(/Hhs/g, 'HHS')
+        .replace(/Ohs/g, 'OHS')
+        .replace(/Mcid/g, 'MCID')
+
+      const tooltip = metricInfo?.tooltip || `${metricName} comparison between H-34 study data and published literature benchmarks.`
 
       let studyValue: string
       if (c.metric.includes('rate') || c.metric.includes('survival') || c.metric.includes('achievement')) {
@@ -294,11 +368,17 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
         benchmarkValue = 'N/A'
       }
 
+      const benchmarkSource = c.source === 'Literature Aggregate' 
+        ? 'Published Literature' 
+        : c.source || 'Literature'
+
       return {
         metric: metricName,
+        metricKey: c.metric,
+        tooltip,
         studyValue,
         benchmarkValue,
-        source: c.source || 'Unknown',
+        benchmarkSource,
         status: getComparisonStatus(c.comparison_status),
       }
     })
