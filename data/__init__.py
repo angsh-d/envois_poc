@@ -1,10 +1,10 @@
 """Data module for loading, modeling, processing, and retrieving clinical study data.
 
 Submodules:
-    loaders: Data loading utilities (H34ExcelLoader, db_loader, yaml_loader)
+    loaders: Data loading utilities (H34ExcelLoader)
     generators: Synthetic data generation (SyntheticH34Generator)
-    models: Data models and schemas (unified_schema, database)
-    vectorstore: Vector embeddings and RAG retrieval (PgVectorStore)
+    models: Data models and schemas (unified_schema)
+    vectorstore: Vector embeddings and RAG retrieval (ChromaVectorStore)
 
 Data Directory Structure:
     data/
@@ -13,7 +13,7 @@ Data Directory Structure:
     │   ├── protocol/     # Protocol PDFs
     │   ├── literature/   # Literature PDFs
     │   └── registry/     # Registry data
-    ├── processed/        # Processed/extracted data (YAML fallback)
+    ├── processed/        # Processed/extracted data
     │   └── document_as_code/  # YAML extractions
-    └── vectorstore/      # PostgreSQL pgvector storage
+    └── vectorstore/      # ChromaDB persistent storage
 """
