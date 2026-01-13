@@ -8,7 +8,7 @@ const roles = [
     id: 'clinical-strategy-analyst',
     title: 'Clinical Strategy Analyst',
     department: 'Clinical Strategy Team',
-    responsibilities: 'Registry data interpretation, trend analysis, strategic planning, report generation',
+    responsibilities: 'Manage and interpret multi-source registry data, identify trends and outliers in clinical outcomes, generate automated strategic reports',
     enabled: true,
     path: '/role/clinical-strategy-analyst',
   },

@@ -60,7 +60,7 @@ export default function StudySelect() {
               Clinical Strategy Analyst
             </h1>
             <p className="text-lg text-gray-500 mb-8">
-              Registry data interpretation, trend analysis, strategic planning, report generation
+              Manage and interpret multi-source registry data, identify trends and outliers in clinical outcomes, generate automated strategic reports
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               {capabilities.map((cap) => (
