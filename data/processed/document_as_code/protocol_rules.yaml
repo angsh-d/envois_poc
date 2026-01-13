@@ -173,9 +173,10 @@ safety_thresholds:
   sae_rate_concern: 0.15
 
 # Adverse Event Handling
+# NOTE: SAEs must be reported within 24 HOURS (1 day) per FDA 21 CFR 312.32 / ICH E2A
 adverse_events:
   sae_narrative_required: true
-  sae_reporting_window_days: 24
+  sae_reporting_window_days: 1  # 24 hours (was incorrectly 24 days)
   device_relationship_required: true
   causality_assessment_required: true
   classifications:

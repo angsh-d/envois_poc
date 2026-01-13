@@ -1,0 +1,588 @@
+{
+  "protocolId": "CIP_H-34_v.2.0_05Nov2024_fully signed",
+  "criteria": [
+    {
+      "criterionId": "INC_1",
+      "originalCriterionId": "1",
+      "originalText": "Male or female.",
+      "type": "Inclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "Inclusion criteria\nPatients must meet the following criteria for study entry:\n1. Male or female.",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "OR",
+      "decompositionStrategy": "The criterion specifies two possible values for the patient's sex, 'Male' or 'Female', connected by a logical OR. This is decomposed into an OR operator with two atomic operands, one for each possible sex.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "root",
+        "nodeType": "operator",
+        "operator": "OR",
+        "operands": [
+          {
+            "nodeId": "1",
+            "nodeType": "atomic",
+            "atomicText": "Male",
+            "omopTable": "person",
+            "strategy": "Standard demographic requirement for patient sex.",
+            "clinicalCategory": "demographics",
+            "queryableStatus": "fully_queryable"
+          },
+          {
+            "nodeId": "2",
+            "nodeType": "atomic",
+            "atomicText": "Female",
+            "omopTable": "person",
+            "strategy": "Standard demographic requirement for patient sex.",
+            "clinicalCategory": "demographics",
+            "queryableStatus": "fully_queryable"
+          }
+        ]
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Male",
+          "omopTable": "person",
+          "strategy": "Standard demographic requirement for patient sex."
+        },
+        {
+          "atomicId": "2",
+          "atomicText": "Female",
+          "omopTable": "person",
+          "strategy": "Standard demographic requirement for patient sex."
+        }
+      ],
+      "sqlTemplate": "-- No valid SQL from operands",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Male",
+          "omopTable": "person",
+          "sql": "-- Unknown table: person\n-- Atomic text: Male\n-- Requires manual SQL generation"
+        },
+        {
+          "atomicId": "2",
+          "atomicText": "Female",
+          "omopTable": "person",
+          "sql": "-- Unknown table: person\n-- Atomic text: Female\n-- Requires manual SQL generation"
+        }
+      ]
+    },
+    {
+      "criterionId": "INC_2",
+      "originalCriterionId": "2",
+      "originalText": "Age \u2265 18 years old.",
+      "type": "Inclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "Patients must meet the following criteria for study entry:\n1. Male or female.\n2. Age \u2265 18 years old.",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "The criterion is a single, atomic condition representing a simple demographic requirement. It is represented as one atomic node with a numeric constraint.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "1",
+        "nodeType": "atomic",
+        "atomicText": "Age >= 18 years",
+        "omopTable": "observation",
+        "numericConstraintStructured": {
+          "value": 18,
+          "operator": ">=",
+          "unit": "years",
+          "parameter": "age"
+        },
+        "strategy": "This is a standard demographic requirement to ensure the study population consists of adults.",
+        "clinicalCategory": "demographics",
+        "queryableStatus": "fully_queryable"
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Age >= 18 years",
+          "omopTable": "observation",
+          "strategy": "This is a standard demographic requirement to ensure the study population consists of adults.",
+          "numericConstraintStructured": {
+            "value": 18,
+            "operator": ">=",
+            "unit": "years",
+            "parameter": "age"
+          }
+        }
+      ],
+      "sqlTemplate": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Age >= 18 years",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18"
+        }
+      ]
+    },
+    {
+      "criterionId": "INC_3",
+      "originalCriterionId": "3",
+      "originalText": "All patients must give written informed consent approved by the study site's Institutional Review Board (IRB)/Ethical Committee (EC).",
+      "type": "Inclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "2. Age \u2265 18 years old.\n3. All patients must give written informed consent approved by the study\nsite's Institutional Review Board (IRB)/Ethical Committee (EC).",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "The criterion is a single, universal requirement for all patients. It represents a procedural and ethical prerequisite for study participation and is best modeled as a single atomic node.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "1",
+        "nodeType": "atomic",
+        "atomicText": "Patient has provided written informed consent approved by the study site's Institutional Review Board (IRB)/Ethical Committee (EC)",
+        "omopTable": "observation",
+        "strategy": "This is a fundamental ethical and regulatory requirement for all clinical trials, confirming the patient's voluntary agreement to participate. This is typically verified at the study site during the screening process.",
+        "clinicalCategory": "diagnostic_confirmation",
+        "queryableStatus": "screening_only"
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Patient has provided written informed consent approved by the study site's Institutional Review Board (IRB)/Ethical Committee (EC)",
+          "omopTable": "observation",
+          "strategy": "This is a fundamental ethical and regulatory requirement for all clinical trials, confirming the patient's voluntary agreement to participate. This is typically verified at the study site during the screening process."
+        }
+      ],
+      "sqlTemplate": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Patient has provided written informed consent approved by the study site's Institutional Review Board (IRB)/Ethical Committee (EC)",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        }
+      ]
+    },
+    {
+      "criterionId": "INC_4",
+      "originalCriterionId": "4",
+      "originalText": "Adult patients in whom a decision has already been made to perform a total hip arthroplasty with DELTA Revision acetabular cup as per indication for use. The decision to implant DELTA Revision acetabular cup must be taken prior to, and independently from the decision to enroll the patient. This decision should be made in accordance with routine clinical practice at the study site concerned.",
+      "type": "Inclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "3. All patients must give written informed consent approved by the study\nsite's Institutional Review Board (IRB)/Ethical Committee (EC).\n4. Adult patients in whom a decision has already been made to perform a\ntotal hip arthroplasty with DELTA Revision acetabular cup as per\nindication for use. The decision to implant DELTA Revision acetabular cup\nmust be taken prior to, and independently from the decision to enroll\nthe patient. This decision should be made in accordance with routine\nclinical p...",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "The criterion is decomposed into a conjunction (AND) of four distinct requirements. These cover patient demographics (adult), the core clinical decision for a specific surgery which is wrapped in a temporal constraint (must occur before enrollment), and two procedural checks ensuring the decision was made independently of the study and according to routine practice.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "root",
+        "nodeType": "operator",
+        "operator": "AND",
+        "operands": [
+          {
+            "nodeId": "1",
+            "nodeType": "atomic",
+            "atomicText": "Patient is an adult",
+            "omopTable": "observation",
+            "numericConstraintStructured": {
+              "value": 18,
+              "operator": ">=",
+              "unit": "years",
+              "parameter": "age"
+            },
+            "strategy": "Derived from 'Adult patients'. Assuming 'adult' is defined as age 18 or greater.",
+            "clinicalCategory": "demographics",
+            "queryableStatus": "fully_queryable"
+          },
+          {
+            "nodeId": "2",
+            "nodeType": "temporal",
+            "temporalConstraint": {
+              "operator": "BEFORE",
+              "anchor": "enrollment"
+            },
+            "operand": {
+              "nodeId": "2a",
+              "nodeType": "atomic",
+              "atomicText": "Decision has been made to perform a total hip arthroplasty with DELTA Revision acetabular cup as per indication for use",
+              "omopTable": "procedure_occurrence",
+              "strategy": "Combines 'decision has already been made to perform...' and the temporal requirement 'must be taken prior to...enrollment'. This is a pre-existing clinical decision.",
+              "clinicalCategory": "disease_indication",
+              "queryableStatus": "requires_manual"
+            }
+          },
+          {
+            "nodeId": "3",
+            "nodeType": "atomic",
+            "atomicText": "The decision to implant was made independently from the decision to enroll the patient",
+            "omopTable": "observation",
+            "strategy": "Derived from the phrase 'independently from the decision to enroll the patient'. This is a check on the clinical decision process.",
+            "clinicalCategory": "diagnostic_confirmation",
+            "queryableStatus": "screening_only"
+          },
+          {
+            "nodeId": "4",
+            "nodeType": "atomic",
+            "atomicText": "The decision to implant was made in accordance with routine clinical practice at the study site",
+            "omopTable": "observation",
+            "strategy": "Derived from 'decision should be made in accordance with routine clinical practice at the study site concerned'. This ensures the decision follows the standard of care.",
+            "clinicalCategory": "diagnostic_confirmation",
+            "queryableStatus": "screening_only"
+          }
+        ]
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Patient is an adult",
+          "omopTable": "observation",
+          "strategy": "Derived from 'Adult patients'. Assuming 'adult' is defined as age 18 or greater.",
+          "numericConstraintStructured": {
+            "value": 18,
+            "operator": ">=",
+            "unit": "years",
+            "parameter": "age"
+          }
+        },
+        {
+          "atomicId": "2a",
+          "atomicText": "Decision has been made to perform a total hip arthroplasty with DELTA Revision acetabular cup as per indication for use",
+          "omopTable": "procedure_occurrence",
+          "strategy": "Combines 'decision has already been made to perform...' and the temporal requirement 'must be taken prior to...enrollment'. This is a pre-existing clinical decision."
+        },
+        {
+          "atomicId": "3",
+          "atomicText": "The decision to implant was made independently from the decision to enroll the patient",
+          "omopTable": "observation",
+          "strategy": "Derived from the phrase 'independently from the decision to enroll the patient'. This is a check on the clinical decision process."
+        },
+        {
+          "atomicId": "4",
+          "atomicText": "The decision to implant was made in accordance with routine clinical practice at the study site",
+          "omopTable": "observation",
+          "strategy": "Derived from 'decision should be made in accordance with routine clinical practice at the study site concerned'. This ensures the decision follows the standard of care."
+        }
+      ],
+      "sqlTemplate": "(SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18)\nINTERSECT\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))\nINTERSECT\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Patient is an adult",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18"
+        },
+        {
+          "atomicId": "2a",
+          "atomicText": "Decision has been made to perform a total hip arthroplasty with DELTA Revision acetabular cup as per indication for use",
+          "omopTable": "procedure_occurrence",
+          "sql": "SELECT DISTINCT po.person_id\nFROM procedure_occurrence po\nWHERE po.procedure_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        },
+        {
+          "atomicId": "3",
+          "atomicText": "The decision to implant was made independently from the decision to enroll the patient",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        },
+        {
+          "atomicId": "4",
+          "atomicText": "The decision to implant was made in accordance with routine clinical practice at the study site",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        }
+      ]
+    },
+    {
+      "criterionId": "INC_5",
+      "originalCriterionId": "5",
+      "originalText": "Patient is able to comply with the protocol.",
+      "type": "Inclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "the patient. This decision should be made in accordance with routine\nclinical practice at the study site concerned.\n5. Patient is able to comply with the protocol.",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "This criterion is a single, subjective condition requiring investigator judgment. It is represented as a single atomic node because it does not contain any boolean logic.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "1",
+        "nodeType": "atomic",
+        "atomicText": "Able to comply with protocol requirements",
+        "omopTable": "observation",
+        "strategy": "This is a judgment made by the clinical investigator to ensure the patient can and will adhere to the study's visit schedule, treatment plan, and other requirements. It is not queryable from structured data.",
+        "clinicalCategory": "performance_status",
+        "queryableStatus": "requires_manual"
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Able to comply with protocol requirements",
+          "omopTable": "observation",
+          "strategy": "This is a judgment made by the clinical investigator to ensure the patient can and will adhere to the study's visit schedule, treatment plan, and other requirements. It is not queryable from structured data."
+        }
+      ],
+      "sqlTemplate": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE p.gender_concept_id = 8507  -- MALE",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Able to comply with protocol requirements",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE p.gender_concept_id = 8507  -- MALE"
+        }
+      ]
+    },
+    {
+      "criterionId": "EXC_1",
+      "originalCriterionId": "1",
+      "originalText": "Adult patients with any DELTA Revision acetabular cup contraindication for use as reported in the current local Instruction for use.",
+      "type": "Exclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [
+        {
+          "referenceText": "reported in the current local Instruction for use",
+          "targetSection": "Instruction for use"
+        }
+      ],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "Exclusion criteria\nA patient will not be included in the study if they meet any of the following\ncriteria:\n1. Adult patients with any DELTA Revision acetabular cup contraindication\nfor use as reported in the current local Instruction for use.",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "The criterion is decomposed into a simple AND structure, combining two independent conditions: the patient must be an adult, and they must have a specific contraindication related to the medical device.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "root",
+        "nodeType": "operator",
+        "operator": "AND",
+        "operands": [
+          {
+            "nodeId": "1",
+            "nodeType": "atomic",
+            "atomicText": "Adult patient",
+            "omopTable": "observation",
+            "numericConstraintStructured": {
+              "value": 18,
+              "operator": ">=",
+              "unit": "years",
+              "parameter": "age"
+            },
+            "strategy": "Standard definition of an adult patient for clinical trial eligibility, typically age 18 or older.",
+            "clinicalCategory": "demographics",
+            "queryableStatus": "fully_queryable"
+          },
+          {
+            "nodeId": "2",
+            "nodeType": "atomic",
+            "atomicText": "Contraindication for use of DELTA Revision acetabular cup as reported in the current local Instruction for Use",
+            "omopTable": "observation",
+            "strategy": "This requires manual review of the patient's record against the specific list of contraindications listed in the device's Instructions for Use (IFU). The exact contraindications are not specified in the criterion itself.",
+            "clinicalCategory": "safety_exclusion",
+            "queryableStatus": "requires_manual"
+          }
+        ]
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Adult patient",
+          "omopTable": "observation",
+          "strategy": "Standard definition of an adult patient for clinical trial eligibility, typically age 18 or older.",
+          "numericConstraintStructured": {
+            "value": 18,
+            "operator": ">=",
+            "unit": "years",
+            "parameter": "age"
+          }
+        },
+        {
+          "atomicId": "2",
+          "atomicText": "Contraindication for use of DELTA Revision acetabular cup as reported in the current local Instruction for Use",
+          "omopTable": "observation",
+          "strategy": "This requires manual review of the patient's record against the specific list of contraindications listed in the device's Instructions for Use (IFU). The exact contraindications are not specified in the criterion itself."
+        }
+      ],
+      "sqlTemplate": "-- EXCLUSION: Exclude patients matching this criterion\nSELECT person_id FROM person\nWHERE person_id NOT IN (\n(SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18)\nINTERSECT\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))\n)",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Adult patient",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT p.person_id\nFROM person p\nWHERE EXTRACT(YEAR FROM AGE(@reference_date, p.birth_datetime)) >= 18"
+        },
+        {
+          "atomicId": "2",
+          "atomicText": "Contraindication for use of DELTA Revision acetabular cup as reported in the current local Instruction for Use",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        }
+      ]
+    },
+    {
+      "criterionId": "EXC_2",
+      "originalCriterionId": "2",
+      "originalText": "For female patients, current pregnancy and/or lactation or planning a pregnancy.",
+      "type": "Exclusion",
+      "instanceType": "EligibilityCriterion",
+      "hasSubCriteria": false,
+      "subCriteria": [],
+      "crossReferences": [],
+      "provenance": {
+        "pageNumber": 11,
+        "textSnippet": "1. Adult patients with any DELTA Revision acetabular cup contraindication\nfor use as reported in the current local Instruction for use.\n2. For female patients, current pregnancy and/or lactation or planning a\npregnancy.",
+        "confidence": 1.0
+      },
+      "resolvedReferences": null,
+      "logicOperator": "AND",
+      "decompositionStrategy": "The criterion applies a set of conditions specifically to female patients. This is modeled as a logical AND: the patient must be [Female] AND meet one of the subsequent conditions. The conditions 'current pregnancy', 'lactation', or 'planning a pregnancy' are combined with a logical OR, as indicated by 'and/or' and 'or'.",
+      "useExpressionTree": true,
+      "hasNestedLogic": true,
+      "expression": {
+        "nodeId": "root",
+        "nodeType": "operator",
+        "operator": "AND",
+        "operands": [
+          {
+            "nodeId": "1",
+            "nodeType": "atomic",
+            "atomicText": "Female",
+            "omopTable": "person",
+            "strategy": "Identifies the patient's sex as female, as the subsequent conditions only apply to this subpopulation.",
+            "clinicalCategory": "demographics",
+            "queryableStatus": "fully_queryable"
+          },
+          {
+            "nodeId": "2",
+            "nodeType": "operator",
+            "operator": "OR",
+            "operands": [
+              {
+                "nodeId": "2a",
+                "nodeType": "atomic",
+                "atomicText": "Currently pregnant",
+                "omopTable": "observation",
+                "strategy": "Identifies patients who are currently pregnant, a common exclusion for safety reasons.",
+                "clinicalCategory": "demographics",
+                "queryableStatus": "partially_queryable",
+                "clinicalConceptGroup": "pregnancy_lactation_status"
+              },
+              {
+                "nodeId": "2b",
+                "nodeType": "atomic",
+                "atomicText": "Currently lactating",
+                "omopTable": "observation",
+                "strategy": "Identifies patients who are currently lactating/breastfeeding, a common exclusion for safety reasons.",
+                "clinicalCategory": "demographics",
+                "queryableStatus": "partially_queryable",
+                "clinicalConceptGroup": "pregnancy_lactation_status"
+              },
+              {
+                "nodeId": "2c",
+                "nodeType": "atomic",
+                "atomicText": "Planning a pregnancy",
+                "omopTable": "observation",
+                "strategy": "Identifies patients who intend to become pregnant, a common exclusion for safety reasons, typically assessed via direct questioning.",
+                "clinicalCategory": "demographics",
+                "queryableStatus": "requires_manual",
+                "clinicalConceptGroup": "pregnancy_lactation_status"
+              }
+            ]
+          }
+        ]
+      },
+      "atomicCriteria": [
+        {
+          "atomicId": "1",
+          "atomicText": "Female",
+          "omopTable": "person",
+          "strategy": "Identifies the patient's sex as female, as the subsequent conditions only apply to this subpopulation."
+        },
+        {
+          "atomicId": "2a",
+          "atomicText": "Currently pregnant",
+          "omopTable": "observation",
+          "strategy": "Identifies patients who are currently pregnant, a common exclusion for safety reasons."
+        },
+        {
+          "atomicId": "2b",
+          "atomicText": "Currently lactating",
+          "omopTable": "observation",
+          "strategy": "Identifies patients who are currently lactating/breastfeeding, a common exclusion for safety reasons."
+        },
+        {
+          "atomicId": "2c",
+          "atomicText": "Planning a pregnancy",
+          "omopTable": "observation",
+          "strategy": "Identifies patients who intend to become pregnant, a common exclusion for safety reasons, typically assessed via direct questioning."
+        }
+      ],
+      "sqlTemplate": "-- EXCLUSION: Exclude patients matching this criterion\nSELECT person_id FROM person\nWHERE person_id NOT IN (\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))\nUNION\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))\nUNION\n(SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */))\n)",
+      "sqlComponents": [
+        {
+          "atomicId": "1",
+          "atomicText": "Female",
+          "omopTable": "person",
+          "sql": "-- Unknown table: person\n-- Atomic text: Female\n-- Requires manual SQL generation"
+        },
+        {
+          "atomicId": "2a",
+          "atomicText": "Currently pregnant",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        },
+        {
+          "atomicId": "2b",
+          "atomicText": "Currently lactating",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        },
+        {
+          "atomicId": "2c",
+          "atomicText": "Planning a pregnancy",
+          "omopTable": "observation",
+          "sql": "SELECT DISTINCT o.person_id\nFROM observation o\nWHERE o.observation_concept_id IN (/* UNMAPPED - requires manual concept selection */)"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalCriteria": 7,
+    "inclusionCount": 5,
+    "exclusionCount": 2,
+    "atomicCount": 15
+  }
+}

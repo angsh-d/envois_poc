@@ -1,0 +1,2025 @@
+{
+  "protocolId": "CIP_H-34_v.2.0_05Nov2024_fully signed",
+  "protocolType": "fixed_duration",
+  "primaryReferencePoint": "first_dose",
+  "visits": [
+    {
+      "id": "ENC-001",
+      "name": "Pre-operative",
+      "originalName": "Pre-operative visit\u00b9",
+      "visitType": "screening",
+      "timing": null,
+      "window": null,
+      "recurrence": null,
+      "footnoteMarkers": [
+        "1"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 1
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-001-TYPE-373BEB01",
+        "code": "C48262",
+        "decode": "Screening",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-002",
+      "name": "Discharge",
+      "originalName": "Intraoperative/Discharge visit\u00b2",
+      "visitType": "treatment",
+      "timing": null,
+      "window": null,
+      "recurrence": null,
+      "footnoteMarkers": [
+        "2"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 2
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-002-TYPE-E740EA57",
+        "code": "C25100",
+        "decode": "Treatment",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-003",
+      "name": "Month 2",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 2,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 30,
+        "lateBound": 30,
+        "type": "symmetrical",
+        "unit": "days",
+        "description": "\u00b1 30 days",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-003-TYPE-926B7008",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-004",
+      "name": "Month 6",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 6,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 60,
+        "lateBound": 60,
+        "type": "symmetrical",
+        "unit": "days",
+        "description": "\u00b1 60 days",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-004-TYPE-C16CCA50",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-005",
+      "name": "Month 12",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 12,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 6,
+        "lateBound": 6,
+        "type": "symmetrical",
+        "unit": "months",
+        "description": "\u00b1 6 months",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-005-TYPE-CB3FCA4B",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-006",
+      "name": "Month 24",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 24,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 6,
+        "lateBound": 6,
+        "type": "symmetrical",
+        "unit": "months",
+        "description": "\u00b1 6 months",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-006-TYPE-32BE1F88",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "id": "ENC-001",
+      "name": "Pre-operative",
+      "originalName": "Pre-operative visit\u00b9",
+      "visitType": "screening",
+      "timing": null,
+      "window": null,
+      "recurrence": null,
+      "footnoteMarkers": [
+        "1"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 1
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-001-TYPE-373BEB01",
+        "code": "C48262",
+        "decode": "Screening",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-002",
+      "name": "Discharge",
+      "originalName": "Intraoperative/Discharge visit\u00b2",
+      "visitType": "treatment",
+      "timing": null,
+      "window": null,
+      "recurrence": null,
+      "footnoteMarkers": [
+        "2"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 2
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-002-TYPE-E740EA57",
+        "code": "C25100",
+        "decode": "Treatment",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-003",
+      "name": "Month 2",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 2,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 30,
+        "lateBound": 30,
+        "type": "symmetrical",
+        "unit": "days",
+        "description": "\u00b1 30 days",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-003-TYPE-926B7008",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-004",
+      "name": "Month 6",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 6,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 60,
+        "lateBound": 60,
+        "type": "symmetrical",
+        "unit": "days",
+        "description": "\u00b1 60 days",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-004-TYPE-C16CCA50",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-005",
+      "name": "Month 12",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 12,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 6,
+        "lateBound": 6,
+        "type": "symmetrical",
+        "unit": "months",
+        "description": "\u00b1 6 months",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-005-TYPE-CB3FCA4B",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    },
+    {
+      "id": "ENC-006",
+      "name": "Month 24",
+      "originalName": "Follow-up visit\u00b3",
+      "visitType": "follow_up",
+      "timing": {
+        "value": 24,
+        "unit": "months",
+        "relativeTo": "first_dose",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "window": {
+        "earlyBound": 6,
+        "lateBound": 6,
+        "type": "symmetrical",
+        "unit": "months",
+        "description": "\u00b1 6 months",
+        "provenance": {
+          "pageNumber": 53,
+          "tableId": "SOA-2",
+          "colIdx": 3
+        }
+      },
+      "recurrence": null,
+      "footnoteMarkers": [
+        "3"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 3
+      },
+      "instanceType": "Encounter",
+      "type": {
+        "id": "CODE-ENC-ENC-006-TYPE-32BE1F88",
+        "code": "C16033",
+        "decode": "Follow-up",
+        "codeSystem": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+        "codeSystemVersion": "24.12",
+        "instanceType": "Code"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "id": "ACT-001",
+      "name": "Informed Consent",
+      "category": "OTHER",
+      "cdashDomain": "SC",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 1
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-002",
+      "name": "Inclusion/exclusion criteria",
+      "category": "OTHER",
+      "cdashDomain": "IE",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 2
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-003",
+      "name": "Demographics",
+      "category": "OTHER",
+      "cdashDomain": "DM",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 3
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-004",
+      "name": "Medical history",
+      "category": "OTHER",
+      "cdashDomain": "MH",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 4
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-005",
+      "name": "Vital signs",
+      "category": "VITAL_SIGNS",
+      "cdashDomain": "VS",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 5
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-006",
+      "name": "Physical examination",
+      "category": "PHYSICAL_EXAM",
+      "cdashDomain": "PE",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-007",
+      "name": "Laboratory evaluations",
+      "category": "LABORATORY",
+      "cdashDomain": "LB",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 7
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-008",
+      "name": "Surgery and Implant data",
+      "category": "OTHER",
+      "cdashDomain": "PR",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 8
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-009",
+      "name": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "category": "QUESTIONNAIRE",
+      "cdashDomain": "QS",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-010",
+      "name": "Oxford Hip Score (OHS)",
+      "category": "QUESTIONNAIRE",
+      "cdashDomain": "QS",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-011",
+      "name": "Radiographical evaluation",
+      "category": "IMAGING",
+      "cdashDomain": "RS",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-012",
+      "name": "Medications",
+      "category": "OTHER",
+      "cdashDomain": "CM",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-013",
+      "name": "AE reporting",
+      "category": "SAFETY",
+      "cdashDomain": "AE",
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-014",
+      "name": "X-RAY: AP Pelvis",
+      "category": "IMAGING",
+      "cdashDomain": "RS",
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "rowIdx": 20
+      },
+      "instanceType": "Activity"
+    },
+    {
+      "id": "ACT-015",
+      "name": "X-RAY: Lateral Hip",
+      "category": "IMAGING",
+      "cdashDomain": "RS",
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "rowIdx": 21
+      },
+      "instanceType": "Activity"
+    }
+  ],
+  "scheduledActivityInstances": [
+    {
+      "id": "SAI-001",
+      "activityId": "ACT-001",
+      "activityName": "Informed Consent",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "a"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 1,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-002",
+      "activityId": "ACT-002",
+      "activityName": "Inclusion/exclusion criteria",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 2,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-003",
+      "activityId": "ACT-003",
+      "activityName": "Demographics",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "b"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 3,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-004",
+      "activityId": "ACT-004",
+      "activityName": "Medical history",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "c"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 4,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-005",
+      "activityId": "ACT-005",
+      "activityName": "Vital signs",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "d"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 5,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-006",
+      "activityId": "ACT-005",
+      "activityName": "Vital signs",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "d"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 5,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-007",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-008",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-009",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-010",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-011",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-012",
+      "activityId": "ACT-006",
+      "activityName": "Physical examination",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 6,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-013",
+      "activityId": "ACT-007",
+      "activityName": "Laboratory evaluations",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "e"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 7,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-014",
+      "activityId": "ACT-007",
+      "activityName": "Laboratory evaluations",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "e"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 7,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-015",
+      "activityId": "ACT-008",
+      "activityName": "Surgery and Implant data",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "f"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 8,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-016",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-017",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-018",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-019",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-020",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-021",
+      "activityId": "ACT-009",
+      "activityName": "Haris Hip Score (HHS) and Range of motion (ROM)",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 9,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-022",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-023",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-024",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-025",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-026",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-027",
+      "activityId": "ACT-010",
+      "activityName": "Oxford Hip Score (OHS)",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 10,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-028",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-029",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-030",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-031",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-032",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-033",
+      "activityId": "ACT-011",
+      "activityName": "Radiographical evaluation",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 11,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-034",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-035",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-036",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-037",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-038",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-039",
+      "activityId": "ACT-012",
+      "activityName": "Medications",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "g"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 12,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-040",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-041",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-042",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-043",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-044",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-045",
+      "activityId": "ACT-013",
+      "activityName": "AE reporting",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [
+        "h"
+      ],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 13,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-046",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-001",
+      "visitName": "Pre-operative",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 1
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-047",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-002",
+      "visitName": "Discharge",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 2
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-048",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-003",
+      "visitName": "Month 2",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-049",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-004",
+      "visitName": "Month 6",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-050",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-005",
+      "visitName": "Month 12",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    },
+    {
+      "id": "SAI-051",
+      "activityId": "ACT-014",
+      "activityName": "X-RAY: AP Pelvis",
+      "visitId": "ENC-006",
+      "visitName": "Month 24",
+      "isRequired": true,
+      "condition": null,
+      "timingModifier": null,
+      "footnoteMarkers": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "rowIdx": 20,
+        "colIdx": 3
+      },
+      "instanceType": "ScheduledActivityInstance",
+      "timelineId": "TIMELINE-EFE5B150"
+    }
+  ],
+  "footnotes": [
+    {
+      "marker": "1",
+      "text": "The timing of study visits will be in accordance with current local practice at the study site",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "site_instruction",
+      "classificationReasoning": "This footnote provides a general instruction for sites regarding visit timing, deferring to local practice. It does not set a specific, automatable rule for EDC.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "2",
+      "text": "Discharge visit: the time from admission date to the discharge will be based according to the current clinical practice and both dates will be entered in the eCRF. Assessments have to be performed in the period between the surgery and discharge.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "site_instruction",
+      "classificationReasoning": "This footnote describes the timing and data entry requirements for the discharge visit, which are procedural instructions for the site rather than automated EDC logic.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "3",
+      "text": "Follow-Up 2 months (\u00b1 30 days), Follow-Up 6 months (\u00b1 60 days), Follow-Up 12 months (\u00b1 6 months) and Follow-Up 24 months (\u00b1 6 months) since the date of the surgery.",
+      "ruleType": "visit_window",
+      "category": "SCHEDULING",
+      "subcategory": "visit_window",
+      "classificationReasoning": "This footnote explicitly defines the timing and visit windows for all follow-up visits, which directly impacts the study calendar and scheduling in the EDC.",
+      "edcImpact": {
+        "affectsScheduling": true,
+        "affectsBranching": false,
+        "isInformational": false
+      },
+      "structuredRule": {
+        "description": "Defines windows for Month 2 (\u00b130d), Month 6 (\u00b160d), Month 12 (\u00b16mo), and Month 24 (\u00b16mo) visits.",
+        "provenance": {
+          "pageNumber": 30,
+          "tableId": "SOA-1",
+          "location": "table_footer"
+        }
+      },
+      "appliesTo": [
+        "ENC-003",
+        "ENC-004",
+        "ENC-005",
+        "ENC-006"
+      ],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "a",
+      "text": "Informed consent may be obtained at any time (including prior to the pre-operative visit) but must be obtained prior to the performance of any protocol assessments. All pre-operative evaluations must be completed and reviewed to confirm that patients meet all eligibility criteria before the inclusion.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "consent_procedure",
+      "classificationReasoning": "This footnote details the procedural requirements for obtaining informed consent, which is a critical operational step for the site but does not translate to automated scheduling or branching logic in EDC.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "b",
+      "text": "Demographic data include age, sex, ethnicity/race, smoking and drinking habits, activity level (e.g. sedentary, normal, intense) and, working status (active worker or retired).",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "documentation",
+      "classificationReasoning": "This footnote specifies the data points to be collected for Demographics. This is an instruction for data entry and does not affect scheduling or create conditional logic.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "c",
+      "text": "Medical history includes clinically significant diseases, hip history (including all prior hip therapies and procedures) and, osteoporosis history (including assessment, treatment and nature of the osteoporosis); the affected limb (right or left) is also requested to be collected in the eCRF and to be reported clearly in the medical charts.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "documentation",
+      "classificationReasoning": "This footnote details the specific information to be collected for Medical History, which is a documentation guideline for the site.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "d",
+      "text": "Body height and body weight are mandatory to be recorded only at the pre-operative visit in the eCRF; vital signs (body temperature, pulse, blood pressure) should be obtained and reviewed but are not required to be entered into the eCRF. Significant and severe abnormal vital signs at any time during the course of study should be recorded as AEs or SAEs.",
+      "ruleType": "timing_modifier",
+      "category": [
+        "SCHEDULING",
+        "OPERATIONAL"
+      ],
+      "subcategory": [
+        "timing_constraint",
+        "documentation"
+      ],
+      "classificationReasoning": "This footnote contains a timing constraint ('only at the pre-operative visit') which affects scheduling, and also provides documentation instructions (what to record in eCRF vs. what not to), making it both SCHEDULING and OPERATIONAL.",
+      "edcImpact": {
+        "affectsScheduling": true,
+        "affectsBranching": false,
+        "isInformational": false
+      },
+      "structuredRule": {
+        "condition": "Body height and body weight only at pre-operative visit"
+      },
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "e",
+      "text": "Routine laboratory evaluations (e.g., hematology and serum chemistry) will be peformed in accordance with current local practice at the study site and will not collected in the eCRF but it is very recommended to store and archive all laboratory reports in the medical charts.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "documentation",
+      "classificationReasoning": "This footnote provides instructions on handling laboratory data, specifying that it should not be entered into the eCRF. This is a documentation and site procedure rule.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "f",
+      "text": "Surgery data including surgical approach, surgery time and date, intra-operative and immediate post-operative haematocrit measurements. Implant data for Delta Revision acetabular cup include the type, size, material, batch number and expire date: the label of acetabular cup has to be stored also in the source documents.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "documentation",
+      "classificationReasoning": "This footnote lists the specific data points to be collected for surgery and implant data, serving as a documentation guide for the site.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "g",
+      "text": "Medications includes e.g., prescription drugs, over-the-counter drugs, herbal/homeopathic remedies, pain medication used by the patient prior to the pre-operative visit. Medications related to the treatment of SAEs/AEs/ADEs/SADEs/DD are also to be reported during the follow-up period and survival follow-up period.",
+      "ruleType": "reference",
+      "category": "OPERATIONAL",
+      "subcategory": "documentation",
+      "classificationReasoning": "This footnote defines the scope of what should be recorded as 'Medications', which is an instruction for data collection and documentation.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {},
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "h",
+      "text": "During pre-operative visit, only SAEs considered related to protocol-mandated procedures will be collected. Patients who withdraw from the study prematurely will be followed for all unresolved AEs/ADEs and/or SAEs/SADEs until their resolution or stabilization, the patient is lost to follow-up or dies, or until it is determined that the study participation is not the cause of the AE/SAE/ADE/SADE, whichever occurs first .",
+      "ruleType": "conditional",
+      "category": [
+        "CONDITIONAL",
+        "OPERATIONAL"
+      ],
+      "subcategory": [
+        "clinical_indication",
+        "site_instruction"
+      ],
+      "classificationReasoning": "This footnote specifies a condition for collecting SAEs ('only...related to protocol-mandated procedures') and provides operational instructions for follow-up of withdrawn patients, impacting both conditional logic and site procedures.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": true,
+        "isInformational": false
+      },
+      "structuredRule": {
+        "condition": "Collect SAEs only if related to protocol-mandated procedures during pre-operative visit."
+      },
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "a",
+      "text": "X-Ray (Antero-Posterior view) has to be performed at preoperative visit, at immediate postoperative and at every follow up visit and uploaded in the eCRF.",
+      "ruleType": "frequency",
+      "category": "SCHEDULING",
+      "subcategory": "recurrence",
+      "classificationReasoning": "This footnote specifies the frequency and timing for the AP Pelvis X-Ray, dictating that it must occur at specific visits. This directly affects the activity schedule in the EDC.",
+      "edcImpact": {
+        "affectsScheduling": true,
+        "affectsBranching": false,
+        "isInformational": false
+      },
+      "structuredRule": {
+        "frequency": "At preoperative, immediate postoperative, and every follow-up visit"
+      },
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    },
+    {
+      "marker": "b",
+      "text": "It is very recommended to perform the X-ray (lateral view) and if it is performed to upload in the eCRF and, to archive all related reports in the medical charts.",
+      "ruleType": "conditional",
+      "category": "OPERATIONAL",
+      "subcategory": "site_instruction",
+      "classificationReasoning": "This footnote describes the X-ray (lateral view) as recommended but not mandatory ('if it is performed'). This is a site instruction and implies optionality, which is an operational detail rather than a strict scheduling rule.",
+      "edcImpact": {
+        "affectsScheduling": false,
+        "affectsBranching": false,
+        "isInformational": true
+      },
+      "structuredRule": {
+        "condition": "if performed"
+      },
+      "appliesTo": [],
+      "provenance": {
+        "pageNumber": 30,
+        "tableId": "SOA-1",
+        "location": "table_footer"
+      },
+      "instanceType": "CommentAnnotation"
+    }
+  ],
+  "qualityMetrics": {
+    "totalVisits": 6,
+    "visitsWithWindows": 4,
+    "visitsWithRecurrence": 0,
+    "totalActivities": 15,
+    "totalScheduledInstances": 51,
+    "matrixCoverage": 0.567,
+    "footnotesLinked": 13,
+    "mergedTimepoints": 0,
+    "footnoteCategoryDistribution": {
+      "CONDITIONAL": 1,
+      "SCHEDULING": 3,
+      "OPERATIONAL": 11,
+      "multiLabel": 2
+    }
+  },
+  "scheduleTimelines": [
+    {
+      "id": "TIMELINE-EFE5B150",
+      "name": "Main Study Schedule",
+      "instanceType": "ScheduleTimeline",
+      "mainTimeline": true,
+      "entryCondition": "Subject enrolled and eligible",
+      "entryId": "ENC-001",
+      "exits": [],
+      "timings": [],
+      "instances": [],
+      "provenance": {
+        "pageNumber": 53,
+        "tableId": "SOA-2",
+        "colIdx": 1
+      }
+    }
+  ],
+  "conditions": [],
+  "conditionAssignments": [],
+  "_draftMetadata": {
+    "generatedAt": "2026-01-12T20:32:32.830882",
+    "stage": 11,
+    "isDraft": true,
+    "autoApprovedCount": 0,
+    "pendingReviewCount": 0,
+    "pendingCriticalCount": 0
+  }
+}
