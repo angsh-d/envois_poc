@@ -49,6 +49,8 @@ interface DeviationsResponse {
   assessment_date: string
   total_visits: number
   total_deviations: number
+  visits_with_deviations: number
+  compliant_visits: number
   deviation_rate: number
   by_severity: Record<string, number>
   by_type: Record<string, number>
@@ -92,9 +94,9 @@ export default function Deviations() {
     )
   }
 
-  // Calculate derived values
-  const compliantVisits = data.total_visits - data.total_deviations
-  // Backend returns decimal (e.g., 0.104), convert to percentage display
+  // Use values calculated correctly by backend (percentage of visits with at least one deviation)
+  const compliantVisits = data.compliant_visits ?? (data.total_visits - (data.visits_with_deviations ?? 0))
+  // Backend returns decimal (e.g., 0.13 for 13%), convert to percentage display
   const deviationRatePercent = data.deviation_rate * 100
   const deviationRate = deviationRatePercent > 0 ? `${deviationRatePercent.toFixed(1)}%` : '0%'
 

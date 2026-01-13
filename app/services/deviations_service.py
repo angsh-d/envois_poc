@@ -138,12 +138,28 @@ class DeviationsService:
                 total_visits = result.get("visits_checked", 0)
                 break
 
+        # Calculate visits with deviations (only from visit_timing deviations to match total_visits)
+        # This ensures deviation_rate = (visits with timing issues) / (total visits checked)
+        visits_with_deviations = set()
+        for dev in all_deviations:
+            if dev.get("deviation_type") == "visit_timing":
+                patient_id = dev.get("patient_id", "unknown")
+                visit = dev.get("visit", dev.get("visit_id", "unknown"))
+                visits_with_deviations.add((patient_id, visit))
+        
+        n_visits_with_deviations = len(visits_with_deviations)
+        
+        # Deviation rate = percentage of visits that have at least one timing deviation
+        deviation_rate = n_visits_with_deviations / total_visits if total_visits > 0 else 0
+
         return {
             "success": True,
             "assessment_date": datetime.utcnow().isoformat(),
             "total_deviations": len(all_deviations),
             "total_visits": total_visits,
-            "deviation_rate": len(all_deviations) / total_visits if total_visits > 0 else 0,
+            "visits_with_deviations": n_visits_with_deviations,
+            "compliant_visits": total_visits - n_visits_with_deviations,
+            "deviation_rate": deviation_rate,
             "by_type": by_type,
             "by_severity": by_severity,
             "deviations": all_deviations,
@@ -187,6 +203,8 @@ class DeviationsService:
             "assessment_date": detector_results.get("assessment_date"),
             "total_visits": detector_results.get("total_visits", 0),
             "total_deviations": detector_results.get("total_deviations", 0),
+            "visits_with_deviations": detector_results.get("visits_with_deviations", 0),
+            "compliant_visits": detector_results.get("compliant_visits", 0),
             "deviation_rate": detector_results.get("deviation_rate", 0),
             "by_severity": detector_results.get("by_severity", {}),
             "by_type": detector_results.get("by_type", {}),
