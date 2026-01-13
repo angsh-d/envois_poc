@@ -41,6 +41,8 @@ class SourceType(str, Enum):
     REGISTRY = "registry"
     LLM_INFERENCE = "llm_inference"
     CALCULATION = "calculation"
+    COMPLIANCE_ANALYSIS = "compliance_analysis"
+    SAFETY_ANALYSIS = "safety_analysis"
 
 
 class ConfidenceLevel(str, Enum):

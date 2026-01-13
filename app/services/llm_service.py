@@ -245,6 +245,14 @@ class LLMService:
         if max_tokens is None:
             max_tokens = self._get_max_tokens(model)
 
+        # Check if we have valid credentials for the provider
+        if provider == LLMProvider.GEMINI and not self.gemini_api_key:
+            logger.warning("Gemini API key not configured - returning fallback response")
+            return "[AI-generated narrative unavailable - no LLM API key configured]"
+        if provider == LLMProvider.AZURE_OPENAI and not self.azure_client:
+            logger.warning("Azure OpenAI not configured - returning fallback response")
+            return "[AI-generated narrative unavailable - no LLM API key configured]"
+
         logger.debug(f"Calling {provider.value} model {model} with {len(prompt)} chars")
 
         if provider == LLMProvider.GEMINI:
