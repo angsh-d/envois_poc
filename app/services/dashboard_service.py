@@ -352,12 +352,14 @@ class DashboardService:
                 study_value, benchmark_median, benchmark_range, metric_name
             )
 
+            sources_list = benchmark_data.get("sources") if isinstance(benchmark_data, dict) else None
             comparisons.append({
                 "metric": metric_name,
                 "study_value": study_value,
                 "benchmark_value": benchmark_median,
                 "benchmark_range": benchmark_range,
                 "source": "Literature Aggregate",
+                "sources": sources_list,
                 "n_studies": n_studies,
                 "comparison_status": comparison_status,
             })
@@ -380,11 +382,22 @@ class DashboardService:
                 "comparison_status": comparison_status,
             })
 
+        formatted_citations = [
+            {
+                "id": p.id,
+                "citation": f"{p.id.split('_')[0].title()} et al., {p.year}",
+                "title": p.title,
+                "year": p.year
+            }
+            for p in lit_benchmarks.publications
+        ]
+
         return {
             "success": True,
             "generated_at": datetime.utcnow().isoformat(),
             "comparisons": comparisons,
             "literature_sources": [p.id for p in lit_benchmarks.publications],
+            "literature_citations": formatted_citations,
             "registry_sources": [r.name for r in registry_norms.registries],
             "study_metrics": study_metrics,
         }

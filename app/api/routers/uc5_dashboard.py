@@ -109,12 +109,21 @@ class SafetyDashboardResponse(BaseModel):
     metrics: List[Dict[str, Any]] = Field(default_factory=list)
 
 
+class LiteratureCitation(BaseModel):
+    """A literature citation."""
+    id: str
+    citation: str
+    title: str
+    year: int
+
+
 class BenchmarkComparisonResponse(BaseModel):
     """Benchmark comparison response."""
     success: bool = Field(..., description="Request success status")
     generated_at: str = Field(..., description="Report generation timestamp")
     comparisons: List[Dict[str, Any]] = Field(default_factory=list)
     literature_sources: List[str] = Field(default_factory=list)
+    literature_citations: List[LiteratureCitation] = Field(default_factory=list)
     registry_sources: List[str] = Field(default_factory=list)
 
 

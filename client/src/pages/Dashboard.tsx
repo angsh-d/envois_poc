@@ -8,7 +8,8 @@ import {
   fetchDashboardBenchmarks,
   type DashboardExecutiveSummary,
   type DashboardStudyProgress,
-  type DashboardBenchmarks
+  type DashboardBenchmarks,
+  type LiteratureCitation
 } from '@/lib/api'
 import { useRoute } from 'wouter'
 import {
@@ -287,7 +288,16 @@ export default function Dashboard() {
                 </td>
                 <td className="py-3 px-4 text-sm text-center font-semibold text-gray-900">{row.studyValue}</td>
                 <td className="py-3 px-4 text-sm text-center text-gray-500">{row.benchmarkValue}</td>
-                <td className="py-3 px-4 text-sm text-center text-gray-500">{row.benchmarkSource}</td>
+                <td className="py-3 px-4 text-sm text-center text-gray-500">
+                  <span className="group relative cursor-help inline-block">
+                    <span className="border-b border-dashed border-gray-300">{row.benchmarkSource}</span>
+                    {row.benchmarkSourceTooltip && (
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-72 pointer-events-none z-10 leading-relaxed text-left whitespace-pre-line">
+                        {row.benchmarkSourceTooltip}
+                      </span>
+                    )}
+                  </span>
+                </td>
                 <td className="py-3 px-4 text-center">
                   {row.status === 'success' ? (
                     <CheckCircle className="w-5 h-5 text-gray-600 mx-auto" />
@@ -313,6 +323,14 @@ export default function Dashboard() {
   )
 }
 
+function formatCitations(citations: LiteratureCitation[] | undefined): string {
+  if (!citations || citations.length === 0) return 'Published Literature'
+  if (citations.length <= 3) {
+    return citations.map(c => c.citation).join('; ')
+  }
+  return `${citations.slice(0, 2).map(c => c.citation).join('; ')} +${citations.length - 2} more`
+}
+
 function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<{
   metric: string
   metricKey: string
@@ -320,9 +338,16 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
   studyValue: string
   benchmarkValue: string
   benchmarkSource: string
+  benchmarkSourceTooltip: string
   status: 'success' | 'warning' | 'danger'
 }> {
   if (!benchmarks?.comparisons) return []
+
+  const citations = benchmarks.literature_citations
+  const citationDisplay = formatCitations(citations)
+  const citationTooltip = citations?.length 
+    ? citations.map(c => `${c.citation}: ${c.title}`).join('\n')
+    : 'Aggregated from published literature'
 
   return benchmarks.comparisons
     .filter(c => c.study_value !== undefined && c.study_value !== null)
@@ -369,7 +394,7 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
       }
 
       const benchmarkSource = c.source === 'Literature Aggregate' 
-        ? 'Published Literature' 
+        ? citationDisplay 
         : c.source || 'Literature'
 
       return {
@@ -379,6 +404,7 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
         studyValue,
         benchmarkValue,
         benchmarkSource,
+        benchmarkSourceTooltip: c.source === 'Literature Aggregate' ? citationTooltip : c.source || '',
         status: getComparisonStatus(c.comparison_status),
       }
     })
