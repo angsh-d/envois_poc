@@ -1,5 +1,6 @@
 import { Route, Switch } from 'wouter'
 import Landing from './pages/Landing'
+import StudySelect from './pages/StudySelect'
 import StudyDashboard from './pages/StudyDashboard'
 import StudyReadiness from './pages/StudyReadiness'
 import StudySafety from './pages/StudySafety'
@@ -12,6 +13,7 @@ function App() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/role/clinical-strategy-analyst" component={StudySelect} />
       <Route path="/study/:studyId" component={StudyDashboard} />
       <Route path="/study/:studyId/dashboard" component={StudyDashboard} />
       <Route path="/study/:studyId/readiness" component={StudyReadiness} />

@@ -140,6 +140,10 @@ if IS_PRODUCTION:
     @app.get("/study/{study_id}/{path:path}")
     async def study_subpages(study_id: str, path: str):
         return _serve_index_html()
+    
+    @app.get("/role/{role_id}")
+    async def role_page(role_id: str):
+        return _serve_index_html()
 
 # Development mode: Proxy to Vite dev server
 else:
@@ -154,6 +158,10 @@ else:
     @app.get("/study/{study_id}/{path:path}")
     async def study_subpages(request: Request, study_id: str, path: str):
         return await _proxy_request_to_vite(request, f"study/{study_id}/{path}")
+
+    @app.get("/role/{role_id}")
+    async def role_page(request: Request, role_id: str):
+        return await _proxy_request_to_vite(request, f"role/{role_id}")
 
     @app.get("/src/{path:path}")
     async def src_files(request: Request, path: str):
