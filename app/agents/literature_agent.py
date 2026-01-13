@@ -14,8 +14,16 @@ from app.agents.base_agent import (
 from data.loaders.yaml_loader import (
     get_doc_loader, LiteratureBenchmarks, RiskFactor, PublicationBenchmark
 )
-from data.vectorstore import get_vector_store, ChromaVectorStore
 from data.loaders.hazard_ratio_extractor import HazardRatioExtractor
+
+try:
+    from data.vectorstore import get_vector_store, ChromaVectorStore
+    VECTOR_STORE_AVAILABLE = True
+except ImportError:
+    VECTOR_STORE_AVAILABLE = False
+    ChromaVectorStore = None
+    def get_vector_store():
+        return None
 
 logger = logging.getLogger(__name__)
 

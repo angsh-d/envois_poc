@@ -1,4 +1,4 @@
-# Exclude large data files from deployment
+# Exclude large data subdirectories from deployment
 data/vectorstore/
 data/ml/
 data/raw/
@@ -14,9 +14,14 @@ venv/
 .env/
 env/
 .upm/
+*.pyd
+
+# Exclude prompts (not needed at runtime if using inline prompts)
+prompts/
 
 # Node modules (will be rebuilt during deployment)
 node_modules/
+client/node_modules/
 
 # Development files
 *.log
