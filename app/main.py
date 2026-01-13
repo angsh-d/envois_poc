@@ -128,6 +128,48 @@ async def assets(request: Request, path: str):
     return await _proxy_request_to_vite(request, f"assets/{path}")
 
 
+@app.websocket("/")
+async def websocket_proxy(websocket: WebSocket):
+    """Proxy WebSocket connections to Vite dev server for HMR."""
+    subprotocol = None
+    if 'sec-websocket-protocol' in websocket.headers:
+        subprotocol = websocket.headers['sec-websocket-protocol'].split(',')[0].strip()
+    
+    await websocket.accept(subprotocol=subprotocol)
+    try:
+        vite_ws_url = "ws://127.0.0.1:5173/"
+        if websocket.query_params:
+            vite_ws_url = f"{vite_ws_url}?{websocket.query_params}"
+        
+        ws_kwargs = {}
+        if subprotocol:
+            ws_kwargs['subprotocols'] = [subprotocol]
+        
+        async with websockets.connect(vite_ws_url, **ws_kwargs) as vite_ws:
+            async def forward_to_vite():
+                try:
+                    async for message in websocket.iter_text():
+                        await vite_ws.send(message)
+                except Exception:
+                    pass
+            
+            async def forward_to_client():
+                try:
+                    async for message in vite_ws:
+                        await websocket.send_text(message)
+                except Exception:
+                    pass
+            
+            await asyncio.gather(forward_to_vite(), forward_to_client())
+    except Exception as e:
+        pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)

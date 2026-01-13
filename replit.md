@@ -29,16 +29,18 @@ A multi-agent AI system for clinical data analysis, risk assessment, and regulat
 ```
 
 ## Running the Application
-Two workflows run concurrently:
-- **Frontend** (port 5000): `cd client && npm run dev` - React frontend with Apple-inspired UI
-- **API Server** (port 8000): `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload` - FastAPI backend
+Single consolidated workflow:
+- **Full Stack App** (port 5000): FastAPI (port 5000) reverse-proxies to Vite dev server (port 5173)
+- Run command: `bash -c "cd client && npm run dev & sleep 2 && uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload"`
 
 ## Frontend Pages
-- `/` - Executive Dashboard (UC5) with KPIs, readiness, safety signals
-- `/readiness` - Regulatory Readiness (UC1) with gap analysis
-- `/safety` - Safety Signals (UC2) with cross-source contextualization
-- `/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
-- `/risk` - Patient Risk (UC4) with ML-powered stratification
+- `/` - Landing page with platform overview
+- `/study/H-34` - Executive Dashboard (UC5) with KPIs, readiness, safety signals
+- `/study/H-34/readiness` - Regulatory Readiness (UC1) with gap analysis
+- `/study/H-34/safety` - Safety Signals (UC2) with cross-source contextualization
+- `/study/H-34/deviations` - Protocol Deviations (UC3) with Document-as-Code detection
+- `/study/H-34/risk` - Patient Risk (UC4) with ML-powered stratification
+- `/study/H-34/protocol` - Protocol digitization view
 
 ## API Endpoints
 - `/health` - Health check
