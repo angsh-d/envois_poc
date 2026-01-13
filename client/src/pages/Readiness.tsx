@@ -6,6 +6,22 @@ import { fetchReadiness } from '@/lib/api'
 import { useRoute } from 'wouter'
 import { Sparkles, CheckCircle, AlertTriangle, XCircle, Users, Shield, Activity, Database, ChevronDown, ChevronRight } from 'lucide-react'
 
+// Helper to safely render values that might be code objects
+const isCodeObject = (value: unknown): value is { code: string; decode: string; codeSystem?: string } => {
+  return typeof value === 'object' && value !== null && 'code' in value && 'decode' in value
+}
+
+const safeRenderValue = (value: unknown): string => {
+  if (value === null || value === undefined) return 'N/A'
+  if (isCodeObject(value)) {
+    return `${value.decode} (${value.code})`
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
+  }
+  return String(value)
+}
+
 // Type definitions for real API response
 interface SafetySignalDetail {
   metric: string
@@ -465,7 +481,7 @@ export default function Readiness() {
                               {Object.entries(blocker.provenance.thresholds).map(([key, value]) => (
                                 <div key={key} className="text-xs">
                                   <span className="text-gray-500">{key.replace(/_/g, ' ')}:</span>
-                                  <span className="ml-1 font-medium text-gray-700">{value}</span>
+                                  <span className="ml-1 font-medium text-gray-700">{safeRenderValue(value)}</span>
                                 </div>
                               ))}
                             </div>
@@ -480,7 +496,7 @@ export default function Readiness() {
                               {Object.entries(blocker.provenance.classification_rules).map(([key, value]) => (
                                 <div key={key} className="text-xs">
                                   <span className="font-medium text-gray-600 capitalize">{key}:</span>
-                                  <span className="ml-1 text-gray-500">{value}</span>
+                                  <span className="ml-1 text-gray-500">{safeRenderValue(value)}</span>
                                 </div>
                               ))}
                             </div>
@@ -495,7 +511,7 @@ export default function Readiness() {
                               {Object.entries(blocker.provenance.definitions).map(([key, value]) => (
                                 <div key={key} className="text-xs">
                                   <span className="font-medium text-gray-600 capitalize">{key}:</span>
-                                  <span className="ml-1 text-gray-500">{value}</span>
+                                  <span className="ml-1 text-gray-500">{safeRenderValue(value)}</span>
                                 </div>
                               ))}
                             </div>

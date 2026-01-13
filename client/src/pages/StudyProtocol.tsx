@@ -1399,7 +1399,25 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     )
   }
 
+  // Helper to detect code objects (medical terminology) and format them as strings
+  const isCodeObject = (value: unknown): value is Record<string, unknown> => {
+    if (typeof value !== 'object' || value === null) return false
+    const keys = Object.keys(value)
+    return keys.includes('code') || keys.includes('decode') || keys.includes('codeSystem')
+  }
+
+  const formatCodeObject = (obj: Record<string, unknown>): string => {
+    const decode = obj.decode || obj.code || ''
+    const code = obj.code && obj.decode ? ` (${obj.code})` : ''
+    return `${decode}${code}`
+  }
+
   const renderObjectAsTable = (obj: Record<string, unknown>, depth: number = 0): React.ReactNode => {
+    // Check if this is a code object - format it as a string
+    if (isCodeObject(obj)) {
+      return <span className="text-sm text-gray-800">{formatCodeObject(obj)}</span>
+    }
+
     const entries = Object.entries(obj).filter(([key, value]) => 
       !isEmptyValue(value) && !['id', 'instanceType', 'provenance'].includes(key)
     )
@@ -1410,6 +1428,16 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       <div className={depth > 0 ? 'ml-4' : ''}>
         {entries.map(([key, value]) => {
           const displayKey = formatDisplayKey(key)
+          
+          // Check if value is a code object
+          if (isCodeObject(value)) {
+            return (
+              <div key={key} className="py-2 border-b border-gray-50 last:border-0">
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{displayKey}</span>
+                <p className="text-sm text-gray-800 mt-0.5">{formatCodeObject(value as Record<string, unknown>)}</p>
+              </div>
+            )
+          }
           
           if (typeof value === 'boolean') {
             return (
