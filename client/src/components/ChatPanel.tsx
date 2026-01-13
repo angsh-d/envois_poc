@@ -31,7 +31,7 @@ interface CachedResponse {
 // Cache configuration for response persistence
 // Version 4: Updated to include raw_data for drill-down transparency
 const CACHE_KEY_PREFIX = 'chat_cache_v4_'
-const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours
+const CACHE_EXPIRY_MS = 48 * 60 * 60 * 1000 // 48 hours
 const ARTIFICIAL_DELAY_MS = 1500 // Show spinner for cached responses
 
 // Generate a hash key for caching
