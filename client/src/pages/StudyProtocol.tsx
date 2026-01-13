@@ -950,44 +950,126 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
   }
 
   const renderStudyDesign = (data: Record<string, unknown>) => {
-    const arms = (data.studyArms as Array<{ name: string; description: string }>) || []
-    const epochs = (data.studyEpochs as Array<{ name: string; type: string }>) || []
+    interface StudyArm {
+      id?: string
+      name: string
+      label?: string
+      description?: string
+      plannedSubjects?: number
+      armType?: { decode?: string }
+      interventions?: Array<{
+        name: string
+        type?: string
+        manufacturer?: string
+        isBlinded?: boolean
+      }>
+    }
+    interface StudyEpoch {
+      id?: string
+      name: string
+      description?: string
+      sequenceInStudy?: number
+      epochType?: { decode?: string }
+    }
+    
+    const arms = (data.studyArms as StudyArm[]) || []
+    const epochs = (data.studyEpochs as StudyEpoch[]) || []
 
     return (
-      <div className="space-y-6">
-        {/* Study Arms */}
+      <div className="space-y-8">
+        {/* Study Arms - Premium Cards */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Study Arms ({arms.length})
-          </h4>
-          <div className="space-y-2">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Study Arms</h4>
+            <span className="text-xs text-gray-400">{arms.length} arm{arms.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="grid gap-4">
             {arms.map((arm, i) => (
-              <div key={i} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                <p className="font-medium text-gray-900">{arm.name}</p>
-                {arm.description && (
-                  <p className="text-sm text-gray-600 mt-1">{arm.description}</p>
-                )}
+              <div key={i} className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-900">{arm.name}</h5>
+                        {arm.label && <p className="text-xs text-gray-500">{arm.label}</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {arm.armType?.decode && (
+                        <span className="px-2.5 py-1 bg-gray-900 text-white text-xs font-medium rounded-lg">
+                          {arm.armType.decode}
+                        </span>
+                      )}
+                      {arm.plannedSubjects && (
+                        <span className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg">
+                          n={arm.plannedSubjects}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {arm.description && (
+                    <p className="text-sm text-gray-600 leading-relaxed mb-4">{arm.description}</p>
+                  )}
+                  {/* Interventions */}
+                  {arm.interventions && arm.interventions.length > 0 && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Interventions</p>
+                      <div className="flex flex-wrap gap-2">
+                        {arm.interventions.map((int, j) => (
+                          <div key={j} className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl">
+                            <Stethoscope className="w-3.5 h-3.5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">{int.name}</span>
+                            {int.type && (
+                              <span className="text-xs text-gray-400">({int.type})</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Study Epochs */}
+        {/* Study Epochs - Visual Timeline */}
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Study Epochs ({epochs.length})
-          </h4>
-          <div className="flex gap-2 flex-wrap">
-            {epochs.map((epoch, i) => (
-              <div key={i} className="bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                <p className="font-medium text-gray-900">{epoch.name}</p>
-                {epoch.type && (
-                  <p className="text-xs text-gray-500 mt-1">{epoch.type}</p>
-                )}
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Study Timeline</h4>
+            <span className="text-xs text-gray-400">{epochs.length} epoch{epochs.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="relative">
+            {/* Timeline Track */}
+            <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-full" />
+            
+            {/* Epoch Cards */}
+            <div className="relative grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {epochs.map((epoch, i) => (
+                <div key={i} className="relative pt-10">
+                  {/* Timeline Node */}
+                  <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gray-900 border-4 border-white shadow-sm z-10 flex items-center justify-center">
+                    <span className="text-[9px] font-bold text-white">{epoch.sequenceInStudy || i + 1}</span>
+                  </div>
+                  
+                  {/* Epoch Card */}
+                  <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-shadow">
+                    <h5 className="font-semibold text-gray-900 text-sm mb-1">{epoch.name}</h5>
+                    {epoch.epochType?.decode && (
+                      <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-md mb-2">
+                        {epoch.epochType.decode}
+                      </span>
+                    )}
+                    {epoch.description && (
+                      <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">{epoch.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -1753,29 +1835,35 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     }
 
     return (
-      <div className="divide-y divide-gray-100">
+      <div className="space-y-6">
         {entries.map(([key, value]) => {
           const displayKey = formatDisplayKey(key)
 
           if (Array.isArray(value) && value.length > 0) {
             if (typeof value[0] === 'string') {
               return (
-                <div key={key} className="py-4">
-                  <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
+                <div key={key}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{displayKey}</h4>
+                    <span className="text-xs text-gray-400">{value.length} item{value.length !== 1 ? 's' : ''}</span>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {value.map((item, i) => (
-                      <span key={i} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg">{String(item)}</span>
+                      <span key={i} className="text-sm bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl shadow-sm">{String(item)}</span>
                     ))}
                   </div>
                 </div>
               )
             }
             return (
-              <div key={key} className="py-4">
-                <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
+              <div key={key}>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{displayKey}</h4>
+                  <span className="text-xs text-gray-400">{value.length} item{value.length !== 1 ? 's' : ''}</span>
+                </div>
                 <div className="grid gap-3">
                   {value.slice(0, 10).map((item, i) => (
-                    <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                    <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                       {typeof item === 'object' && item !== null ? (
                         renderObjectAsTable(item as Record<string, unknown>)
                       ) : (
@@ -1784,7 +1872,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                     </div>
                   ))}
                   {value.length > 10 && (
-                    <p className="text-xs text-gray-400 text-center py-2">+ {value.length - 10} more items</p>
+                    <div className="text-center py-3">
+                      <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg">+ {value.length - 10} more items</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1793,9 +1883,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
           if (typeof value === 'object' && value !== null) {
             return (
-              <div key={key} className="py-4">
-                <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">{displayKey}</h4>
-                <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+              <div key={key}>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{displayKey}</h4>
+                <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                   {renderObjectAsTable(value as Record<string, unknown>)}
                 </div>
               </div>
@@ -1804,9 +1894,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
           if (typeof value === 'boolean') {
             return (
-              <div key={key} className="flex items-center justify-between py-3">
-                <span className="text-sm text-gray-600">{displayKey}</span>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-md ${value ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'}`}>
+              <div key={key} className="flex items-center justify-between py-3 px-4 bg-white rounded-xl border border-gray-100">
+                <span className="text-sm text-gray-700 font-medium">{displayKey}</span>
+                <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${value ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
                   {value ? 'Yes' : 'No'}
                 </span>
               </div>
@@ -1814,9 +1904,9 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
           }
 
           return (
-            <div key={key} className="flex items-baseline justify-between py-3">
+            <div key={key} className="flex items-center justify-between py-3 px-4 bg-white rounded-xl border border-gray-100">
               <span className="text-sm text-gray-500">{displayKey}</span>
-              <span className="text-sm font-medium text-gray-900">{String(value)}</span>
+              <span className="text-sm font-semibold text-gray-900">{String(value)}</span>
             </div>
           )
         })}
@@ -1852,50 +1942,138 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
       )
     }
 
+    const getDomainInsights = (domain: DomainSection): Array<{ label: string; value: string | number }> => {
+      const data = domain.data as Record<string, unknown>
+      const insights: Array<{ label: string; value: string | number }> = []
+      
+      switch (domain.id) {
+        case 'studyDesign': {
+          const arms = (data.studyArms as unknown[]) || []
+          const epochs = (data.studyEpochs as unknown[]) || []
+          if (arms.length) insights.push({ label: 'Arms', value: arms.length })
+          if (epochs.length) insights.push({ label: 'Epochs', value: epochs.length })
+          break
+        }
+        case 'endpointsEstimandsSAP': {
+          const endpoints = data.protocol_endpoints as Record<string, unknown> || {}
+          const ep = (endpoints.endpoints as unknown[]) || []
+          const obj = (endpoints.objectives as unknown[]) || []
+          if (ep.length) insights.push({ label: 'Endpoints', value: ep.length })
+          if (obj.length) insights.push({ label: 'Objectives', value: obj.length })
+          break
+        }
+        case 'adverseEvents': {
+          const aeDef = data.ae_definitions as Record<string, unknown> || {}
+          const saeCriteria = data.sae_criteria as Record<string, unknown> || {}
+          const reportingReqs = data.reporting_requirements as unknown[] || []
+          if (Object.keys(aeDef).length > 0) insights.push({ label: 'AE Defined', value: 'Yes' })
+          if (Object.keys(saeCriteria).length > 0) insights.push({ label: 'SAE Criteria', value: 'Yes' })
+          if (reportingReqs.length > 0) insights.push({ label: 'Reporting', value: reportingReqs.length })
+          break
+        }
+        case 'concomitantMedications': {
+          const prohibited = (data.prohibited_medications as unknown[]) || []
+          const required = (data.required_medications as unknown[]) || []
+          if (prohibited.length) insights.push({ label: 'Prohibited', value: prohibited.length })
+          if (required.length) insights.push({ label: 'Required', value: required.length })
+          break
+        }
+        case 'laboratorySpecifications': {
+          const panels = (data.required_tests as unknown[]) || (data.panels as unknown[]) || []
+          if (panels.length) insights.push({ label: 'Tests', value: panels.length })
+          break
+        }
+        default: {
+          const entries = Object.entries(data).filter(([key, value]) =>
+            !['id', 'instanceType', 'name', 'provenance', 'extraction_statistics'].includes(key) && 
+            !isEmptyValue(value)
+          )
+          if (entries.length) insights.push({ label: 'Fields', value: entries.length })
+        }
+      }
+      return insights
+    }
+
     return (
-      <div className="space-y-4">
-        {/* Download Button */}
-        <div className="flex justify-end mb-2">
+      <div className="space-y-6">
+        {/* Header with Download */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-500">
+              {domainsWithData.length} domain{domainsWithData.length !== 1 ? 's' : ''} extracted from protocol
+            </p>
+          </div>
           <a
             href="/api/v1/protocol/download/usdm"
             download
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-all shadow-sm"
           >
             <Download className="w-4 h-4" />
-            Download USDM 4.0 JSON
+            Download USDM 4.0
           </a>
         </div>
         
-        {domainsWithData.map((domain) => {
-          const Icon = iconMap[domain.icon] || Database
-          const isExpanded = expandedDomain === domain.id
+        {/* Domain Cards Grid */}
+        <div className="space-y-3">
+          {domainsWithData.map((domain) => {
+            const Icon = iconMap[domain.icon] || Database
+            const isExpanded = expandedDomain === domain.id
+            const insights = getDomainInsights(domain)
 
-          return (
-            <div key={domain.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-              <button
-                onClick={() => setExpandedDomain(isExpanded ? null : domain.id)}
-                className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50/50 transition-colors"
+            return (
+              <div 
+                key={domain.id} 
+                className={`bg-white rounded-2xl border overflow-hidden transition-all duration-200 ${
+                  isExpanded 
+                    ? 'border-gray-200 shadow-[0_4px_20px_rgba(0,0,0,0.08)]' 
+                    : 'border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-white" />
+                <button
+                  onClick={() => setExpandedDomain(isExpanded ? null : domain.id)}
+                  className="w-full p-5 flex items-center justify-between text-left transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isExpanded ? 'bg-gray-900' : 'bg-gray-100'
+                    }`}>
+                      <Icon className={`w-5 h-5 transition-colors ${isExpanded ? 'text-white' : 'text-gray-600'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-semibold text-gray-900">{domain.name}</h3>
+                        {/* Insight Pills */}
+                        <div className="hidden sm:flex items-center gap-2">
+                          {insights.map((insight, idx) => (
+                            <span 
+                              key={idx}
+                              className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg"
+                            >
+                              <span className="text-gray-900 font-semibold mr-1">{insight.value}</span>
+                              {insight.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-500 truncate">{domain.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">{domain.name}</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">{domain.description}</p>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                    isExpanded ? 'bg-gray-100 rotate-180' : 'bg-transparent'
+                  }`}>
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
                   </div>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isExpanded && (
-                <div className="border-t border-gray-100 bg-gray-50/30 p-6">
-                  {renderDomainContent(domain)}
-                </div>
-              )}
-            </div>
-          )
-        })}
+                </button>
+                
+                {isExpanded && (
+                  <div className="border-t border-gray-100 bg-gradient-to-b from-gray-50/50 to-white p-6">
+                    {renderDomainContent(domain)}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     )
   }
