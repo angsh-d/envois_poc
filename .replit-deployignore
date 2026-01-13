@@ -18,10 +18,8 @@ client/components.json
 
 # Data files not needed (in PostgreSQL database)
 data/raw/
-data/ml/
 data/generators/
 data/vectorstore/
-data/models/
 
 # Other development files
 attached_assets/
