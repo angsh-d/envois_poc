@@ -125,15 +125,21 @@ function DistributionChart({
   rates, 
   threshold, 
   pPass,
-  comparisonRates
+  comparisonRates,
+  mean,
+  p5,
+  p95
 }: { 
   rates: number[]
   threshold: number
   pPass: number
   comparisonRates?: number[]
+  mean: number
+  p5: number
+  p95: number
 }) {
-  const bins = 40
-  const maxRate = 0.30
+  const bins = 50
+  const maxRate = 0.35
   const binWidth = maxRate / bins
   
   const histogram = useMemo(() => {
@@ -142,7 +148,18 @@ function DistributionChart({
       const binIndex = Math.min(Math.floor(rate / binWidth), bins - 1)
       counts[binIndex]++
     })
-    return counts.map(c => c / rates.length)
+    const densities = counts.map(c => c / rates.length / binWidth)
+    const smoothed = densities.map((d, i) => {
+      const neighbors = [
+        densities[i - 2] || 0,
+        densities[i - 1] || 0,
+        d,
+        densities[i + 1] || 0,
+        densities[i + 2] || 0
+      ]
+      return neighbors.reduce((a, b) => a + b, 0) / 5
+    })
+    return smoothed
   }, [rates])
   
   const comparisonHistogram = useMemo(() => {
@@ -152,84 +169,166 @@ function DistributionChart({
       const binIndex = Math.min(Math.floor(rate / binWidth), bins - 1)
       counts[binIndex]++
     })
-    return counts.map(c => c / comparisonRates.length)
+    const densities = counts.map(c => c / comparisonRates.length / binWidth)
+    const smoothed = densities.map((d, i) => {
+      const neighbors = [
+        densities[i - 2] || 0,
+        densities[i - 1] || 0,
+        d,
+        densities[i + 1] || 0,
+        densities[i + 2] || 0
+      ]
+      return neighbors.reduce((a, b) => a + b, 0) / 5
+    })
+    return smoothed
   }, [comparisonRates])
   
-  const maxHeight = Math.max(...histogram, ...(comparisonHistogram || []))
-  const chartHeight = 160
-  const chartWidth = 100
+  const maxHeight = Math.max(...histogram, ...(comparisonHistogram || []), 0.01)
+  const chartHeight = 180
+  const chartWidth = 400
+  const padding = { top: 20, right: 20, bottom: 50, left: 50 }
+  const plotWidth = chartWidth - padding.left - padding.right
+  const plotHeight = chartHeight - padding.top - padding.bottom
   
-  const thresholdX = (threshold / maxRate) * chartWidth
+  const thresholdX = padding.left + (threshold / maxRate) * plotWidth
+  const meanX = padding.left + (mean / maxRate) * plotWidth
+  
+  const createAreaPath = (data: number[], fill: boolean = true) => {
+    const points = data.map((d, i) => {
+      const x = padding.left + (i / bins) * plotWidth
+      const y = padding.top + plotHeight - (d / maxHeight) * plotHeight
+      return `${x},${y}`
+    })
+    
+    if (fill) {
+      return `M${padding.left},${padding.top + plotHeight} L${points.join(' L')} L${padding.left + plotWidth},${padding.top + plotHeight} Z`
+    }
+    return `M${points.join(' L')}`
+  }
+  
+  const createSplitPaths = (data: number[]) => {
+    const thresholdBin = Math.floor(threshold / binWidth)
+    
+    const passPoints: string[] = []
+    const failPoints: string[] = []
+    
+    data.forEach((d, i) => {
+      const x = padding.left + ((i + 0.5) / bins) * plotWidth
+      const y = padding.top + plotHeight - (d / maxHeight) * plotHeight
+      
+      if (i <= thresholdBin) {
+        passPoints.push(`${x},${y}`)
+      }
+      if (i >= thresholdBin) {
+        failPoints.push(`${x},${y}`)
+      }
+    })
+    
+    const passPath = passPoints.length > 0 
+      ? `M${padding.left},${padding.top + plotHeight} L${passPoints.join(' L')} L${padding.left + ((thresholdBin + 0.5) / bins) * plotWidth},${padding.top + plotHeight} Z`
+      : ''
+    
+    const failPath = failPoints.length > 0
+      ? `M${padding.left + ((thresholdBin + 0.5) / bins) * plotWidth},${padding.top + plotHeight} L${failPoints.join(' L')} L${padding.left + plotWidth},${padding.top + plotHeight} Z`
+      : ''
+    
+    return { passPath, failPath }
+  }
+  
+  const { passPath, failPath } = createSplitPaths(histogram)
 
   return (
-    <div className="space-y-2">
-      <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 30}`} className="w-full h-48">
-        {comparisonHistogram && comparisonHistogram.map((height, i) => (
-          <rect
-            key={`comp-${i}`}
-            x={(i / bins) * chartWidth}
-            y={chartHeight - (height / maxHeight) * chartHeight}
-            width={chartWidth / bins - 0.2}
-            height={(height / maxHeight) * chartHeight}
-            fill="#e5e7eb"
-            opacity={0.7}
-          />
-        ))}
+    <div className="space-y-3">
+      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full" style={{ height: '220px' }}>
+        <defs>
+          <linearGradient id="passGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#22c55e" stopOpacity="0.2" />
+          </linearGradient>
+          <linearGradient id="failGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.2" />
+          </linearGradient>
+          <linearGradient id="baselineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#9ca3af" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#9ca3af" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
         
-        {histogram.map((height, i) => {
-          const binStart = i * binWidth
-          const isPassingBin = binStart + binWidth <= threshold
+        <rect x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} fill="#fafafa" rx="4" />
+        
+        {[0, 5, 10, 15, 20, 25, 30].map(tick => {
+          const x = padding.left + (tick / 100 / maxRate) * plotWidth
+          if (x > padding.left + plotWidth) return null
           return (
-            <rect
-              key={i}
-              x={(i / bins) * chartWidth}
-              y={chartHeight - (height / maxHeight) * chartHeight}
-              width={chartWidth / bins - 0.2}
-              height={(height / maxHeight) * chartHeight}
-              fill={isPassingBin ? '#22c55e' : '#ef4444'}
-              opacity={0.8}
-            />
+            <g key={tick}>
+              <line x1={x} y1={padding.top} x2={x} y2={padding.top + plotHeight} stroke="#e5e7eb" strokeWidth="1" />
+              <text x={x} y={chartHeight - 20} fontSize="11" textAnchor="middle" fill="#6b7280">{tick}%</text>
+            </g>
           )
         })}
         
-        <line
-          x1={thresholdX}
-          y1={0}
-          x2={thresholdX}
-          y2={chartHeight}
-          stroke="#1f2937"
-          strokeWidth={0.5}
-          strokeDasharray="2,2"
+        {comparisonHistogram && (
+          <path d={createAreaPath(comparisonHistogram)} fill="url(#baselineGradient)" />
+        )}
+        
+        <path d={passPath} fill="url(#passGradient)" />
+        <path d={failPath} fill="url(#failGradient)" />
+        
+        <path 
+          d={createAreaPath(histogram, false)} 
+          fill="none" 
+          stroke="#374151" 
+          strokeWidth="2"
+          strokeLinejoin="round"
         />
         
-        <text x={thresholdX} y={chartHeight + 12} fontSize="4" textAnchor="middle" fill="#1f2937" fontWeight="bold">
-          {(threshold * 100).toFixed(0)}%
-        </text>
-        <text x={thresholdX} y={chartHeight + 18} fontSize="3" textAnchor="middle" fill="#6b7280">
-          threshold
+        <line
+          x1={thresholdX}
+          y1={padding.top}
+          x2={thresholdX}
+          y2={padding.top + plotHeight}
+          stroke="#1f2937"
+          strokeWidth="2"
+          strokeDasharray="6,4"
+        />
+        
+        <rect x={thresholdX - 28} y={padding.top + 4} width="56" height="18" rx="4" fill="#1f2937" />
+        <text x={thresholdX} y={padding.top + 16} fontSize="10" textAnchor="middle" fill="white" fontWeight="600">
+          {(threshold * 100).toFixed(0)}% limit
         </text>
         
-        <text x={2} y={chartHeight + 12} fontSize="3" fill="#6b7280">0%</text>
-        <text x={chartWidth - 2} y={chartHeight + 12} fontSize="3" textAnchor="end" fill="#6b7280">30%</text>
+        <line
+          x1={meanX}
+          y1={padding.top + plotHeight - 30}
+          x2={meanX}
+          y2={padding.top + plotHeight}
+          stroke="#6366f1"
+          strokeWidth="2"
+        />
+        <circle cx={meanX} cy={padding.top + plotHeight - 30} r="4" fill="#6366f1" />
         
-        <text x={chartWidth / 2} y={chartHeight + 28} fontSize="3.5" textAnchor="middle" fill="#6b7280">
-          Simulated Revision Rate Distribution
-        </text>
+        <text x={padding.left - 8} y={padding.top + 8} fontSize="10" textAnchor="end" fill="#9ca3af">Density</text>
+        <text x={chartWidth / 2} y={chartHeight - 2} fontSize="12" textAnchor="middle" fill="#6b7280">Revision Rate</text>
       </svg>
       
-      <div className="flex justify-center gap-6 text-xs">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-green-500"></div>
-          <span className="text-gray-600">Pass ({(pPass * 100).toFixed(0)}%)</span>
+      <div className="flex justify-center gap-8 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ background: 'linear-gradient(180deg, rgba(34,197,94,0.8) 0%, rgba(34,197,94,0.2) 100%)' }}></div>
+          <span className="text-gray-700 font-medium">Pass: {(pPass * 100).toFixed(0)}%</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-red-500"></div>
-          <span className="text-gray-600">Fail ({((1 - pPass) * 100).toFixed(0)}%)</span>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ background: 'linear-gradient(180deg, rgba(239,68,68,0.8) 0%, rgba(239,68,68,0.2) 100%)' }}></div>
+          <span className="text-gray-700 font-medium">Fail: {((1 - pPass) * 100).toFixed(0)}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
+          <span className="text-gray-700">Mean: {(mean * 100).toFixed(1)}%</span>
         </div>
         {comparisonRates && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-gray-300"></div>
-            <span className="text-gray-600">Baseline (for comparison)</span>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-gray-300"></div>
+            <span className="text-gray-600">Baseline</span>
           </div>
         )}
       </div>
@@ -427,6 +526,9 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
                 rates={currentResult.rates} 
                 threshold={threshold.rate}
                 pPass={currentResult.pPass}
+                mean={currentResult.mean}
+                p5={currentResult.p5}
+                p95={currentResult.p95}
                 comparisonRates={showComparison ? baselineResult?.rates : undefined}
               />
               
