@@ -242,17 +242,27 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         // Handle code generation request
         const codeResult = await generateCode(currentInput, undefined, false, studyId)
         
-        const assistantMessage: ChatMessage = {
-          role: 'assistant',
-          content: codeResult.explanation || `Here's the ${codeResult.language.toUpperCase()} code you requested:`,
-          timestamp: new Date().toISOString(),
-          codeResponse: codeResult,
-        }
-        setMessages((prev) => [...prev, assistantMessage])
+        // Check for code generation success
+        if (!codeResult.success) {
+          const errorMessage: ChatMessage = {
+            role: 'assistant',
+            content: `I encountered an issue generating the code: ${codeResult.error || 'Unknown error'}. Please try rephrasing your request or specifying a different language.`,
+            timestamp: new Date().toISOString(),
+          }
+          setMessages((prev) => [...prev, errorMessage])
+        } else {
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: codeResult.explanation || `Here's the ${codeResult.language.toUpperCase()} code you requested:`,
+            timestamp: new Date().toISOString(),
+            codeResponse: codeResult,
+          }
+          setMessages((prev) => [...prev, assistantMessage])
 
-        // Update suggested followups for code generation
-        if (codeResult.suggested_followups && codeResult.suggested_followups.length > 0) {
-          setSuggestedFollowups(codeResult.suggested_followups)
+          // Update suggested followups for code generation
+          if (codeResult.suggested_followups && codeResult.suggested_followups.length > 0) {
+            setSuggestedFollowups(codeResult.suggested_followups)
+          }
         }
       } else {
         // Fetch fresh response for regular chat

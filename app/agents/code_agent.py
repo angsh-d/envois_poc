@@ -41,11 +41,14 @@ class CodeGenerationResult:
     execution_result: Optional[str] = None
     execution_error: Optional[str] = None
     data_preview: Optional[Dict[str, Any]] = None
-    warnings: List[str] = None
+    warnings: Optional[List[str]] = None
     
     def __post_init__(self):
         if self.warnings is None:
             self.warnings = []
+    
+    def get_warnings(self) -> List[str]:
+        return self.warnings if self.warnings else []
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -600,27 +603,58 @@ Return your response in this exact format:
     def _parse_response(self, response: str, language: CodeLanguage) -> Tuple[str, str]:
         """Parse the LLM response to extract code and explanation."""
         
-        # Extract code block
-        code_pattern = rf"```{language.value}\n(.*?)```"
-        code_match = re.search(code_pattern, response, re.DOTALL | re.IGNORECASE)
+        # Try multiple patterns to extract code block
+        patterns = [
+            rf"```{language.value}\s*\n(.*?)```",  # With language tag
+            rf"```{language.value.upper()}\s*\n(.*?)```",  # Uppercase language
+            r"```\w*\s*\n(.*?)```",  # Any language tag
+            r"```\n?(.*?)```",  # No language tag
+        ]
         
-        if not code_match:
-            # Try generic code block
-            code_pattern = r"```\n?(.*?)```"
-            code_match = re.search(code_pattern, response, re.DOTALL)
+        code = ""
+        for pattern in patterns:
+            code_match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+            if code_match:
+                code = code_match.group(1).strip()
+                break
         
-        code = code_match.group(1).strip() if code_match else response
+        # If no code block found, check if the response itself looks like code
+        if not code:
+            lines = response.strip().split('\n')
+            code_indicators = ['import', 'library(', 'SELECT', 'FROM', '#include', 'def ', 'function(']
+            if any(indicator in response for indicator in code_indicators):
+                code = response.strip()
+            else:
+                code = "# Code generation failed - please try rephrasing your request"
         
-        # Extract explanation
-        explanation_pattern = r"\*\*Explanation:\*\*\s*(.*?)(?:$|\n\n)"
-        explanation_match = re.search(explanation_pattern, response, re.DOTALL)
-        explanation = explanation_match.group(1).strip() if explanation_match else ""
+        # Extract explanation - try multiple patterns
+        explanation = ""
+        explanation_patterns = [
+            r"\*\*Explanation:\*\*\s*(.*?)(?:$|\n\n\*\*)",
+            r"Explanation:\s*(.*?)(?:$|\n\n)",
+            r"(?:^|\n\n)([A-Z][^`]*?)$",  # Last paragraph after code
+        ]
         
-        if not explanation:
-            # Try to extract any text after the code block
+        for pattern in explanation_patterns:
+            explanation_match = re.search(pattern, response, re.DOTALL)
+            if explanation_match:
+                explanation = explanation_match.group(1).strip()
+                if len(explanation) > 20:  # Ensure it's meaningful
+                    break
+        
+        # Fallback: extract text after last code block
+        if not explanation or len(explanation) < 20:
             parts = response.split("```")
             if len(parts) >= 3:
-                explanation = parts[-1].strip()
+                last_part = parts[-1].strip()
+                # Remove markdown formatting
+                last_part = re.sub(r'\*\*[^*]+\*\*:?', '', last_part).strip()
+                if len(last_part) > 20:
+                    explanation = last_part
+        
+        # Default explanation if none found
+        if not explanation:
+            explanation = f"Generated {language.value.upper()} code for your request."
         
         return code, explanation
     
@@ -633,44 +667,67 @@ Return your response in this exact format:
         if not sql_upper.startswith('SELECT') and not sql_upper.startswith('WITH'):
             return None, "Only SELECT queries can be executed for safety", None
         
+        # Check for dangerous patterns even in SELECT
+        dangerous_patterns = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'TRUNCATE', 'ALTER', 'CREATE']
+        for pattern in dangerous_patterns:
+            if pattern in sql_upper:
+                return None, f"Query contains disallowed keyword: {pattern}", None
+        
         try:
             import psycopg2
-            import json
+            from psycopg2 import sql as psycopg2_sql
             
             database_url = os.environ.get('DATABASE_URL')
             if not database_url:
                 return None, "DATABASE_URL not configured", None
             
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
+            # Use context manager for proper cleanup
+            with psycopg2.connect(database_url) as conn:
+                with conn.cursor() as cursor:
+                    # Set statement timeout to prevent long-running queries
+                    cursor.execute("SET statement_timeout = '10s'")
+                    
+                    # Execute with a limit for safety
+                    limited_sql = sql.rstrip(';')
+                    if 'LIMIT' not in sql_upper:
+                        limited_sql += ' LIMIT 100'
+                    
+                    cursor.execute(limited_sql)
+                    
+                    if cursor.description is None:
+                        return "Query executed but returned no results", None, None
+                    
+                    columns = [desc[0] for desc in cursor.description]
+                    rows = cursor.fetchall()
+                    
+                    # Format results
+                    result_text = f"Query returned {len(rows)} rows\n"
+                    result_text += "Columns: " + ", ".join(columns)
+                    
+                    # Create preview with JSON-serializable values
+                    def serialize_value(v):
+                        if v is None:
+                            return None
+                        if isinstance(v, (int, float, str, bool)):
+                            return v
+                        return str(v)
+                    
+                    preview = {
+                        "columns": columns,
+                        "row_count": len(rows),
+                        "sample_rows": [
+                            {col: serialize_value(val) for col, val in zip(columns, row)}
+                            for row in rows[:5]
+                        ]
+                    }
+                    
+                    return result_text, None, preview
             
-            # Execute with a limit for safety
-            limited_sql = sql.rstrip(';')
-            if 'LIMIT' not in sql_upper:
-                limited_sql += ' LIMIT 100'
-            
-            cursor.execute(limited_sql)
-            
-            columns = [desc[0] for desc in cursor.description]
-            rows = cursor.fetchall()
-            
-            cursor.close()
-            conn.close()
-            
-            # Format results
-            result_text = f"Query returned {len(rows)} rows\n"
-            result_text += "Columns: " + ", ".join(columns)
-            
-            # Create preview
-            preview = {
-                "columns": columns,
-                "row_count": len(rows),
-                "sample_rows": [dict(zip(columns, row)) for row in rows[:5]]
-            }
-            
-            return result_text, None, preview
-            
+        except psycopg2.Error as e:
+            logger.error(f"SQL execution error: {e}")
+            return None, f"Database error: {e.pgerror or str(e)}", None
         except Exception as e:
+            logger.error(f"SQL execution error: {e}")
             return None, str(e), None
     
     async def validate_code(self, code: str, language: CodeLanguage) -> Dict[str, Any]:

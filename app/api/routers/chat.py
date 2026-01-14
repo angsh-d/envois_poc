@@ -1582,6 +1582,7 @@ class CodeGenerationResponse(BaseModel):
     language: str
     code: str
     explanation: str
+    error: Optional[str] = None
     execution_result: Optional[str] = None
     execution_error: Optional[str] = None
     data_preview: Optional[Dict[str, Any]] = None
@@ -1660,13 +1661,22 @@ async def generate_code(request: CodeGenerationRequest):
             language=result.language,
             code=result.code,
             explanation=result.explanation,
+            error=result.execution_error if not result.success else None,
             execution_result=result.execution_result,
             execution_error=result.execution_error,
             data_preview=result.data_preview,
-            warnings=result.warnings,
+            warnings=result.get_warnings(),
             suggested_followups=followups[:3]
         )
         
     except Exception as e:
         logger.error(f"Code generation failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return CodeGenerationResponse(
+            success=False,
+            language="unknown",
+            code="",
+            explanation="",
+            error=str(e),
+            warnings=[],
+            suggested_followups=["Try rephrasing your request", "Specify a programming language explicitly"]
+        )
