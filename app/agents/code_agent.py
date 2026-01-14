@@ -502,34 +502,56 @@ class CodeAgent:
         # Build the prompt
         prompt = self._build_prompt(request, language, analysis_type)
         
+        max_correction_attempts = 2
+        current_prompt = prompt
+        all_warnings = []
+        
         try:
-            # Generate code using LLM
-            response = await self.llm_service.generate(
-                prompt=prompt,
-                model="gemini-3-pro-preview",
-                temperature=0.2,  # Low temperature for code generation
-                max_tokens=4096
-            )
-            
-            # Parse the response
-            code, explanation = self._parse_response(response, language)
-            
-            # Validate the generated code against the schema
-            validation = await self.validate_code(code, language)
-            
-            warnings = []
-            if not validation["valid"]:
-                warnings.extend(validation["issues"])
-            if validation["suggestions"]:
-                warnings.extend(validation["suggestions"])
-            
-            result = CodeGenerationResult(
-                success=True,
-                language=language.value,
-                code=code,
-                explanation=explanation,
-                warnings=warnings if warnings else None
-            )
+            for attempt in range(max_correction_attempts + 1):
+                # Generate code using LLM
+                response = await self.llm_service.generate(
+                    prompt=current_prompt,
+                    model="gemini-3-pro-preview",
+                    temperature=0.2,  # Low temperature for code generation
+                    max_tokens=4096
+                )
+                
+                # Parse the response
+                code, explanation = self._parse_response(response, language)
+                
+                # Validate the generated code against the schema
+                validation = await self.validate_code(code, language)
+                
+                # If validation passed or we've exhausted attempts, proceed
+                if validation["valid"] or attempt == max_correction_attempts:
+                    warnings = []
+                    if not validation["valid"]:
+                        warnings.extend(validation["issues"])
+                    if validation["suggestions"]:
+                        warnings.extend(validation["suggestions"])
+                    if all_warnings:
+                        warnings.insert(0, f"Code was auto-corrected after {attempt} attempt(s)")
+                    
+                    result = CodeGenerationResult(
+                        success=True,
+                        language=language.value,
+                        code=code,
+                        explanation=explanation,
+                        warnings=warnings if warnings else None
+                    )
+                    break
+                
+                # Self-correction: regenerate with error feedback
+                logger.info(f"Code validation failed (attempt {attempt + 1}), auto-correcting...")
+                all_warnings.extend(validation["issues"])
+                
+                correction_prompt = self._build_correction_prompt(
+                    original_request=request,
+                    generated_code=code,
+                    validation_errors=validation["issues"],
+                    language=language
+                )
+                current_prompt = correction_prompt
             
             # Execute if requested (only for SQL - safer)
             if execute and language == CodeLanguage.SQL:
@@ -537,7 +559,21 @@ class CodeAgent:
                 result.execution_result = exec_result
                 result.execution_error = exec_error
                 result.data_preview = preview
+                
+                # If execution failed, try self-correction
+                if exec_error and not result.data_preview:
+                    logger.info("SQL execution failed, attempting self-correction...")
+                    corrected_result = await self._self_correct_sql(
+                        original_request=request,
+                        failed_code=code,
+                        error_message=exec_error,
+                        language=language
+                    )
+                    if corrected_result:
+                        return corrected_result
+                        
             elif execute:
+                result.warnings = result.warnings or []
                 result.warnings.append(
                     f"Code execution for {language.value} is available but disabled for safety. "
                     "The code has been validated against the schema."
@@ -609,6 +645,127 @@ Return your response in this exact format:
 [Brief explanation of what the code does and any important notes]
 """
         return prompt
+    
+    def _build_correction_prompt(
+        self, 
+        original_request: str, 
+        generated_code: str, 
+        validation_errors: List[str],
+        language: CodeLanguage
+    ) -> str:
+        """Build a prompt for self-correction based on validation errors."""
+        
+        errors_text = "\n".join(f"- {err}" for err in validation_errors)
+        
+        return f"""You are an expert clinical research programmer. The previous code generation had validation errors that need to be fixed.
+
+## Original Request
+{original_request}
+
+## Generated Code (with errors)
+```{language.value}
+{generated_code}
+```
+
+## Validation Errors
+{errors_text}
+
+## Database Schema (for reference)
+{DATABASE_SCHEMA}
+
+## Instructions
+1. Fix ALL the validation errors listed above
+2. Use the EXACT table and column names from the schema
+3. Do NOT use tables that don't exist in the schema
+4. Maintain the same functionality as the original request
+
+## Output Format
+Return ONLY the corrected code in this format:
+
+```{language.value}
+[CORRECTED CODE HERE]
+```
+
+**Explanation:**
+[Brief explanation of what was fixed]
+"""
+    
+    async def _self_correct_sql(
+        self,
+        original_request: str,
+        failed_code: str,
+        error_message: str,
+        language: CodeLanguage
+    ) -> Optional[CodeGenerationResult]:
+        """Attempt to self-correct SQL code after execution failure."""
+        
+        correction_prompt = f"""You are an expert SQL programmer. The following SQL query failed with an error. Fix it.
+
+## Original Request
+{original_request}
+
+## Failed SQL Query
+```sql
+{failed_code}
+```
+
+## Database Error
+{error_message}
+
+## Database Schema
+{DATABASE_SCHEMA}
+
+## Instructions
+1. Fix the SQL error based on the error message
+2. Use ONLY tables and columns that exist in the schema
+3. Ensure the query is syntactically correct
+4. Keep the query as close to the original intent as possible
+
+## Output Format
+Return ONLY the corrected SQL:
+
+```sql
+[CORRECTED SQL HERE]
+```
+
+**Explanation:**
+[What was wrong and how it was fixed]
+"""
+        
+        try:
+            response = await self.llm_service.generate(
+                prompt=correction_prompt,
+                model="gemini-3-pro-preview",
+                temperature=0.1,
+                max_tokens=2048
+            )
+            
+            code, explanation = self._parse_response(response, language)
+            
+            # Validate the corrected code
+            validation = await self.validate_code(code, language)
+            if not validation["valid"]:
+                return None  # Correction failed validation too
+            
+            # Try executing the corrected code
+            exec_result, exec_error, preview = await self._execute_sql(code)
+            
+            if exec_error:
+                return None  # Correction still failed
+            
+            return CodeGenerationResult(
+                success=True,
+                language=language.value,
+                code=code,
+                explanation=explanation,
+                execution_result=exec_result,
+                data_preview=preview,
+                warnings=["Code was auto-corrected after execution error"]
+            )
+            
+        except Exception as e:
+            logger.error(f"SQL self-correction failed: {e}")
+            return None
     
     def _parse_response(self, response: str, language: CodeLanguage) -> Tuple[str, str]:
         """Parse the LLM response to extract code and explanation."""
