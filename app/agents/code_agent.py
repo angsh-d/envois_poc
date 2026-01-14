@@ -529,14 +529,26 @@ class CodeAgent:
                         warnings.extend(validation["issues"])
                     if validation["suggestions"]:
                         warnings.extend(validation["suggestions"])
-                    if all_warnings:
+                    
+                    # Build enhanced explanation with validation status and strategy
+                    enhanced_explanation = self._build_enhanced_explanation(
+                        base_explanation=explanation,
+                        language=language,
+                        code=code,
+                        request=request,
+                        validation_passed=validation["valid"],
+                        correction_attempts=attempt,
+                        analysis_type=analysis_type
+                    )
+                    
+                    if attempt > 0:
                         warnings.insert(0, f"Code was auto-corrected after {attempt} attempt(s)")
                     
                     result = CodeGenerationResult(
                         success=True,
                         language=language.value,
                         code=code,
-                        explanation=explanation,
+                        explanation=enhanced_explanation,
                         warnings=warnings if warnings else None
                     )
                     break
@@ -689,6 +701,115 @@ Return ONLY the corrected code in this format:
 **Explanation:**
 [Brief explanation of what was fixed]
 """
+    
+    def _build_enhanced_explanation(
+        self,
+        base_explanation: str,
+        language: CodeLanguage,
+        code: str,
+        request: str,
+        validation_passed: bool,
+        correction_attempts: int,
+        analysis_type: str
+    ) -> str:
+        """Build an enhanced explanation with validation status and query strategy."""
+        
+        parts = []
+        
+        # Add the base explanation
+        if base_explanation:
+            parts.append(base_explanation)
+        
+        # Add query strategy for complex queries
+        strategy = self._analyze_query_strategy(code, language, request)
+        if strategy:
+            parts.append("")
+            parts.append("**Query Strategy:**")
+            parts.append(strategy)
+        
+        # Add validation status
+        parts.append("")
+        if validation_passed:
+            if correction_attempts > 0:
+                parts.append(f"*Validated against the H-34 study data model (corrected after {correction_attempts} attempt(s))*")
+            else:
+                parts.append("*Validated against the H-34 study data model*")
+        else:
+            parts.append("*Warning: Could not fully validate against the study data model*")
+        
+        return "\n".join(parts)
+    
+    def _analyze_query_strategy(self, code: str, language: CodeLanguage, request: str) -> Optional[str]:
+        """Analyze the code and generate a strategy explanation for complex queries."""
+        
+        code_lower = code.lower()
+        request_lower = request.lower()
+        strategies = []
+        
+        if language == CodeLanguage.SQL:
+            # Detect JOIN strategy
+            join_count = code_lower.count(' join ')
+            if join_count >= 2:
+                strategies.append(f"• Multi-table join across {join_count + 1} tables to correlate patient, surgery, and outcome data")
+            elif join_count == 1:
+                strategies.append("• Table join to link related patient data")
+            
+            # Detect aggregation
+            if any(agg in code_lower for agg in ['count(', 'sum(', 'avg(', 'max(', 'min(']):
+                if 'group by' in code_lower:
+                    strategies.append("• Aggregation with grouping for summary statistics")
+                else:
+                    strategies.append("• Aggregate calculation across dataset")
+            
+            # Detect subqueries
+            if code_lower.count('select') > 1:
+                strategies.append("• Subquery for filtered data extraction")
+            
+            # Detect window functions
+            if 'over(' in code_lower or 'partition by' in code_lower:
+                strategies.append("• Window function for running calculations or rankings")
+            
+            # Detect CTEs
+            if 'with ' in code_lower and ' as (' in code_lower:
+                strategies.append("• Common Table Expression (CTE) for query readability and reuse")
+            
+            # Detect date filtering
+            if any(d in code_lower for d in ['date', 'interval', 'timestamp']):
+                strategies.append("• Temporal filtering for time-based analysis")
+                
+        elif language == CodeLanguage.PYTHON:
+            # Detect pandas operations
+            if 'merge(' in code_lower or 'join(' in code_lower:
+                strategies.append("• DataFrame merge for combining data sources")
+            if 'groupby(' in code_lower:
+                strategies.append("• Group-by aggregation for summary statistics")
+            if 'pivot' in code_lower:
+                strategies.append("• Pivot transformation for reshaping data")
+            
+            # Detect statistical analysis
+            if 'kaplan' in code_lower or 'survfit' in code_lower or 'lifelines' in code_lower:
+                strategies.append("• Survival analysis using Kaplan-Meier estimation")
+            if 'ttest' in code_lower or 'mannwhitney' in code_lower:
+                strategies.append("• Statistical hypothesis testing")
+            if 'linear' in code_lower or 'regression' in code_lower:
+                strategies.append("• Regression modeling for outcome prediction")
+                
+        elif language == CodeLanguage.R:
+            # Detect R-specific patterns
+            if 'survfit(' in code_lower:
+                strategies.append("• Kaplan-Meier survival curve estimation")
+            if 'coxph(' in code_lower:
+                strategies.append("• Cox proportional hazards regression")
+            if 'ggplot(' in code_lower or 'ggsurvplot(' in code_lower:
+                strategies.append("• Visualization using ggplot2 graphics")
+            if 'lm(' in code_lower or 'glm(' in code_lower:
+                strategies.append("• Linear/generalized linear modeling")
+            if 'merge(' in code_lower or 'left_join(' in code_lower:
+                strategies.append("• Data frame merging for combined analysis")
+        
+        if strategies:
+            return "\n".join(strategies)
+        return None
     
     async def _self_correct_sql(
         self,
