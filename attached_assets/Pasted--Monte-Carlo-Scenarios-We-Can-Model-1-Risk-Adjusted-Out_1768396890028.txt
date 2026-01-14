@@ -1,0 +1,97 @@
+  Monte Carlo Scenarios We Can Model
+
+  1. Risk-Adjusted Outcome Projections
+
+  "What is the probability distribution of outcomes for a specific patient cohort?"
+
+  Examples:
+  - "What's the 90% confidence interval for 5-year revision rate in patients with osteoporosis?"
+  - "Simulate 10,000 iterations for patients age >70 - what's the expected survival distribution?"
+
+  How it works: Sample HRs from their CIs, apply to baseline registry rates, aggregate N iterations.
+
+  ---
+  2. Enrollment Criteria Impact Analysis
+
+  "How would different enrollment criteria affect expected study outcomes?"
+
+  Examples:
+  - "If we exclude BMI>35 patients, what's the probability of achieving <10% revision rate at 2 years?"
+  - "Compare enrollment with vs without age cap at 80 - show probability distributions"
+
+  How it works: Filter cohort by criteria, run Monte Carlo on filtered vs unfiltered populations.
+
+  ---
+  3. Protocol Success Probability
+
+  "What's the probability our study will meet its primary endpoint?"
+
+  Examples:
+  - "Given our current cohort risk profile, what's the probability of achieving the protocol target (>50% MCID achievement)?"
+  - "Simulate: what % of iterations show 2-year survival >90%?"
+
+  How it works: Run N iterations, count how many meet the success threshold → P(success).
+
+  ---
+  4. Sensitivity Analysis on Risk Factors
+
+  "Which risk factors have the most impact on outcome uncertainty?"
+
+  Examples:
+  - "Run Monte Carlo with/without osteoporosis HR uncertainty - how much narrower is the CI?"
+  - "Which risk factor contributes most to outcome variance?"
+
+  How it works: Systematically vary one HR at a time while holding others constant.
+
+  ---
+  5. Multi-Factor Interaction Effects
+
+  "How do combined risk factors affect outcomes probabilistically?"
+
+  Examples:
+  - "Patient with osteoporosis AND age>80 AND BMI>35 - what's their 5-year revision distribution?"
+  - "Compare: single high-risk factor vs multiple moderate-risk factors"
+
+  How it works: Multiply sampled HRs together, show how uncertainty compounds.
+
+  ---
+  6. Time-to-Event Projections
+
+  "When are outcomes most uncertain?"
+
+  Examples:
+  - "Show uncertainty bands at 1yr, 2yr, 5yr, 10yr for high-risk cohort"
+  - "At what time point does the confidence interval exceed ±5%?"
+
+  How it works: Use registry survival curves at multiple time points, propagate uncertainty.
+
+  ---
+  7. Comparative Effectiveness Scenarios
+
+  "Compare outcome distributions across different patient subgroups"
+
+  Examples:
+  - "Monte Carlo for females vs males - show overlapping distribution histograms"
+  - "Compare revision risk distributions: Paprosky 2B vs 3B defects"
+
+  How it works: Run separate simulations, output side-by-side distributions.
+
+  ---
+  Summary Table
+  ┌───────────────────────────┬────────────────────────────────────┬───────────────────────────────────────────────┐
+  │       Scenario Type       │            Key Question            │                    Output                     │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Risk-Adjusted Projection  │ "What's the outcome distribution?" │ Mean, median, percentiles (p5, p25, p75, p95) │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Enrollment Impact         │ "How do criteria affect outcomes?" │ Comparison of two distributions               │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Success Probability       │ "Will we meet the endpoint?"       │ P(success) = X%                               │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Sensitivity Analysis      │ "Which factor matters most?"       │ Variance contribution by factor               │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Multi-Factor Interaction  │ "How do risks compound?"           │ Combined HR distribution                      │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Time-to-Event             │ "How does uncertainty grow?"       │ Confidence bands over time                    │
+  ├───────────────────────────┼────────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Comparative Effectiveness │ "Which subgroup is better?"        │ Overlapping histograms                        │
+  └───────────────────────────┴────────────────────────────────────┴───────────────────────────────────────────────┘
