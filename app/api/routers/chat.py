@@ -19,6 +19,7 @@ from app.agents.base_agent import AgentContext, AgentType
 from app.agents.data_agent import DataAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.registry_agent import RegistryAgent
+from app.agents.code_agent import get_code_agent, CodeLanguage
 
 
 class IntentClassification(BaseModel):
@@ -234,6 +235,15 @@ INTENT_KEYWORDS = {
     "comparison": [
         "compare", "comparison", "versus", "vs", "compared to", "relative to",
         "consistent with", "in line with", "against", "how does"
+    ],
+    "code_generation": [
+        # Keywords for code generation requests
+        "write code", "generate code", "code for", "show me code", "python code",
+        "r code", "sql query", "sql code", "c code", "script for", "program for",
+        "write a script", "write a query", "create code", "give me code",
+        "kaplan-meier code", "survival code", "calculate", "compute",
+        "write python", "write r", "write sql", "in python", "in r", "using r",
+        "query for", "query to", "code to", "script to"
     ]
 }
 
@@ -1552,3 +1562,111 @@ def _generate_followups(intents: Set[str], context: str) -> List[str]:
         ]
 
     return followups[:4]  # Limit to 4 suggestions
+
+
+# ============================================================================
+# CODE GENERATION ENDPOINT
+# ============================================================================
+
+class CodeGenerationRequest(BaseModel):
+    """Request for code generation."""
+    request: str = Field(..., description="Natural language description of the code to generate")
+    language: Optional[str] = Field(None, description="Programming language: python, r, sql, c (auto-detected if not specified)")
+    execute: bool = Field(default=False, description="Whether to execute the code (only SQL supported)")
+    study_id: str = Field(default="H-34", description="Study identifier")
+
+
+class CodeGenerationResponse(BaseModel):
+    """Response from code generation endpoint."""
+    success: bool
+    language: str
+    code: str
+    explanation: str
+    execution_result: Optional[str] = None
+    execution_error: Optional[str] = None
+    data_preview: Optional[Dict[str, Any]] = None
+    warnings: List[str] = []
+    suggested_followups: List[str] = []
+
+
+def is_code_generation_request(message: str) -> bool:
+    """Check if a message is requesting code generation."""
+    message_lower = message.lower()
+    for keyword in INTENT_KEYWORDS["code_generation"]:
+        if keyword in message_lower:
+            return True
+    return False
+
+
+@router.post("/generate-code", response_model=CodeGenerationResponse)
+async def generate_code(request: CodeGenerationRequest):
+    """
+    Generate R, Python, SQL, or C code for clinical research ad-hoc queries.
+    
+    The code agent understands:
+    - Clinical domain language (Kaplan-Meier, HHS, revision rates, etc.)
+    - H-34 DELTA study data model and database schema
+    - Statistical methodologies for clinical research
+    
+    Examples:
+    - "Write R code for a Kaplan-Meier curve comparing our cohort to the 94% registry benchmark"
+    - "Show me Python code to calculate mean HHS improvement from baseline to 2-year follow-up"
+    - "SQL query to find all patients with revision surgery"
+    """
+    try:
+        code_agent = get_code_agent()
+        
+        # Parse language if provided
+        language = None
+        if request.language:
+            try:
+                language = CodeLanguage(request.language.lower())
+            except ValueError:
+                pass
+        
+        result = await code_agent.generate_code(
+            request=request.request,
+            language=language,
+            execute=request.execute
+        )
+        
+        # Generate follow-up suggestions
+        followups = []
+        request_lower = request.request.lower()
+        
+        if "kaplan" in request_lower or "survival" in request_lower:
+            followups.extend([
+                "Generate code to compare survival curves by patient subgroups",
+                "Write code for Cox proportional hazards regression"
+            ])
+        elif "hhs" in request_lower or "score" in request_lower:
+            followups.extend([
+                "Generate code to calculate MCID achievement rates",
+                "Write code to plot score distributions by follow-up visit"
+            ])
+        elif "adverse" in request_lower or "safety" in request_lower:
+            followups.extend([
+                "Generate code to calculate adverse event rates by type",
+                "Write code for safety signal detection analysis"
+            ])
+        else:
+            followups.extend([
+                "Generate a Kaplan-Meier survival analysis",
+                "Write code to analyze HHS improvement from baseline"
+            ])
+        
+        return CodeGenerationResponse(
+            success=result.success,
+            language=result.language,
+            code=result.code,
+            explanation=result.explanation,
+            execution_result=result.execution_result,
+            execution_error=result.execution_error,
+            data_preview=result.data_preview,
+            warnings=result.warnings,
+            suggested_followups=followups[:3]
+        )
+        
+    except Exception as e:
+        logger.error(f"Code generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

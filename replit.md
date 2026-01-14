@@ -28,6 +28,8 @@ The application is structured as a full-stack project with a Python FastAPI back
 - **Executive Dashboard (UC5):** KPIs, readiness metrics, and safety signals overview.
 - **Digital Protocol:** Interactive views for Statement of Work (SOA), Eligibility Criteria, and Domain-specific protocol details.
 - **Data & Agents Catalog:** Visualization and documentation of data sources, AI/ML models, and agent architecture.
+- **Simulation Studio:** Monte Carlo simulations for regulatory benchmark probability analysis with interactive what-if scenarios.
+- **Code Generation Agent:** AI-powered code generation for ad-hoc statistical queries in R, Python, SQL, and C with domain knowledge of clinical research, the H-34 study data model, and database schema.
 
 **System Design Choices:**
 - **Multi-agent AI system:** Employs specialized AI agents for different clinical intelligence tasks.

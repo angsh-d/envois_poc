@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield } from 'lucide-react'
-import { ChatMessage, sendChatMessage, Source, Evidence } from '@/lib/api'
+import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check } from 'lucide-react'
+import { ChatMessage, sendChatMessage, Source, Evidence, generateCode, isCodeGenerationRequest, CodeGenerationResponse } from '@/lib/api'
 import { ResponseDisplay } from './ResponseDisplay'
 import { ProvenanceCard } from './ProvenanceCard'
 import { EvidencePanel } from './EvidencePanel'
@@ -26,6 +26,73 @@ interface CachedResponse {
   sources: Source[]
   evidence?: Evidence
   timestamp: number
+  codeResponse?: CodeGenerationResponse
+}
+
+function CodeBlock({ code, language }: { code: string; language: string }) {
+  const [copied, setCopied] = useState(false)
+  
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  
+  const languageColors: Record<string, string> = {
+    python: 'bg-blue-100 text-blue-700',
+    r: 'bg-purple-100 text-purple-700',
+    sql: 'bg-green-100 text-green-700',
+    c: 'bg-gray-100 text-gray-700'
+  }
+  
+  const highlightCode = (code: string, lang: string): string => {
+    const keywords: Record<string, string[]> = {
+      python: ['import', 'from', 'def', 'class', 'return', 'if', 'else', 'elif', 'for', 'while', 'try', 'except', 'with', 'as', 'lambda', 'None', 'True', 'False', 'and', 'or', 'not', 'in', 'is'],
+      r: ['library', 'function', 'if', 'else', 'for', 'while', 'return', 'NULL', 'TRUE', 'FALSE', 'NA', 'c', 'list', 'data.frame'],
+      sql: ['SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'ON', 'AND', 'OR', 'ORDER', 'BY', 'GROUP', 'HAVING', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'TABLE', 'AS', 'WITH', 'CASE', 'WHEN', 'THEN', 'END', 'LIMIT', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MAX', 'MIN'],
+      c: ['int', 'char', 'float', 'double', 'void', 'return', 'if', 'else', 'for', 'while', 'struct', 'typedef', 'include', 'define', 'NULL']
+    }
+    
+    let highlighted = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+    
+    highlighted = highlighted.replace(/(["'])((?:\\.|[^\\])*?)\1/g, '<span style="color: #a5d6a7;">$&</span>')
+    highlighted = highlighted.replace(/(#.*)$/gm, '<span style="color: #78909c;">$1</span>')
+    highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span style="color: #ffcc80;">$1</span>')
+    
+    const langKeywords = keywords[lang] || []
+    langKeywords.forEach(kw => {
+      const regex = new RegExp(`\\b(${kw})\\b`, lang === 'sql' ? 'gi' : 'g')
+      highlighted = highlighted.replace(regex, '<span style="color: #81d4fa; font-weight: 500;">$1</span>')
+    })
+    
+    return highlighted
+  }
+  
+  return (
+    <div className="mt-3 rounded-lg border border-gray-200 overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+        <div className="flex items-center gap-2">
+          <Code2 className="w-4 h-4 text-gray-500" />
+          <span className={`text-xs font-medium px-2 py-0.5 rounded ${languageColors[language] || 'bg-gray-100 text-gray-700'}`}>
+            {language.toUpperCase()}
+          </span>
+        </div>
+        <button
+          onClick={handleCopy}
+          className="p-1.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
+          title="Copy code"
+        >
+          {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto text-sm bg-gray-900 text-gray-100 leading-relaxed">
+        <code dangerouslySetInnerHTML={{ __html: highlightCode(code, language) }} />
+      </pre>
+    </div>
+  )
 }
 
 // Cache configuration for response persistence
@@ -149,13 +216,16 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
     setIsLoading(true)
     setIsCached(false)
 
+    // Check if this is a code generation request
+    const isCodeRequest = isCodeGenerationRequest(currentInput)
+
     // Check cache first
     const cacheKey = generateCacheKey(currentInput, context, studyId)
     const cached = getCachedResponse(cacheKey)
 
     try {
-      if (cached) {
-        // Serve cached response with artificial delay
+      if (cached && !isCodeRequest) {
+        // Serve cached response with artificial delay (don't cache code responses)
         setIsCached(true)
         await new Promise(resolve => setTimeout(resolve, ARTIFICIAL_DELAY_MS))
 
@@ -165,10 +235,27 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           sources: cached.sources,
           evidence: cached.evidence,
           timestamp: new Date().toISOString(),
+          codeResponse: cached.codeResponse,
         }
         setMessages((prev) => [...prev, assistantMessage])
+      } else if (isCodeRequest) {
+        // Handle code generation request
+        const codeResult = await generateCode(currentInput, undefined, false, studyId)
+        
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: codeResult.explanation || `Here's the ${codeResult.language.toUpperCase()} code you requested:`,
+          timestamp: new Date().toISOString(),
+          codeResponse: codeResult,
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+
+        // Update suggested followups for code generation
+        if (codeResult.suggested_followups && codeResult.suggested_followups.length > 0) {
+          setSuggestedFollowups(codeResult.suggested_followups)
+        }
       } else {
-        // Fetch fresh response
+        // Fetch fresh response for regular chat
         const response = await sendChatMessage(
           currentInput,
           context,
@@ -209,9 +296,9 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
   // Initial suggested questions showcasing new capabilities
   const initialSuggestedQuestions = [
     'How do our outcomes compare to all 5 international registries?',
-    'What are the primary causes of revision across registries?',
-    'How close are we to any concern thresholds?',
-    'Which registry has outcomes most similar to our study?',
+    'Write R code for a Kaplan-Meier survival curve',
+    'Show me Python code to calculate mean HHS improvement',
+    'SQL query to find patients with revision surgery',
   ]
 
   // Use dynamic followups if available, otherwise initial questions
@@ -360,6 +447,55 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
                     </p>
                   )}
                 </div>
+
+                {/* Code Block - shown for messages with code responses */}
+                {msg.codeResponse && msg.role === 'assistant' && (
+                  <CodeBlock 
+                    code={msg.codeResponse.code} 
+                    language={msg.codeResponse.language} 
+                  />
+                )}
+
+                {/* Execution Results for SQL */}
+                {msg.codeResponse && msg.codeResponse.data_preview && msg.role === 'assistant' && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-xs font-medium text-green-700 mb-2">Query Results</div>
+                    <div className="text-sm text-gray-700">
+                      {msg.codeResponse.execution_result}
+                    </div>
+                    {msg.codeResponse.data_preview.sample_rows && msg.codeResponse.data_preview.sample_rows.length > 0 && (
+                      <div className="mt-2 overflow-x-auto">
+                        <table className="text-xs w-full">
+                          <thead>
+                            <tr className="border-b border-green-200">
+                              {msg.codeResponse.data_preview.columns.map((col, idx) => (
+                                <th key={idx} className="text-left px-2 py-1 text-green-800 font-medium">{col}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {msg.codeResponse.data_preview.sample_rows.slice(0, 3).map((row, idx) => (
+                              <tr key={idx} className="border-b border-green-100">
+                                {msg.codeResponse!.data_preview!.columns.map((col, colIdx) => (
+                                  <td key={colIdx} className="px-2 py-1 text-gray-600">{String(row[col] ?? '')}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Warnings */}
+                {msg.codeResponse && msg.codeResponse.warnings && msg.codeResponse.warnings.length > 0 && msg.role === 'assistant' && (
+                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    {msg.codeResponse.warnings.map((w, idx) => (
+                      <div key={idx}>{w}</div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Key Evidence Panel - shows actual data values */}
                 {msg.evidence && msg.evidence.metrics && msg.evidence.metrics.length > 0 && (
