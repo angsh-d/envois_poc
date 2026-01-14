@@ -1,0 +1,254 @@
+{
+  "nar": {
+    "population": "revision_tha",
+    "data_available": true,
+    "n_procedures": 37882,
+    "data_period": "1987-2022",
+    "survival_rates": {
+      "1yr": {
+        "rate": 0.96,
+        "page": 16,
+        "table_or_figure": "Figure A.21) All",
+        "exact_quote": "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 96% survival at 1 year."
+      },
+      "2yr": {
+        "rate": 0.93,
+        "page": 16,
+        "table_or_figure": "Figure A.21) All",
+        "exact_quote": "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 93% survival at 2 years."
+      },
+      "5yr": {
+        "rate": 0.86,
+        "page": 16,
+        "table_or_figure": "Figure A.21) All",
+        "exact_quote": "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 86% survival at 5 years."
+      },
+      "10yr": {
+        "rate": 0.79,
+        "page": 16,
+        "table_or_figure": "Figure A.21) All",
+        "exact_quote": "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 79% survival at 10 years."
+      },
+      "15yr": {
+        "rate": 0.73,
+        "page": 16,
+        "table_or_figure": "Figure A.21) All",
+        "exact_quote": "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 73% survival at 15 years."
+      }
+    },
+    "revision_reasons": [],
+    "notes": "Survival rates are visually estimated from the Kaplan-Meier curve in Figure A.21 as no tabulated data for revision survival is provided. The report provides reasons for first revision (primary to revision) on page 38 (Table 3a), but does not provide data on reasons for re-revision (revision to re-revision).",
+    "provenance_notes": "The total number of revision procedures was calculated from Table 1 'Annual numbers of operations' on page 35, summing the 'Revisions' column for the period 1987-2022. The data period is also derived from this table. Survival rates for first-time revisions are visually estimated from the Kaplan-Meier curve in Figure A.21 'Survival curves for first time revisions 1987 \u2013 2022' on page 16.",
+    "registry_id": "nar",
+    "registry_name": "Norwegian Arthroplasty Register",
+    "abbreviation": "NAR",
+    "country": "Norway",
+    "report_year": 2023,
+    "source_file": "data/raw/downloaded_registry/NAR_2023_Annual_Report.pdf"
+  },
+  "nzjr": {
+    "population": "revision_tha",
+    "data_available": true,
+    "n_procedures": 32275,
+    "data_period": "1999-2024",
+    "survival_rates": {
+      "1yr": {
+        "rate": 0.95,
+        "page": 31,
+        "table_or_figure": "Figure: Cumulative Incidence of Re-revision",
+        "exact_quote": "Value estimated from graph. Cumulative re-revision rate at 1 year is approximately 0.05."
+      },
+      "2yr": {
+        "rate": 0.92,
+        "page": 31,
+        "table_or_figure": "Figure: Cumulative Incidence of Re-revision",
+        "exact_quote": "Value estimated from graph. Cumulative re-revision rate at 2 years is approximately 0.08."
+      },
+      "5yr": {
+        "rate": 0.86,
+        "page": 31,
+        "table_or_figure": "Figure: Cumulative Incidence of Re-revision",
+        "exact_quote": "Value estimated from graph. Cumulative re-revision rate at 5 years is approximately 0.14."
+      },
+      "10yr": {
+        "rate": 0.79,
+        "page": 31,
+        "table_or_figure": "Figure: Cumulative Incidence of Re-revision",
+        "exact_quote": "Value estimated from graph. Cumulative re-revision rate at 10 years is approximately 0.21."
+      },
+      "15yr": {
+        "rate": null,
+        "page": 31,
+        "table_or_figure": "Figure: Cumulative Incidence of Re-revision",
+        "exact_quote": "Data not available. The graph only extends to 13 years."
+      }
+    },
+    "revision_reasons": [],
+    "notes": "The report provides the total number of hip revision procedures but does not offer a detailed breakdown of reasons for re-revision. Survival rates for revision THA (time to re-revision) are not presented in a table but are shown in a 'Cumulative Incidence of Re-revision' graph, from which the rates have been estimated. The graph extends to 13 years. Table 1.41 on page 31 provides an overall re-revision rate of 2.54 per 100 component-years.",
+    "provenance_notes": "The total number of revision procedures and the data period were found on page 19 in the 'Data analysis' section under 'Revision Hip Arthroplasty'. The survival rates for revision THA were estimated from the 'Cumulative Incidence of Re-revision' graph on page 31. A search for reasons for re-revision yielded no specific data; tables on revision reasons (e.g., Table 1.17) refer to the primary procedure.",
+    "registry_id": "nzjr",
+    "registry_name": "New Zealand Joint Registry",
+    "abbreviation": "NZJR",
+    "country": "New Zealand",
+    "report_year": 2024,
+    "source_file": "data/raw/downloaded_registry/NZJR_26_Year_Report.pdf"
+  },
+  "dhr": {
+    "population": "revision_tha",
+    "data_available": true,
+    "n_procedures": 35707,
+    "data_period": "1995-2024",
+    "survival_rates": {
+      "1yr": {
+        "rate": 0.988,
+        "page": 153,
+        "table_or_figure": "Figur 10.3",
+        "exact_quote": "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      },
+      "2yr": {
+        "rate": 0.975,
+        "page": 153,
+        "table_or_figure": "Figur 10.3",
+        "exact_quote": "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      },
+      "5yr": {
+        "rate": 0.945,
+        "page": 153,
+        "table_or_figure": "Figur 10.3",
+        "exact_quote": "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      },
+      "10yr": {
+        "rate": 0.9,
+        "page": 153,
+        "table_or_figure": "Figur 10.3",
+        "exact_quote": "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      },
+      "15yr": {
+        "rate": 0.85,
+        "page": 153,
+        "table_or_figure": "Figur 10.3",
+        "exact_quote": "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      }
+    },
+    "revision_reasons": [
+      {
+        "reason": "Infection",
+        "percentage": 39.39,
+        "description": "Infection",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Aseptic Loosening (all)",
+        "percentage": 22.35,
+        "description": "Aseptic Loosening (all)",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Dislocation",
+        "percentage": 21.89,
+        "description": "Dislocation",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Femoral Fracture",
+        "percentage": 4.74,
+        "description": "Femoral Fracture",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Other",
+        "percentage": 4.24,
+        "description": "Other",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Component Failure",
+        "percentage": 2.94,
+        "description": "Component Failure",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Pain",
+        "percentage": 2.43,
+        "description": "Pain",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "PE Wear without Loosening",
+        "percentage": 1.46,
+        "description": "PE Wear without Loosening",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      },
+      {
+        "reason": "Osteolysis without Loosening",
+        "percentage": 0.57,
+        "description": "Osteolysis without Loosening",
+        "page": 143,
+        "table_or_figure": "Tabel 10.2"
+      }
+    ],
+    "notes": "Survival rates are for the survival of a first revision implant, with the endpoint being a second revision. The rates are estimated from the Kaplan-Meier curve in Figure 10.3 as no tabulated data was provided. The total number of revision procedures (35,707) is for all revisions (1st, 2nd, etc.) from 1995-2024. The revision reasons are specifically for 'Second or Later Revision' procedures, of which there were 8,229 in total.",
+    "provenance_notes": "Data was extracted from the '\u00c5rsrapport 2024' of the 'Dansk Hoftealloplastik Register'. The total number of revision procedures was found on page 2. Survival rates for revision THA were estimated from 'Figur 10.3' on page 153. Reasons for re-revision were extracted from 'Tabel 10.2' on page 143.",
+    "registry_id": "dhr",
+    "registry_name": "Danish Hip Arthroplasty Register",
+    "abbreviation": "DHR",
+    "country": "Denmark",
+    "report_year": 2024,
+    "source_file": "data/raw/downloaded_registry/DHR_2024_Annual_Report.pdf"
+  },
+  "eprd": {
+    "population": "revision_tha",
+    "data_available": true,
+    "n_procedures": 51713,
+    "data_period": "2012-2023",
+    "survival_rates": {
+      "1yr": {
+        "rate": 0.9,
+        "page": 101,
+        "table_or_figure": "Table 48",
+        "exact_quote": "10.0 [9.7; 10.2]"
+      },
+      "2yr": {
+        "rate": 0.881,
+        "page": 101,
+        "table_or_figure": "Table 48",
+        "exact_quote": "11.9 [11.6; 12.2]"
+      },
+      "5yr": {
+        "rate": 0.85,
+        "page": 101,
+        "table_or_figure": "Table 48",
+        "exact_quote": "15.0 [14.6; 15.3]"
+      },
+      "10yr": {
+        "rate": null,
+        "page": 101,
+        "table_or_figure": "Table 48",
+        "exact_quote": "NOT_AVAILABLE"
+      },
+      "15yr": {
+        "rate": null,
+        "page": 101,
+        "table_or_figure": "Table 48",
+        "exact_quote": "NOT_AVAILABLE"
+      }
+    },
+    "revision_reasons": [],
+    "notes": "Survival rates are derived from the 'Cumulative Re-Revision Rate' (CReRR) for 'Non-infection-related hip revision' (Survival = 1 - CReRR), as this is the largest and most representative cohort for aseptic re-revisions. The number of procedures (n=51,713) reflects this specific cohort. The CReRR for 'Infection-related hip revision' (n=16,489) is significantly higher (e.g., 29.7% at 2 years vs 11.9% for aseptic). Detailed reasons for the re-revision procedure itself are not provided; the data is stratified by the nature of the index revision (septic vs. aseptic).",
+    "provenance_notes": "Data extracted from the 'Revision hip arthroplasty survival' section (Section 5.2, pages 97-103). The number of procedures and survival rates are from Table 48 on page 101, under the 'Non-infection-related hip revision' category. The overall data period for survival analysis is stated on page 23 ('November 2012 to September 2023'). The distinction between septic and aseptic revisions as the primary factor for re-revision risk is discussed on page 97 and shown in Figure 14.",
+    "registry_id": "eprd",
+    "registry_name": "German Arthroplasty Registry",
+    "abbreviation": "EPRD",
+    "country": "Germany",
+    "report_year": 2024,
+    "source_file": "data/raw/downloaded_registry/EPRD_2024_Annual_Report.pdf"
+  }
+}
