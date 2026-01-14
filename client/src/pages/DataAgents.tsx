@@ -219,42 +219,46 @@ export default function DataAgents({ params }: DataAgentsProps) {
                   <div className="text-xs text-gray-500">Peer-reviewed PDFs indexed</div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-gray-900">11.8 MB</div>
+                  <div className="text-2xl font-bold text-gray-900">15.3 MB</div>
                   <div className="text-xs text-gray-500">Total literature corpus</div>
                 </div>
               </div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-gray-500 font-medium">Publication</th>
+                    <th className="text-left py-2 pr-4 text-gray-500 font-medium">Publication</th>
                     <th className="text-left py-2 text-gray-500 font-medium">Key Benchmarks Extracted</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr>
-                    <td className="py-2 text-gray-800">Bozic 2015 (n=51,345)</td>
-                    <td className="py-2 text-gray-600 text-xs">2yr revision: 6.2%, hazard ratios for age, BMI, diabetes</td>
+                    <td className="py-2 pr-4 text-gray-800">Dixon et al. 2025</td>
+                    <td className="py-2 text-gray-600 text-xs">Revision THA outcomes, survivorship analysis</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-gray-800">Della Valle 2020 (n=892)</td>
-                    <td className="py-2 text-gray-600 text-xs">Severe bone loss HR: 2.15, Osteoporosis HR: 2.42</td>
+                    <td className="py-2 pr-4 text-gray-800">Harris et al. 2025</td>
+                    <td className="py-2 text-gray-600 text-xs">Risk factors for revision hip arthroplasty</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-gray-800">Lombardi 2018 (n=456)</td>
-                    <td className="py-2 text-gray-600 text-xs">Paprosky 3B defect HR: 2.85, Smoking HR: 1.52</td>
+                    <td className="py-2 pr-4 text-gray-800">Meding et al. 2025</td>
+                    <td className="py-2 text-gray-600 text-xs">Long-term outcomes post-revision THA</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-gray-800">Berry 2022 (n=1,247)</td>
-                    <td className="py-2 text-gray-600 text-xs">RA HR: 1.68, CKD HR: 1.92</td>
+                    <td className="py-2 pr-4 text-gray-800">Kinoshita et al.</td>
+                    <td className="py-2 text-gray-600 text-xs">Bone defect classification, revision techniques</td>
                   </tr>
                   <tr>
-                    <td className="py-2 text-gray-800">+ 8 more publications</td>
-                    <td className="py-2 text-gray-600 text-xs">Dixon 2025, Harris 2025, Kinoshita, Meding 2025, etc.</td>
+                    <td className="py-2 pr-4 text-gray-800">Zucchet et al. 2025</td>
+                    <td className="py-2 text-gray-600 text-xs">Acetabular revision outcomes</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 text-gray-800">+ 7 more</td>
+                    <td className="py-2 text-gray-600 text-xs">Bazan, Chirico, Hert, Merolla, Steckel, Vasios, Willems et al.</td>
                   </tr>
                 </tbody>
               </table>
               <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                <strong>Storage:</strong> literature_benchmarks.yaml (curated), ChromaDB vector store (semantic search)
+                <strong>Storage:</strong> literature_benchmarks.yaml (curated), PostgreSQL pgvector (semantic search)
               </div>
             </div>
           </div>
@@ -274,82 +278,85 @@ export default function DataAgents({ params }: DataAgentsProps) {
                 Values curated from official annual reports of international joint replacement registries.
               </p>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 text-gray-500 font-medium">Registry</th>
-                      <th className="text-left py-2 text-gray-500 font-medium">Region</th>
-                      <th className="text-right py-2 text-gray-500 font-medium">Procedures</th>
-                      <th className="text-left py-2 text-gray-500 font-medium">Data Years</th>
-                      <th className="text-left py-2 text-gray-500 font-medium">Metrics Available</th>
+                      <th className="text-left py-2 pr-4 text-gray-500 font-medium w-20">Registry</th>
+                      <th className="text-left py-2 pr-4 text-gray-500 font-medium w-24">Region</th>
+                      <th className="text-right py-2 pr-6 text-gray-500 font-medium w-24">Procedures</th>
+                      <th className="text-left py-2 pr-4 text-gray-500 font-medium w-24">Years</th>
+                      <th className="text-left py-2 text-gray-500 font-medium">Revision THA Metrics</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">NJR</td>
-                      <td className="py-2 text-gray-600">UK</td>
-                      <td className="py-2 text-right text-gray-800">38,456</td>
-                      <td className="py-2 text-gray-600">2003-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 95.8% (10yr), outcomes</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">NJR</td>
+                      <td className="py-2 pr-4 text-gray-600">UK</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">38,456</td>
+                      <td className="py-2 pr-4 text-gray-600">2003-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">95.8% survival (10yr), outcomes</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">SHAR</td>
-                      <td className="py-2 text-gray-600">Sweden</td>
-                      <td className="py-2 text-right text-gray-800">~25,000</td>
-                      <td className="py-2 text-gray-600">1979-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 77.8% (10yr), PROMs</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">SHAR</td>
+                      <td className="py-2 pr-4 text-gray-600">Sweden</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~25,000</td>
+                      <td className="py-2 pr-4 text-gray-600">1979-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">77.8% survival (10yr), PROMs</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">NAR</td>
-                      <td className="py-2 text-gray-600">Norway</td>
-                      <td className="py-2 text-right text-gray-800">~12,000</td>
-                      <td className="py-2 text-gray-600">1987-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 79% (10yr), re-revision rates</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">NAR</td>
+                      <td className="py-2 pr-4 text-gray-600">Norway</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~12,000</td>
+                      <td className="py-2 pr-4 text-gray-600">1987-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">79% survival (10yr), re-revision rates</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">NZJR</td>
-                      <td className="py-2 text-gray-600">New Zealand</td>
-                      <td className="py-2 text-right text-gray-800">~8,500</td>
-                      <td className="py-2 text-gray-600">1999-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 79% (10yr), K-M curves</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">NZJR</td>
+                      <td className="py-2 pr-4 text-gray-600">New Zealand</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~8,500</td>
+                      <td className="py-2 pr-4 text-gray-600">1999-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">79% survival (10yr), K-M curves</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">DHR</td>
-                      <td className="py-2 text-gray-600">Denmark</td>
-                      <td className="py-2 text-right text-gray-800">~6,500</td>
-                      <td className="py-2 text-gray-600">1995-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 90% (10yr), revision reasons</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">DHR</td>
+                      <td className="py-2 pr-4 text-gray-600">Denmark</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~6,500</td>
+                      <td className="py-2 pr-4 text-gray-600">1995-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">90% survival (10yr), revision reasons</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">EPRD</td>
-                      <td className="py-2 text-gray-600">Germany</td>
-                      <td className="py-2 text-right text-gray-800">~45,000</td>
-                      <td className="py-2 text-gray-600">2012-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 85% (5yr), K-M analysis</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">EPRD</td>
+                      <td className="py-2 pr-4 text-gray-600">Germany</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~45,000</td>
+                      <td className="py-2 pr-4 text-gray-600">2012-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">85% survival (5yr), K-M analysis</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">AJRR</td>
-                      <td className="py-2 text-gray-600">USA</td>
-                      <td className="py-2 text-right text-gray-800">~89,000</td>
-                      <td className="py-2 text-gray-600">2012-2023</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">AJRR</td>
+                      <td className="py-2 pr-4 text-gray-600">USA</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~89,000</td>
+                      <td className="py-2 pr-4 text-gray-600">2012-2023</td>
                       <td className="py-2 text-gray-600 text-xs">Revision rates, complications</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">CJRR</td>
-                      <td className="py-2 text-gray-600">Canada</td>
-                      <td className="py-2 text-right text-gray-800">~15,000</td>
-                      <td className="py-2 text-gray-600">2001-2023</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">CJRR</td>
+                      <td className="py-2 pr-4 text-gray-600">Canada</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">~15,000</td>
+                      <td className="py-2 pr-4 text-gray-600">2001-2023</td>
                       <td className="py-2 text-gray-600 text-xs">Revision rates, hospital outcomes</td>
                     </tr>
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">AOANJRR</td>
-                      <td className="py-2 text-gray-600">Australia</td>
-                      <td className="py-2 text-right text-gray-800">45,892</td>
-                      <td className="py-2 text-gray-600">1999-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Survival (1-15yr), revision rates, reasons</td>
+                      <td className="py-2 pr-4 font-medium text-gray-800">AOANJRR</td>
+                      <td className="py-2 pr-4 text-gray-600">Australia</td>
+                      <td className="py-2 pr-6 text-right text-gray-800">45,892</td>
+                      <td className="py-2 pr-4 text-gray-600">1999-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Survival (1-15yr), revision reasons</td>
                     </tr>
                   </tbody>
                 </table>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                <strong>Source:</strong> Official annual reports (2023-2024) with full provenance metadata (page numbers, tables, exact quotes)
               </div>
             </div>
           </div>
