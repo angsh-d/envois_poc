@@ -239,52 +239,52 @@ export default function Agents({ params }: AgentsProps) {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div className="w-full border border-gray-600 rounded-xl p-4 bg-gray-700">
-                <p className="text-[10px] text-gray-300 uppercase tracking-wide mb-3 font-semibold">Orchestration & Synthesis Layer</p>
+              <div className="w-full border border-gray-400 rounded-xl p-4 bg-gray-300">
+                <p className="text-[10px] text-gray-700 uppercase tracking-wide mb-3 font-semibold">Orchestration & Synthesis Layer</p>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div className="bg-white border border-gray-500 rounded-lg p-3 text-center">
+                  <div className="bg-white border border-gray-400 rounded-lg p-3 text-center shadow-sm">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <Bot className="w-4 h-4 text-gray-700" />
-                      <p className="text-sm font-semibold text-gray-800">Orchestrator Agent</p>
+                      <p className="text-sm font-semibold text-gray-900">Orchestrator Agent</p>
                     </div>
-                    <p className="text-xs text-gray-500">Routes queries to specialists, coordinates parallel execution</p>
+                    <p className="text-xs text-gray-600">Routes queries to specialists, coordinates parallel execution</p>
                   </div>
-                  <div className="bg-white border border-gray-500 rounded-lg p-3 text-center">
+                  <div className="bg-white border border-gray-400 rounded-lg p-3 text-center shadow-sm">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      <Sparkles className="w-4 h-4 text-gray-600" />
-                      <p className="text-sm font-semibold text-gray-800">Synthesis Agent</p>
+                      <Sparkles className="w-4 h-4 text-gray-700" />
+                      <p className="text-sm font-semibold text-gray-900">Synthesis Agent</p>
                     </div>
-                    <p className="text-xs text-gray-500">Combines specialist outputs into coherent responses</p>
+                    <p className="text-xs text-gray-600">Combines specialist outputs into coherent responses</p>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-center w-full">
-                <div className="flex-1 h-px bg-gray-200"></div>
-                <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
-                <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <ChevronRight className="w-4 h-4 text-gray-400 rotate-90 mx-2" />
+                <div className="flex-1 h-px bg-gray-300"></div>
               </div>
 
-              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-400">
-                <p className="text-[10px] text-gray-700 uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
+              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-500">
+                <p className="text-[10px] text-white uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
                 <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">Dashboard</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Dashboard</p>
                   </div>
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">Readiness</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Readiness</p>
                   </div>
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">Safety</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Safety</p>
                   </div>
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">Deviations</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Deviations</p>
                   </div>
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">Risk</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Risk</p>
                   </div>
-                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-700">AI Chat</p>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">AI Chat</p>
                   </div>
                 </div>
               </div>
