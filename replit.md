@@ -103,6 +103,7 @@ Data loading uses a hybrid approach (database-first with file fallback):
 - All services and agents use database-backed loaders
 
 ## Recent Changes
+- 2026-01-14: LITERATURE BENCHMARKS RE-EXTRACTION - Complete re-extraction of literature data using Gemini 3 Pro Preview. 4 publications (Singh 2016, Steckel 2025, Bazan 2025, Vasios 2025) processed with full provenance (page numbers, table references, exact quotes). Database updated with 8 verified hazard ratios and 33 aggregate benchmarks. MCID thresholds: 18 points (2yr), 15.9 points (5yr). Scripts: extract_literature.py, load_literature_to_db.py
 - 2026-01-14: LITERATURE BENCHMARKS AUDIT - CRITICAL FAILURE: Complete mismatch between YAML citations and actual PDFs. YAML contains 6 fabricated publications (bozic_2015, della_valle_2020, etc.) that DO NOT EXIST in the 12 PDFs in data/raw/literature/. Actual PDFs are 2025 papers by Bazan, Steckel, Vasios, etc. on hip/shoulder/knee arthroplasty. Data is synthetic/demonstration only. Full audit in docs/literature_benchmarks_audit_report.md
 - 2026-01-14: CHAT KEY EVIDENCE FIX - Fixed issue where Key Evidence always showed registry data regardless of question. Added evidence building for Data Agent (study safety metrics, adverse events) and Literature Agent (publication benchmarks). Evidence is now contextual based on which agents are queried for each question.
 - 2026-01-14: SAFETY UI/UX REFINEMENTS - Enhanced Safety Metrics table with visual rate bars (green/red progress indicators), color-coded severity dots (pulsing red for HIGH, amber for LOW), improved event display ("3 of 37 patients"), gradient backgrounds for expanded panels, premium card styling with shadows, rose-themed affected patients panel, purple-themed literature panel, and enhanced formula/methodology display with icons.
@@ -146,7 +147,7 @@ Data loading uses a hybrid approach (database-first with file fallback):
 ## Current Status
 - Frontend: React + Vite + Tailwind running on port 5000
 - Backend: FastAPI reverse-proxying to Vite on port 5000 (development) or serving static files (production)
-- Database: All data loaded from PostgreSQL (37 patients, 15 AEs, 224 scores, 6 publications, 5 registries)
+- Database: All data loaded from PostgreSQL (37 patients, 15 AEs, 224 scores, 4 verified publications with provenance, 8 hazard ratios, 33 benchmarks, 5 registries)
 - Chat: Gemini 2.0 Flash with context-aware prompts for each module
 - All 5 use case pages rendering with real study data from database
 - Chat panel available on all study pages for contextual AI assistance
