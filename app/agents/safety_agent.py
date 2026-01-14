@@ -79,6 +79,7 @@ def _get_affected_patients_from_db(event_pattern: str) -> List[Dict[str, Any]]:
 def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
     """
     Get literature citations for a specific metric from database.
+    Uses the new provenance-based data structure.
     """
     try:
         from sqlalchemy import text
@@ -89,15 +90,6 @@ def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
             
         session = SessionLocal()
         try:
-            # Map metric to benchmark field
-            field_map = {
-                "revision_rate": "revision_rate_2yr",
-                "dislocation_rate": "dislocation_rate",
-                "infection_rate": "infection_rate",
-                "fracture_rate": "fracture_rate",
-            }
-            benchmark_field = field_map.get(metric_name, "revision_rate_2yr")
-            
             query = text("""
                 SELECT 
                     publication_id,
@@ -114,16 +106,48 @@ def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
             citations = []
             for row in result:
                 benchmarks = row.benchmarks or {}
-                if benchmark_field in benchmarks:
-                    citations.append({
-                        "citation_id": row.publication_id,
-                        "title": row.title,
-                        "year": row.year,
-                        "journal": row.journal,
-                        "n_patients": row.n_patients,
-                        "reported_rate": benchmarks.get(benchmark_field),
-                        "reference": f"{row.publication_id.replace('_', ' ').title()} ({row.year})",
-                    })
+                survival_rates = benchmarks.get("survival_rates", [])
+                
+                relevant_rate = None
+                provenance = None
+                
+                for surv in survival_rates:
+                    metric = (surv.get("metric", "") or "").lower()
+                    if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "dislocation_rate" and "dislocation" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "infection_rate" and "infection" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "fracture_rate" and "fracture" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif "complication" in metric or "implant_survival" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                
+                authors = benchmarks.get("authors", "")
+                doi = benchmarks.get("doi", "")
+                
+                citations.append({
+                    "citation_id": row.publication_id,
+                    "title": row.title,
+                    "year": row.year,
+                    "journal": row.journal,
+                    "n_patients": row.n_patients,
+                    "authors": authors,
+                    "doi": doi,
+                    "reported_rate": relevant_rate,
+                    "provenance": provenance,
+                    "reference": f"{authors.split(',')[0] if authors else 'Unknown'} et al. ({row.year})",
+                })
             return citations
         finally:
             session.close()
