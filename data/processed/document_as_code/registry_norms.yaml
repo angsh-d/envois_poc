@@ -176,11 +176,17 @@ registries:
     country: "Australia"
     report_year: 2024
     data_period: "1999-2023"
-    population: "primary_tha"
+    population: "primary_tha_excluded"
     n_procedures: 910050
-    survival_10yr: 0.957
-    survival_15yr: 0.939
-    survival_20yr: 0.919
+    # CRITICAL: Survival rates below are for PRIMARY THA, NOT revision THA
+    # These are EXCLUDED from benchmarking as H-34 is a REVISION study
+    # Primary THA: ~95% 10yr survival vs Revision THA: ~82% 10yr survival
+    survival_10yr_primary_tha: 0.957  # NOT USED - wrong population
+    survival_15yr_primary_tha: 0.939  # NOT USED - wrong population
+    survival_20yr_primary_tha: 0.919  # NOT USED - wrong population
+    # Revision THA data requires extraction from pages 230-280 of AOANJRR report
+    survival_10yr: null  # Revision THA data not yet extracted
+    survival_15yr: null  # Revision THA data not yet extracted
     revision_rate_10yr: 0.043
     revision_rate_15yr: 0.061
     revision_rate_20yr: 0.081
