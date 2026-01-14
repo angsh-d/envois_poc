@@ -71,6 +71,10 @@ class BlockingIssueProvenance(BaseModel):
     classification_rules: Optional[Dict[str, str]] = Field(None, description="Classification criteria")
     definitions: Optional[Dict[str, str]] = Field(None, description="Term definitions")
     determination: Optional[str] = Field(None, description="How status was determined")
+    data_sources: Optional[Dict[str, str]] = Field(None, description="Database table sources for each data element")
+    methodology: Optional[str] = Field(None, description="Methodology used for calculation")
+    target_source: Optional[str] = Field(None, description="Source for target/threshold values")
+    thresholds_source: Optional[str] = Field(None, description="Source for threshold definitions")
 
 
 class BlockingIssue(BaseModel):
