@@ -40,7 +40,12 @@ def get_db():
 
 
 class ProtocolRule(Base):
-    """Protocol rules and configuration."""
+    """Protocol rules and configuration.
+    
+    Protocol H-34 v2.0 Sample Size (p.11):
+    - sample_size_target: 49 (total enrollment accounting for 40% LTFU)
+    - sample_size_evaluable: 29 (required for 90% power on HHS endpoint)
+    """
     __tablename__ = "protocol_rules"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -51,7 +56,7 @@ class ProtocolRule(Base):
     sponsor = Column(String(200))
     phase = Column(String(50))
     sample_size_target = Column(Integer)
-    sample_size_interim = Column(Integer)
+    sample_size_evaluable = Column(Integer)
     safety_thresholds = Column(JSON, default={})
     deviation_classification = Column(JSON, default={})
     inclusion_criteria = Column(JSON, default=[])

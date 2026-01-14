@@ -70,7 +70,12 @@ class SafetyThreshold(BaseModel):
 
 
 class ProtocolRules(BaseModel):
-    """Complete protocol rules structure."""
+    """Complete protocol rules structure.
+    
+    Protocol H-34 v2.0 Sample Size (p.11):
+    - sample_size_target: 49 (total enrollment accounting for 40% LTFU)
+    - sample_size_evaluable: 29 (required for 90% power on HHS endpoint)
+    """
     protocol_id: str
     protocol_version: str
     effective_date: str
@@ -79,8 +84,8 @@ class ProtocolRules(BaseModel):
     primary_endpoint: Endpoint
     secondary_endpoints: List[Endpoint] = Field(default_factory=list)
     sample_size_target: int
-    sample_size_interim: int
-    safety_thresholds: Dict[str, float]
+    sample_size_evaluable: int = 29
+    safety_thresholds: Dict[str, Any]
     deviation_classification: Dict[str, Dict[str, Any]]
     inclusion_criteria: List[str] = Field(default_factory=list)
     exclusion_criteria: List[str] = Field(default_factory=list)
@@ -493,8 +498,8 @@ class DocumentAsCodeLoader:
             visits=visits,
             primary_endpoint=primary_ep,
             secondary_endpoints=secondary_eps,
-            sample_size_target=data.get("sample_size", {}).get("target_enrollment", 50),
-            sample_size_interim=data.get("sample_size", {}).get("interim_analysis", 25),
+            sample_size_target=data.get("sample_size", {}).get("target_enrollment", 49),
+            sample_size_evaluable=data.get("sample_size", {}).get("evaluable_population", 29),
             safety_thresholds=data.get("safety_thresholds", {}),
             deviation_classification=data.get("deviation_classification", {}),
             inclusion_criteria=data.get("ie_criteria", {}).get("inclusion", []),

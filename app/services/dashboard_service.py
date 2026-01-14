@@ -122,10 +122,10 @@ class DashboardService:
         return {
             "success": True,
             "generated_at": datetime.utcnow().isoformat(),
-            "target_enrollment": enrollment.get("target", 50),
+            "target_enrollment": enrollment.get("target", 49),
             "current_enrollment": enrollment.get("enrolled", 0),
             "enrollment_pct": enrollment.get("percent_complete", 0),
-            "interim_target": enrollment.get("interim_target", 25),
+            "evaluable_target": enrollment.get("evaluable_target", 29),
             "status": enrollment.get("status", "unknown"),
             "evaluable_patients": data_completeness.get("evaluable", 0),
             "completion_rate": data_completeness.get("completion_rate", 0),
@@ -596,8 +596,8 @@ class DashboardService:
         # Enrollment
         metrics.append({
             "name": "Enrollment",
-            "value": f"{enrollment.get('enrolled', 0)}/{enrollment.get('target', 50)}",
-            "target": str(enrollment.get("target", 50)),
+            "value": f"{enrollment.get('enrolled', 0)}/{enrollment.get('target', 49)}",
+            "target": str(enrollment.get("target", 49)),
             "status": "GREEN" if enrollment.get("is_ready") else "YELLOW",
             "trend": "up",
         })

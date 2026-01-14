@@ -310,23 +310,30 @@ class ReadinessService:
         data: Dict[str, Any],
         protocol: Any
     ) -> Dict[str, Any]:
-        """Assess enrollment status."""
+        """Assess enrollment status.
+        
+        Protocol H-34 v2.0 Sample Size (p.11):
+        - Target enrollment: 49 subjects (accounting for 40% LTFU)
+        - Evaluable target: 29 subjects (for 90% power on HHS endpoint)
+        """
         enrolled = data.get("enrolled", 0)
-        target = protocol.sample_size_target
-        interim = protocol.sample_size_interim
+        target = protocol.sample_size_target  # 49 per protocol
+        evaluable_target = getattr(protocol, 'sample_size_evaluable', 29) or 29
 
+        # Status based on enrollment progress toward 49 target
         status = "on_track"
         if enrolled >= target:
             status = "complete"
-        elif enrolled >= interim:
-            status = "interim_reached"
-        elif enrolled < interim * 0.5:
+        elif enrolled >= evaluable_target:
+            # Have enough for evaluable population if LTFU is minimal
+            status = "evaluable_achieved"
+        elif enrolled < target * 0.5:
             status = "behind"
 
         return {
             "enrolled": enrolled,
             "target": target,
-            "interim_target": interim,
+            "evaluable_target": evaluable_target,
             "percent_complete": round((enrolled / target) * 100, 1) if target > 0 else 0,
             "status": status,
             "is_ready": enrolled >= target,
@@ -444,14 +451,14 @@ class ReadinessService:
                     "values": {
                         "enrolled_count": enrollment['enrolled'],
                         "target_enrollment": enrollment['target'],
-                        "interim_target": enrollment['interim_target'],
+                        "evaluable_target": enrollment.get('evaluable_target', 29),
                         "percent_complete": enrollment['percent_complete'],
                     },
                     "threshold": f"100% of target enrollment ({enrollment['target']} patients)",
                     "current_status": enrollment['status'],
                     "source": "study_patients table (patients with enrolled='Yes')",
                     "target_source": "protocol_rules table (sample_size_target)",
-                    "regulatory_reference": "Protocol H-34 v2.0 Sample Size Requirements",
+                    "regulatory_reference": "Protocol H-34 v2.0 Sample Size Requirements (p.11: 49 subjects with 40% LTFU → 29 evaluable)",
                 }
             })
 
@@ -560,7 +567,7 @@ class ReadinessService:
             "title": protocol.title,
             "sample_size": {
                 "target": protocol.sample_size_target,
-                "interim": protocol.sample_size_interim,
+                "evaluable": getattr(protocol, 'sample_size_evaluable', 29) or 29,
             },
             "primary_endpoint": {
                 "id": protocol.primary_endpoint.id,
