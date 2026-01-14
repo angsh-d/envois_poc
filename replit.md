@@ -103,6 +103,7 @@ Data loading uses a hybrid approach (database-first with file fallback):
 - All services and agents use database-backed loaders
 
 ## Recent Changes
+- 2026-01-14: SAFETY SIGNALS TRANSPARENCY - Enhanced Safety page with comprehensive data provenance for each metric: SQL query sources (study_adverse_events, study_patients, protocol_rules), methodology explanations, calculation formulas, threshold attribution. Added affected patients panel with demographics (gender, age, BMI) from database. Added literature citations panel from literature_publications table. Fixed API URL mismatch (signals vs summary endpoint). Rewrote Safety.tsx with expandable detail rows for full transparency.
 - 2026-01-14: PROTOCOL DATA AUDIT - Comprehensive field-by-field validation of protocol_rules against USDM source documents. Fixed: sample_size_target (50→49), age requirement (≥21→≥18), added evaluable_population (29), ltfu_assumption (0.40), updated power calculation (90% power, alpha=0.025, one-sided paired t-test). Full audit report in docs/protocol_rules_audit_report.md
 - 2026-01-14: Updated protocol_rules.yaml with correct USDM values and provenance citations for sample size, eligibility criteria, and safety thresholds
 - 2026-01-14: Fixed Digital Protocol → Protocol Rules tab to display correct values (evaluable population instead of interim analysis, LTFU assumption instead of dropout allowance)
