@@ -9,6 +9,7 @@ import StudyRisk from './pages/StudyRisk'
 import StudyProtocol from './pages/StudyProtocol'
 import DataSources from './pages/DataSources'
 import Agents from './pages/Agents'
+import SimulationStudio from './pages/SimulationStudio'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
       <Route path="/study/:studyId/deviations" component={StudyDeviations} />
       <Route path="/study/:studyId/risk" component={StudyRisk} />
       <Route path="/study/:studyId/protocol" component={StudyProtocol} />
+      <Route path="/study/:studyId/simulation">{(params) => <SimulationStudio params={params} />}</Route>
       <Route path="/study/:studyId/data">{(params) => <DataSources params={params} />}</Route>
       <Route path="/study/:studyId/agents">{(params) => <Agents params={params} />}</Route>
     </Switch>

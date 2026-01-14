@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter'
-import { LayoutDashboard, ClipboardCheck, AlertTriangle, FileWarning, Users, ArrowLeft, FileText, Database, Bot } from 'lucide-react'
+import { LayoutDashboard, ClipboardCheck, AlertTriangle, FileWarning, Users, ArrowLeft, FileText, Database, Bot, Dices } from 'lucide-react'
 
 interface SideNavProps {
   studyId: string
@@ -13,6 +13,7 @@ const navItems = [
   { path: '/deviations', label: 'Deviations', icon: FileWarning },
   { path: '/risk', label: 'Patient Risk', icon: Users },
   { path: '/protocol', label: 'Digital Protocol', icon: FileText },
+  { path: '/simulation', label: 'Simulation Studio', icon: Dices },
   { path: '/data', label: 'Data Sources', icon: Database },
   { path: '/agents', label: 'AI Agents', icon: Bot },
 ]
