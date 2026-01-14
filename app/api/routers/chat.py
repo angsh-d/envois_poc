@@ -549,6 +549,47 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                         "limitations": ["Limited follow-up duration", "Single device type"]
                     }
                 })
+                
+                # === BUILD EVIDENCE FROM STUDY DATA ===
+                rates = result.data.get("rates", {})
+                n_adverse_events = result.data.get("n_adverse_events", 0)
+                
+                # Build study data evidence points
+                study_data_points = []
+                
+                # Add adverse event rates if available
+                if rates:
+                    for rate_name, rate_value in rates.items():
+                        if isinstance(rate_value, (int, float)) and rate_value > 0:
+                            formatted_name = rate_name.replace("_", " ").title()
+                            study_data_points.append({
+                                "source": "H-34 Study",
+                                "source_type": "study_data",
+                                "value": rate_value if rate_value <= 1 else rate_value / 100,
+                                "value_formatted": f"{rate_value*100:.1f}%" if rate_value <= 1 else f"{rate_value:.1f}%",
+                                "sample_size": n_patients,
+                                "year": "2024",
+                                "context": f"from {n_patients} enrolled patients",
+                                "raw_data": {
+                                    "full_name": "H-34 DELTA Revision Cup Study",
+                                    "abbreviation": "H-34",
+                                    "n_procedures": n_patients,
+                                    "population": "Revision THA patients"
+                                }
+                            })
+                
+                if study_data_points:
+                    results["evidence"]["metrics"].append({
+                        "metric_name": "H-34 Study Safety Metrics",
+                        "claim": f"Current study has {n_adverse_events} adverse events across {n_patients} patients",
+                        "aggregated_value": f"{n_adverse_events} AEs",
+                        "calculation_method": "Direct count from study database",
+                        "data_points": study_data_points[:5],  # Limit to top 5
+                        "confidence_level": "high"
+                    })
+                    results["evidence"]["total_sources"] += 1
+                    results["evidence"]["total_sample_size"] += n_patients
+                    
         except Exception as e:
             logger.warning(f"Data agent error: {e}")
 
@@ -585,6 +626,46 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                         "limitations": ["Heterogeneous populations", "Variable follow-up periods"]
                     }
                 })
+                
+                # === BUILD EVIDENCE FROM LITERATURE DATA ===
+                if pub_list:
+                    lit_data_points = []
+                    total_lit_patients = 0
+                    
+                    for pub in pub_list[:5]:  # Top 5 publications
+                        pub_n = pub.get('n_patients', 0)
+                        total_lit_patients += pub_n
+                        
+                        # Get the primary outcome/rate from publication
+                        revision_rate = pub.get('revision_rate') or pub.get('dislocation_rate') or pub.get('infection_rate')
+                        if revision_rate:
+                            lit_data_points.append({
+                                "source": pub.get('title', 'Unknown')[:50] + "..." if len(pub.get('title', '')) > 50 else pub.get('title', 'Unknown'),
+                                "source_type": "literature",
+                                "value": revision_rate,
+                                "value_formatted": f"{revision_rate*100:.1f}%" if revision_rate <= 1 else f"{revision_rate:.1f}%",
+                                "sample_size": pub_n,
+                                "year": str(pub.get('year', '')),
+                                "context": f"{pub.get('journal', 'N/A')} ({pub.get('year', 'N/A')})",
+                                "raw_data": {
+                                    "full_name": pub.get('title'),
+                                    "abbreviation": pub.get('first_author', 'Unknown')[:10],
+                                    "n_procedures": pub_n,
+                                    "population": pub.get('population', 'Revision THA')
+                                }
+                            })
+                    
+                    if lit_data_points:
+                        results["evidence"]["metrics"].append({
+                            "metric_name": "Literature Benchmarks",
+                            "claim": f"Published studies report outcomes from {n_pubs} peer-reviewed publications",
+                            "aggregated_value": f"{n_pubs} studies",
+                            "calculation_method": f"Aggregated from {len(lit_data_points)} publications with combined n={total_lit_patients:,}",
+                            "data_points": lit_data_points,
+                            "confidence_level": "high"
+                        })
+                        results["evidence"]["total_sources"] += n_pubs
+                        results["evidence"]["total_sample_size"] += total_lit_patients
 
             # Also get risk factors with hazard ratios
             risk_context = AgentContext(
