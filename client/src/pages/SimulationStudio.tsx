@@ -1,405 +1,276 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import StudyLayout from './StudyLayout'
 import {
-  Dices,
-  BarChart3,
-  Target,
-  TrendingUp,
+  Shield,
+  Users,
+  AlertTriangle,
   Play,
-  Info,
-  RefreshCw
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from 'lucide-react'
 
 interface SimulationStudioProps {
   params: { studyId: string }
 }
 
-type TabType = 'benchmark' | 'endpoint' | 'uncertainty'
+type ScenarioType = 'regulatory' | 'enrollment' | 'stress'
 
-interface RegistryData {
-  id: string
-  name: string
-  abbreviation: string
-  country: string
-  survival_5yr: number | null
-  revision_rate_5yr: number | null
-  ci_lower: number | null
-  ci_upper: number | null
-  provenance: {
-    source_file: string
-    page?: number
-  }
+const H34_CURRENT = {
+  enrolled: 37,
+  revisions: 2,
+  followUpYears: 2,
+  currentRevisionRate: 2 / 37,
 }
 
-interface HazardRatioData {
-  risk_factor: string
-  hazard_ratio: number
-  ci_lower: number
-  ci_upper: number
-  p_value: string
-  provenance: {
-    page: number
-    table: string
-  }
+const REGULATORY_THRESHOLDS = {
+  fda_510k: { rate: 0.10, label: 'FDA 510(k) Benchmark', description: '≤10% 5-year revision rate' },
+  mdr_pmcf: { rate: 0.12, label: 'MDR PMCF Threshold', description: '≤12% cumulative revision' },
+  registry_parity: { rate: 0.09, label: 'Registry Parity (NJR)', description: '≤9% to match NJR 5-year' },
 }
 
-const registryDataFromYAML: RegistryData[] = [
-  { 
-    id: 'njr', 
-    name: 'National Joint Registry', 
-    abbreviation: 'NJR',
-    country: 'UK',
-    survival_5yr: 0.910, 
-    revision_rate_5yr: 0.090, 
-    ci_lower: 0.088, 
-    ci_upper: 0.092,
-    provenance: { source_file: 'NJR_2024_Annual_Report.pdf', page: 165 }
-  },
-  { 
-    id: 'shar', 
-    name: 'Swedish Arthroplasty Register', 
-    abbreviation: 'SHAR',
-    country: 'Sweden',
-    survival_5yr: null,
-    revision_rate_5yr: null,
-    ci_lower: null, 
-    ci_upper: null,
-    provenance: { source_file: 'SHAR_2024_Annual_Report.pdf', page: 123 }
-  },
-  { 
-    id: 'nar', 
-    name: 'Norwegian Arthroplasty Register', 
-    abbreviation: 'NAR',
-    country: 'Norway',
-    survival_5yr: 0.86, 
-    revision_rate_5yr: 0.14, 
-    ci_lower: 0.12, 
-    ci_upper: 0.16,
-    provenance: { source_file: 'NAR_2023_Annual_Report.pdf', page: 16 }
-  },
-  { 
-    id: 'nzjr', 
-    name: 'New Zealand Joint Registry', 
-    abbreviation: 'NZJR',
-    country: 'New Zealand',
-    survival_5yr: 0.86, 
-    revision_rate_5yr: 0.14, 
-    ci_lower: 0.12, 
-    ci_upper: 0.16,
-    provenance: { source_file: 'NZJR_26_Year_Report.pdf', page: 31 }
-  },
-  { 
-    id: 'dhr', 
-    name: 'Danish Hip Arthroplasty Register', 
-    abbreviation: 'DHR',
-    country: 'Denmark',
-    survival_5yr: 0.945, 
-    revision_rate_5yr: 0.055, 
-    ci_lower: 0.045, 
-    ci_upper: 0.065,
-    provenance: { source_file: 'DHR_2024_Annual_Report.pdf', page: 153 }
-  },
-  { 
-    id: 'eprd', 
-    name: 'German Arthroplasty Registry', 
-    abbreviation: 'EPRD',
-    country: 'Germany',
-    survival_5yr: 0.85, 
-    revision_rate_5yr: 0.15, 
-    ci_lower: 0.13, 
-    ci_upper: 0.17,
-    provenance: { source_file: 'EPRD_2024_Annual_Report.pdf', page: 101 }
-  },
-  { 
-    id: 'ajrr', 
-    name: 'American Joint Replacement Registry', 
-    abbreviation: 'AJRR',
-    country: 'USA',
-    survival_5yr: null,
-    revision_rate_5yr: null,
-    ci_lower: null, 
-    ci_upper: null,
-    provenance: { source_file: 'AJRR_2024_Annual_Report.pdf', page: 66 }
-  },
-  { 
-    id: 'cjrr', 
-    name: 'Canadian Joint Replacement Registry', 
-    abbreviation: 'CJRR',
-    country: 'Canada',
-    survival_5yr: null,
-    revision_rate_5yr: null,
-    ci_lower: null, 
-    ci_upper: null,
-    provenance: { source_file: 'CJRR_2021-2022_Annual_Report.pdf', page: 28 }
-  },
-  { 
-    id: 'aoanjrr', 
-    name: 'Australian Orthopaedic Association NJRR', 
-    abbreviation: 'AOANJRR',
-    country: 'Australia',
-    survival_5yr: null,
-    revision_rate_5yr: null,
-    ci_lower: null, 
-    ci_upper: null,
-    provenance: { source_file: 'AOANJRR_2024_Annual_Report.pdf', page: 6 }
-  },
-]
-
-const hazardRatiosFromYAML: HazardRatioData[] = [
-  { 
-    risk_factor: 'HHS <55 vs 81-100 (2yr)', 
-    hazard_ratio: 4.34, 
-    ci_lower: 2.14, 
-    ci_upper: 7.95,
-    p_value: '<0.001',
-    provenance: { page: 4, table: 'Table 2' }
-  },
-  { 
-    risk_factor: 'HHS <55 vs 81-100 (5yr)', 
-    hazard_ratio: 3.08, 
-    ci_lower: 1.45, 
-    ci_upper: 5.84,
-    p_value: '0.002',
-    provenance: { page: 4, table: 'Table 2' }
-  },
-  { 
-    risk_factor: 'HHS <70 vs 90-100 (2yr)', 
-    hazard_ratio: 2.32, 
-    ci_lower: 1.32, 
-    ci_upper: 3.85,
-    p_value: '0.002',
-    provenance: { page: 4, table: 'Table 2' }
-  },
-  { 
-    risk_factor: 'HHS <70 vs 90-100 (5yr)', 
-    hazard_ratio: 1.60, 
-    ci_lower: 0.84, 
-    ci_upper: 2.85,
-    p_value: '0.14',
-    provenance: { page: 4, table: 'Table 2' }
-  },
-  { 
-    risk_factor: 'HHS Improvement ≤0 vs >50 (2yr)', 
-    hazard_ratio: 18.1, 
-    ci_lower: 1.41, 
-    ci_upper: 234.8,
-    p_value: '0.02',
-    provenance: { page: 4, table: 'Table 2' }
-  },
-  { 
-    risk_factor: 'HHS ≤55 vs 81-100 (2yr, adj.)', 
-    hazard_ratio: 3.90, 
-    ci_lower: 2.67, 
-    ci_upper: 5.69,
-    p_value: '<0.001',
-    provenance: { page: 7, table: 'Table 5' }
-  },
-  { 
-    risk_factor: 'HHS ≤55 vs 81-100 (5yr, adj.)', 
-    hazard_ratio: 2.48, 
-    ci_lower: 1.56, 
-    ci_upper: 3.95,
-    p_value: '<0.001',
-    provenance: { page: 7, table: 'Table 5' }
-  },
-]
-
-function sampleLogNormal(mean: number, lower: number, upper: number): number {
-  const logMean = Math.log(mean)
-  const logSE = (Math.log(upper) - Math.log(lower)) / (2 * 1.96)
-  const u1 = Math.random()
-  const u2 = Math.random()
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-  return Math.exp(logMean + logSE * z)
+const REGISTRY_BASELINE = {
+  njr_5yr: 0.090,
+  njr_ci_lower: 0.088,
+  njr_ci_upper: 0.092,
 }
 
-function sampleNormal(mean: number, lower: number, upper: number): number {
-  const se = (upper - lower) / (2 * 1.96)
-  const u1 = Math.random()
-  const u2 = Math.random()
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-  return mean + se * z
-}
-
-function percentile(arr: number[], p: number): number {
-  const idx = Math.floor(arr.length * p)
-  return arr[Math.min(idx, arr.length - 1)]
-}
-
-function runBenchmarkMonteCarlo(iterations: number, h34BaselineRate: number) {
-  const results: { registry: string; samples: number[]; mean: number; p5: number; p95: number; provenance: string }[] = []
-  
-  const registriesWithData = registryDataFromYAML.filter(reg => reg.revision_rate_5yr !== null)
-  
-  for (const reg of registriesWithData) {
-    const samples: number[] = []
-    const rate = reg.revision_rate_5yr!
-    const ciLower = reg.ci_lower ?? rate * 0.9
-    const ciUpper = reg.ci_upper ?? rate * 1.1
-    
-    for (let i = 0; i < iterations; i++) {
-      const sample = sampleNormal(rate, ciLower, ciUpper)
-      samples.push(Math.max(0, Math.min(1, sample)))
+function sampleBeta(successes: number, failures: number): number {
+  const gamma = (shape: number) => {
+    let sum = 0
+    for (let i = 0; i < Math.ceil(shape); i++) {
+      sum -= Math.log(Math.random())
     }
-    
-    const sortedSamples = [...samples].sort((a, b) => a - b)
-    const mean = samples.reduce((a, b) => a + b, 0) / samples.length
-    
-    results.push({ 
-      registry: `${reg.abbreviation} (${reg.country})`, 
-      samples: sortedSamples,
-      mean,
-      p5: percentile(sortedSamples, 0.05),
-      p95: percentile(sortedSamples, 0.95),
-      provenance: reg.provenance.source_file
-    })
+    return sum
   }
-  
-  const h34Samples: number[] = []
-  const hr5yr = hazardRatiosFromYAML[1]
-  
-  for (let i = 0; i < iterations; i++) {
-    const hrSample = sampleLogNormal(hr5yr.hazard_ratio, hr5yr.ci_lower, hr5yr.ci_upper)
-    const adjustedRate = h34BaselineRate * (1 + (hrSample - 1) * 0.15)
-    h34Samples.push(Math.max(0, Math.min(1, adjustedRate)))
-  }
-  
-  const sortedH34 = [...h34Samples].sort((a, b) => a - b)
-  const h34Mean = h34Samples.reduce((a, b) => a + b, 0) / h34Samples.length
-  
-  results.unshift({ 
-    registry: 'H-34 Study (Projected)', 
-    samples: sortedH34,
-    mean: h34Mean,
-    p5: percentile(sortedH34, 0.05),
-    p95: percentile(sortedH34, 0.95),
-    provenance: 'Singh 2016 (Table 2) + NJR baseline'
-  })
-  
-  return results
+  const x = gamma(successes)
+  const y = gamma(failures)
+  return x / (x + y)
 }
 
-function runEndpointMonteCarlo(iterations: number, targetRate: number, baselineRate: number) {
-  let successCount = 0
-  const outcomes: number[] = []
-  
-  const validHRs = hazardRatiosFromYAML.filter(hr => hr.hazard_ratio !== null && hr.ci_lower > 0)
+function sampleNormal(mean: number, sd: number): number {
+  const u1 = Math.random()
+  const u2 = Math.random()
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
+  return mean + sd * z
+}
+
+function runRegulatorySimulation(iterations: number, threshold: number) {
+  const revisions = H34_CURRENT.revisions
+  const n = H34_CURRENT.enrolled
+  let passCount = 0
+  const rates: number[] = []
   
   for (let i = 0; i < iterations; i++) {
-    const hrIdx = Math.floor(Math.random() * validHRs.length)
-    const hr = validHRs[hrIdx]
-    const sampledHR = sampleLogNormal(hr.hazard_ratio, hr.ci_lower, hr.ci_upper)
-    
-    const riskMultiplier = 1 + (sampledHR - 1) * 0.1
-    const projectedRate = baselineRate * riskMultiplier
-    const noise = (Math.random() - 0.5) * 0.02
-    const finalRate = Math.max(0, Math.min(1, projectedRate + noise))
-    
-    outcomes.push(finalRate)
-    if (finalRate <= targetRate) successCount++
+    const sampledRate = sampleBeta(revisions + 1, n - revisions + 1)
+    rates.push(sampledRate)
+    if (sampledRate <= threshold) passCount++
   }
   
-  const sortedOutcomes = [...outcomes].sort((a, b) => a - b)
+  const sortedRates = [...rates].sort((a, b) => a - b)
+  const pPass = passCount / iterations
   
   return {
-    pSuccess: successCount / iterations,
-    outcomes: sortedOutcomes,
-    mean: outcomes.reduce((a, b) => a + b, 0) / outcomes.length,
-    p5: percentile(sortedOutcomes, 0.05),
-    p25: percentile(sortedOutcomes, 0.25),
-    p50: percentile(sortedOutcomes, 0.50),
-    p75: percentile(sortedOutcomes, 0.75),
-    p95: percentile(sortedOutcomes, 0.95),
+    pPass,
+    mean: rates.reduce((a, b) => a + b, 0) / rates.length,
+    p5: sortedRates[Math.floor(iterations * 0.05)],
+    p50: sortedRates[Math.floor(iterations * 0.50)],
+    p95: sortedRates[Math.floor(iterations * 0.95)],
+    threshold,
   }
 }
 
-function runUncertaintyMonteCarlo(iterations: number) {
-  const timepoints = [1, 2, 5, 10]
-  const baseRates = [0.042, 0.058, 0.090, 0.128]
-  const results: { year: number; mean: number; p5: number; p95: number; ciWidth: number }[] = []
+function sampleBinomial(n: number, p: number): number {
+  let successes = 0
+  for (let i = 0; i < n; i++) {
+    if (Math.random() < p) successes++
+  }
+  return successes
+}
+
+function runEnrollmentSimulation(iterations: number, additionalPatients: number, threshold: number) {
+  const currentRevisions = H34_CURRENT.revisions
+  const currentN = H34_CURRENT.enrolled
+  const newN = currentN + additionalPatients
   
-  const hr2yr = hazardRatiosFromYAML[0]
+  let passCount = 0
+  const rates: number[] = []
   
-  for (let t = 0; t < timepoints.length; t++) {
-    const samples: number[] = []
-    for (let i = 0; i < iterations; i++) {
-      const hrSample = sampleLogNormal(hr2yr.hazard_ratio, hr2yr.ci_lower, hr2yr.ci_upper)
-      const rate = baseRates[t] * (1 + (hrSample - 1) * 0.08 * (t + 1))
-      samples.push(Math.max(0, Math.min(1, rate)))
-    }
+  for (let i = 0; i < iterations; i++) {
+    const sampledRate = sampleBeta(currentRevisions + 1, currentN - currentRevisions + 1)
+    const newRevisions = sampleBinomial(additionalPatients, sampledRate)
+    const totalRevisions = currentRevisions + newRevisions
+    const posteriorRate = sampleBeta(totalRevisions + 1, newN - totalRevisions + 1)
     
-    const sortedSamples = [...samples].sort((a, b) => a - b)
-    const mean = samples.reduce((a, b) => a + b, 0) / iterations
-    const p5 = percentile(sortedSamples, 0.05)
-    const p95 = percentile(sortedSamples, 0.95)
-    
-    results.push({
-      year: timepoints[t],
-      mean,
-      p5,
-      p95,
-      ciWidth: p95 - p5
-    })
+    rates.push(posteriorRate)
+    if (posteriorRate <= threshold) passCount++
   }
   
-  return results
+  const sortedRates = [...rates].sort((a, b) => a - b)
+  
+  return {
+    pPass: passCount / iterations,
+    mean: rates.reduce((a, b) => a + b, 0) / rates.length,
+    p5: sortedRates[Math.floor(iterations * 0.05)],
+    p50: sortedRates[Math.floor(iterations * 0.50)],
+    p95: sortedRates[Math.floor(iterations * 0.95)],
+    newN,
+    additionalPatients,
+  }
+}
+
+function runStressTestSimulation(iterations: number, additionalRevisions: number, threshold: number) {
+  const totalRevisions = H34_CURRENT.revisions + additionalRevisions
+  const n = H34_CURRENT.enrolled
+  let passCount = 0
+  const rates: number[] = []
+  
+  for (let i = 0; i < iterations; i++) {
+    const sampledRate = sampleBeta(totalRevisions + 1, n - totalRevisions + 1)
+    rates.push(sampledRate)
+    if (sampledRate <= threshold) passCount++
+  }
+  
+  const sortedRates = [...rates].sort((a, b) => a - b)
+  
+  return {
+    pPass: passCount / iterations,
+    mean: rates.reduce((a, b) => a + b, 0) / rates.length,
+    p5: sortedRates[Math.floor(iterations * 0.05)],
+    p50: sortedRates[Math.floor(iterations * 0.50)],
+    p95: sortedRates[Math.floor(iterations * 0.95)],
+    totalRevisions,
+    additionalRevisions,
+  }
+}
+
+function VerdictBadge({ probability }: { probability: number }) {
+  if (probability >= 0.80) {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
+        <CheckCircle className="w-5 h-5" />
+        <span className="font-semibold">High Confidence</span>
+      </div>
+    )
+  } else if (probability >= 0.50) {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full">
+        <AlertCircle className="w-5 h-5" />
+        <span className="font-semibold">Uncertain</span>
+      </div>
+    )
+  } else {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full">
+        <XCircle className="w-5 h-5" />
+        <span className="font-semibold">At Risk</span>
+      </div>
+    )
+  }
+}
+
+function ProbabilityMeter({ probability, label }: { probability: number; label: string }) {
+  const percentage = probability * 100
+  const color = probability >= 0.80 ? 'bg-green-500' : probability >= 0.50 ? 'bg-amber-500' : 'bg-red-500'
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">{label}</span>
+        <span className="font-bold text-gray-900">{percentage.toFixed(1)}%</span>
+      </div>
+      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div 
+          className={`h-full ${color} transition-all duration-500`}
+          style={{ width: `${percentage}%` }}
+        ></div>
+      </div>
+    </div>
+  )
 }
 
 export default function SimulationStudio({ params }: SimulationStudioProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('benchmark')
-  const [iterations, setIterations] = useState(1000)
+  const [activeScenario, setActiveScenario] = useState<ScenarioType>('regulatory')
+  const [iterations, setIterations] = useState(5000)
   const [isRunning, setIsRunning] = useState(false)
-  const [benchmarkResults, setBenchmarkResults] = useState<ReturnType<typeof runBenchmarkMonteCarlo> | null>(null)
-  const [endpointResults, setEndpointResults] = useState<ReturnType<typeof runEndpointMonteCarlo> | null>(null)
-  const [uncertaintyResults, setUncertaintyResults] = useState<ReturnType<typeof runUncertaintyMonteCarlo> | null>(null)
-  const [targetRevisionRate, setTargetRevisionRate] = useState(0.10)
+  
+  const [selectedThreshold, setSelectedThreshold] = useState<keyof typeof REGULATORY_THRESHOLDS>('fda_510k')
+  const [regulatoryResult, setRegulatoryResult] = useState<ReturnType<typeof runRegulatorySimulation> | null>(null)
+  
+  const [additionalPatients, setAdditionalPatients] = useState(20)
+  const [enrollmentResults, setEnrollmentResults] = useState<ReturnType<typeof runEnrollmentSimulation>[] | null>(null)
+  const [enrollmentBaseline, setEnrollmentBaseline] = useState<number | null>(null)
+  
+  const [additionalRevisions, setAdditionalRevisions] = useState(2)
+  const [stressResult, setStressResult] = useState<ReturnType<typeof runStressTestSimulation> | null>(null)
 
-  const tabs = [
-    { id: 'benchmark' as const, label: 'Registry Benchmark', icon: BarChart3 },
-    { id: 'endpoint' as const, label: 'Endpoint Probability', icon: Target },
-    { id: 'uncertainty' as const, label: 'Uncertainty Over Time', icon: TrendingUp },
+  const scenarios = [
+    { id: 'regulatory' as const, label: 'Regulatory Go/No-Go', icon: Shield, question: 'Will we pass regulatory thresholds?' },
+    { id: 'enrollment' as const, label: 'Enrollment Decision', icon: Users, question: 'Should we add more patients?' },
+    { id: 'stress' as const, label: 'Stress Test', icon: AlertTriangle, question: 'What if more revisions occur?' },
   ]
 
   const runSimulation = () => {
     setIsRunning(true)
     setTimeout(() => {
-      if (activeTab === 'benchmark') {
-        const results = runBenchmarkMonteCarlo(iterations, 0.08)
-        setBenchmarkResults(results)
-      } else if (activeTab === 'endpoint') {
-        const results = runEndpointMonteCarlo(iterations, targetRevisionRate, 0.08)
-        setEndpointResults(results)
-      } else if (activeTab === 'uncertainty') {
-        const results = runUncertaintyMonteCarlo(iterations)
-        setUncertaintyResults(results)
+      const threshold = REGULATORY_THRESHOLDS[selectedThreshold].rate
+      
+      if (activeScenario === 'regulatory') {
+        const result = runRegulatorySimulation(iterations, threshold)
+        setRegulatoryResult(result)
+      } else if (activeScenario === 'enrollment') {
+        const baseline = runRegulatorySimulation(iterations, threshold)
+        setEnrollmentBaseline(baseline.pPass)
+        const results = [10, 20, 50, 100].map(n => 
+          runEnrollmentSimulation(iterations, n, threshold)
+        )
+        setEnrollmentResults(results)
+      } else if (activeScenario === 'stress') {
+        const result = runStressTestSimulation(iterations, additionalRevisions, threshold)
+        setStressResult(result)
       }
       setIsRunning(false)
     }, 100)
   }
 
-  const renderBenchmarkTab = () => (
+  const renderRegulatoryScenario = () => (
     <div className="space-y-6">
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <BarChart3 className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Registry Benchmark Positioning</h3>
-        </div>
-        <p className="text-sm text-gray-600">
-          Compare H-34 projected revision rates against international arthroplasty registries using Monte Carlo sampling from confidence intervals. Only registries with extractable 5-year revision data are included.
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Question: Will H-34 pass regulatory revision rate thresholds?
+        </h3>
+        <p className="text-gray-600">
+          Based on current data ({H34_CURRENT.revisions} revisions in {H34_CURRENT.enrolled} patients), 
+          this simulation estimates the probability of meeting regulatory benchmarks using Bayesian inference.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Regulatory Threshold</label>
+              <select 
+                value={selectedThreshold}
+                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
+              >
+                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
+                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="text-xs text-gray-500 block mb-1">Iterations</label>
               <select 
-                value={iterations} 
+                value={iterations}
                 onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
               >
-                <option value={100}>100</option>
                 <option value={1000}>1,000</option>
                 <option value={5000}>5,000</option>
                 <option value={10000}>10,000</option>
@@ -409,70 +280,186 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
           <button
             onClick={runSimulation}
             disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Running...' : 'Run Simulation'}
+            {isRunning ? 'Simulating...' : 'Run Simulation'}
           </button>
         </div>
 
-        {benchmarkResults && (
-          <div className="mt-6">
-            <h4 className="font-medium text-gray-800 mb-4">Forest Plot: 5-Year Revision Rate Distributions</h4>
-            <div className="space-y-3">
-              {benchmarkResults.map((result, idx) => {
-                const isH34 = idx === 0
-                const maxRate = 0.25
+        {regulatoryResult && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl">
+              <div>
+                <div className="text-5xl font-bold text-gray-900">
+                  {(regulatoryResult.pPass * 100).toFixed(1)}%
+                </div>
+                <div className="text-gray-600 mt-1">
+                  Probability of passing {REGULATORY_THRESHOLDS[selectedThreshold].label}
+                </div>
+              </div>
+              <VerdictBadge probability={regulatoryResult.pPass} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-gray-800 mb-3">Projected Revision Rate Distribution</h4>
+                <table className="w-full text-sm">
+                  <tbody className="divide-y divide-gray-100">
+                    <tr>
+                      <td className="py-2 text-gray-600">Current observed rate</td>
+                      <td className="py-2 text-right font-mono">{(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-gray-600">Simulated mean</td>
+                      <td className="py-2 text-right font-mono">{(regulatoryResult.mean * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-gray-600">5th percentile (optimistic)</td>
+                      <td className="py-2 text-right font-mono text-green-600">{(regulatoryResult.p5 * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-gray-600">50th percentile (median)</td>
+                      <td className="py-2 text-right font-mono">{(regulatoryResult.p50 * 100).toFixed(1)}%</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 text-gray-600">95th percentile (pessimistic)</td>
+                      <td className="py-2 text-right font-mono text-red-600">{(regulatoryResult.p95 * 100).toFixed(1)}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800 mb-3">Recommendation</h4>
+                <div className={`p-4 rounded-lg ${regulatoryResult.pPass >= 0.80 ? 'bg-green-50 border border-green-200' : regulatoryResult.pPass >= 0.50 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+                  {regulatoryResult.pPass >= 0.80 ? (
+                    <p className="text-green-800">
+                      <strong>Proceed with confidence.</strong> Current data strongly supports meeting the {REGULATORY_THRESHOLDS[selectedThreshold].description} threshold. Continue monitoring but no immediate action required.
+                    </p>
+                  ) : regulatoryResult.pPass >= 0.50 ? (
+                    <p className="text-amber-800">
+                      <strong>Proceed with caution.</strong> Outcome is uncertain. Consider extending follow-up period or increasing enrollment to strengthen the evidence base before regulatory submission.
+                    </p>
+                  ) : (
+                    <p className="text-red-800">
+                      <strong>Risk mitigation needed.</strong> Current trajectory suggests difficulty meeting threshold. Recommend root cause analysis of revision cases and proactive PMCF enhancement.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  const renderEnrollmentScenario = () => (
+    <div className="space-y-6">
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Question: Should we enroll more patients to improve regulatory success probability?
+        </h3>
+        <p className="text-gray-600">
+          This simulation projects how adding 10, 20, 50, or 100 additional patients would impact the probability 
+          of meeting the selected regulatory threshold, assuming similar revision patterns.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Target Threshold</label>
+              <select 
+                value={selectedThreshold}
+                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
+              >
+                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
+                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Iterations</label>
+              <select 
+                value={iterations}
+                onChange={(e) => setIterations(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value={1000}>1,000</option>
+                <option value={5000}>5,000</option>
+                <option value={10000}>10,000</option>
+              </select>
+            </div>
+          </div>
+          <button
+            onClick={runSimulation}
+            disabled={isRunning}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+            {isRunning ? 'Simulating...' : 'Run Simulation'}
+          </button>
+        </div>
+
+        {enrollmentResults && enrollmentBaseline !== null && (
+          <div className="space-y-6">
+            <div className="p-4 bg-gray-100 rounded-lg mb-4">
+              <div className="text-sm text-gray-600">Current baseline (n={H34_CURRENT.enrolled}): <span className="font-bold text-gray-900">{(enrollmentBaseline * 100).toFixed(1)}%</span> probability of success</div>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              {enrollmentResults.map((result) => {
+                const improvement = result.pPass - enrollmentBaseline
                 
                 return (
-                  <div key={result.registry} className={`flex items-center gap-4 ${isH34 ? 'bg-blue-50 p-3 rounded-lg border border-blue-200' : 'py-1'}`}>
-                    <div className="w-36 text-sm font-medium text-gray-700 truncate" title={result.registry}>
-                      {result.registry}
-                    </div>
-                    <div className="flex-1 relative h-6">
-                      <div className="absolute inset-y-0 left-0 right-0 flex items-center">
-                        <div className="w-full h-px bg-gray-200"></div>
-                      </div>
-                      <div 
-                        className={`absolute top-1/2 -translate-y-1/2 h-2 rounded ${isH34 ? 'bg-blue-200' : 'bg-gray-200'}`}
-                        style={{
-                          left: `${(result.p5 / maxRate) * 100}%`,
-                          width: `${((result.p95 - result.p5) / maxRate) * 100}%`
-                        }}
-                      ></div>
-                      <div 
-                        className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${isH34 ? 'bg-blue-600' : 'bg-gray-600'}`}
-                        style={{ left: `${(result.mean / maxRate) * 100}%`, transform: 'translate(-50%, -50%)' }}
-                      ></div>
-                    </div>
-                    <div className="w-36 text-xs text-gray-600 text-right font-mono">
-                      {(result.mean * 100).toFixed(1)}% [{(result.p5 * 100).toFixed(1)}-{(result.p95 * 100).toFixed(1)}]
+                  <div key={result.additionalPatients} className="bg-gray-50 rounded-xl p-4 text-center">
+                    <div className="text-sm text-gray-500 mb-1">+{result.additionalPatients} patients</div>
+                    <div className="text-3xl font-bold text-gray-900">{(result.pPass * 100).toFixed(0)}%</div>
+                    <div className="text-xs text-gray-500 mt-1">n = {result.newN}</div>
+                    <div className={`flex items-center justify-center gap-1 mt-2 text-sm ${improvement > 0 ? 'text-green-600' : improvement < 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                      {improvement > 0 ? <TrendingUp className="w-4 h-4" /> : improvement < 0 ? <TrendingDown className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                      {improvement > 0 ? '+' : ''}{(improvement * 100).toFixed(1)}% vs current
                     </div>
                   </div>
                 )
               })}
             </div>
-            
-            <div className="flex justify-between text-xs text-gray-400 mt-2 px-36">
-              <span>0%</span>
-              <span>5%</span>
-              <span>10%</span>
-              <span>15%</span>
-              <span>20%</span>
-              <span>25%</span>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">Data Provenance</h5>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                {benchmarkResults.slice(0, 4).map(r => (
-                  <div key={r.registry}>• {r.registry}: {r.provenance}</div>
+
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3">Projected Success by Enrollment Level</h4>
+              <div className="space-y-3">
+                {enrollmentResults.map((result) => (
+                  <ProbabilityMeter 
+                    key={result.additionalPatients}
+                    probability={result.pPass} 
+                    label={`n=${result.newN} (+${result.additionalPatients} patients)`}
+                  />
                 ))}
               </div>
             </div>
-            
-            <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
-              <strong>Interpretation:</strong> Each row shows the mean revision rate (dot) with 90% credible interval (bar). H-34 projection uses hazard ratio adjustment from Singh 2016 applied to NJR baseline rates.
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Recommendation</h4>
+              {(() => {
+                const best = enrollmentResults.reduce((a, b) => a.pPass > b.pPass ? a : b)
+                const marginalGain = enrollmentResults.find(r => r.pPass >= 0.80)
+                
+                if (marginalGain) {
+                  return (
+                    <p className="text-blue-800">
+                      <strong>Consider adding {marginalGain.additionalPatients} patients.</strong> This would increase total enrollment to {marginalGain.newN} and achieve ≥80% probability of regulatory success. The incremental data strengthens the safety evidence base.
+                    </p>
+                  )
+                } else {
+                  return (
+                    <p className="text-blue-800">
+                      <strong>Enrollment alone may not be sufficient.</strong> Even with +100 patients, success probability remains below 80%. Consider addressing underlying revision patterns or adjusting regulatory strategy.
+                    </p>
+                  )
+                }
+              })()}
             </div>
           </div>
         )}
@@ -480,43 +467,54 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
     </div>
   )
 
-  const renderEndpointTab = () => (
+  const renderStressTestScenario = () => (
     <div className="space-y-6">
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Endpoint Achievement Probability</h3>
-        </div>
-        <p className="text-sm text-gray-600">
-          Estimate the probability that H-34 will achieve its primary endpoint (revision rate below target threshold) using Monte Carlo simulation with literature-derived hazard ratios from Singh 2016.
+      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Question: What if we see additional revisions in the next follow-up period?
+        </h3>
+        <p className="text-gray-600">
+          This stress test simulates the impact of {additionalRevisions} additional revision(s) on regulatory success probability. 
+          Use this to understand risk exposure and plan mitigation strategies.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Target Revision Rate</label>
+              <label className="text-xs text-gray-500 block mb-1">Additional Revisions</label>
               <select 
-                value={targetRevisionRate} 
-                onChange={(e) => setTargetRevisionRate(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                value={additionalRevisions}
+                onChange={(e) => setAdditionalRevisions(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
               >
-                <option value={0.05}>5%</option>
-                <option value={0.08}>8%</option>
-                <option value={0.10}>10%</option>
-                <option value={0.12}>12%</option>
-                <option value={0.15}>15%</option>
+                <option value={1}>+1 revision</option>
+                <option value={2}>+2 revisions</option>
+                <option value={3}>+3 revisions</option>
+                <option value={4}>+4 revisions</option>
+                <option value={5}>+5 revisions</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 block mb-1">Target Threshold</label>
+              <select 
+                value={selectedThreshold}
+                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
+              >
+                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
+                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="text-xs text-gray-500 block mb-1">Iterations</label>
               <select 
-                value={iterations} 
+                value={iterations}
                 onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
               >
-                <option value={100}>100</option>
                 <option value={1000}>1,000</option>
                 <option value={5000}>5,000</option>
                 <option value={10000}>10,000</option>
@@ -526,175 +524,79 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
           <button
             onClick={runSimulation}
             disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Running...' : 'Run Simulation'}
+            {isRunning ? 'Simulating...' : 'Run Stress Test'}
           </button>
         </div>
 
-        {endpointResults && (
-          <div className="mt-6 space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className={`text-4xl font-bold ${endpointResults.pSuccess >= 0.8 ? 'text-green-600' : endpointResults.pSuccess >= 0.5 ? 'text-amber-600' : 'text-red-600'}`}>
-                  {(endpointResults.pSuccess * 100).toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600 mt-1">P(Success)</div>
-                <div className="text-xs text-gray-400">Achieving ≤{(targetRevisionRate * 100).toFixed(0)}% revision</div>
+        {stressResult && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-6 bg-gray-50 rounded-xl">
+                <div className="text-sm text-gray-500 mb-2">Current State</div>
+                <div className="text-3xl font-bold text-gray-900">{H34_CURRENT.revisions} revisions</div>
+                <div className="text-gray-600">in {H34_CURRENT.enrolled} patients ({(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%)</div>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-gray-800">{(endpointResults.mean * 100).toFixed(1)}%</div>
-                <div className="text-sm text-gray-600 mt-1">Mean Projected Rate</div>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <div className="text-lg font-bold text-gray-800">
-                  {(endpointResults.p5 * 100).toFixed(1)}% - {(endpointResults.p95 * 100).toFixed(1)}%
-                </div>
-                <div className="text-sm text-gray-600 mt-1">90% Credible Interval</div>
+              <div className="p-6 bg-red-50 border border-red-200 rounded-xl">
+                <div className="text-sm text-red-600 mb-2">Stress Scenario</div>
+                <div className="text-3xl font-bold text-red-700">{stressResult.totalRevisions} revisions</div>
+                <div className="text-red-600">in {H34_CURRENT.enrolled} patients ({(stressResult.mean * 100).toFixed(1)}% projected)</div>
               </div>
             </div>
 
-            <div>
-              <h4 className="font-medium text-gray-800 mb-3">Distribution Summary</h4>
+            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl">
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Probability of Still Passing {REGULATORY_THRESHOLDS[selectedThreshold].label}</div>
+                <div className="text-5xl font-bold text-gray-900">
+                  {(stressResult.pPass * 100).toFixed(1)}%
+                </div>
+              </div>
+              <VerdictBadge probability={stressResult.pPass} />
+            </div>
+
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="font-medium text-gray-800 mb-3">Risk Analysis</h4>
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-gray-500 font-medium">Percentile</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">Revision Rate</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">vs Target</th>
-                  </tr>
-                </thead>
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td className="py-1.5 text-gray-700">5th (Optimistic)</td><td className="py-1.5 text-right font-mono">{(endpointResults.p5 * 100).toFixed(2)}%</td><td className={`py-1.5 text-right ${endpointResults.p5 <= targetRevisionRate ? 'text-green-600' : 'text-red-600'}`}>{endpointResults.p5 <= targetRevisionRate ? '✓ Pass' : '✗ Fail'}</td></tr>
-                  <tr><td className="py-1.5 text-gray-700">25th</td><td className="py-1.5 text-right font-mono">{(endpointResults.p25 * 100).toFixed(2)}%</td><td className={`py-1.5 text-right ${endpointResults.p25 <= targetRevisionRate ? 'text-green-600' : 'text-red-600'}`}>{endpointResults.p25 <= targetRevisionRate ? '✓ Pass' : '✗ Fail'}</td></tr>
-                  <tr><td className="py-1.5 text-gray-700">50th (Median)</td><td className="py-1.5 text-right font-mono">{(endpointResults.p50 * 100).toFixed(2)}%</td><td className={`py-1.5 text-right ${endpointResults.p50 <= targetRevisionRate ? 'text-green-600' : 'text-red-600'}`}>{endpointResults.p50 <= targetRevisionRate ? '✓ Pass' : '✗ Fail'}</td></tr>
-                  <tr><td className="py-1.5 text-gray-700">75th</td><td className="py-1.5 text-right font-mono">{(endpointResults.p75 * 100).toFixed(2)}%</td><td className={`py-1.5 text-right ${endpointResults.p75 <= targetRevisionRate ? 'text-green-600' : 'text-red-600'}`}>{endpointResults.p75 <= targetRevisionRate ? '✓ Pass' : '✗ Fail'}</td></tr>
-                  <tr><td className="py-1.5 text-gray-700">95th (Pessimistic)</td><td className="py-1.5 text-right font-mono">{(endpointResults.p95 * 100).toFixed(2)}%</td><td className={`py-1.5 text-right ${endpointResults.p95 <= targetRevisionRate ? 'text-green-600' : 'text-red-600'}`}>{endpointResults.p95 <= targetRevisionRate ? '✓ Pass' : '✗ Fail'}</td></tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">New revision rate (mean)</td>
+                    <td className="py-2 text-right font-mono">{(stressResult.mean * 100).toFixed(1)}%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Worst case (95th percentile)</td>
+                    <td className="py-2 text-right font-mono text-red-600">{(stressResult.p95 * 100).toFixed(1)}%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Threshold</td>
+                    <td className="py-2 text-right font-mono">{(REGULATORY_THRESHOLDS[selectedThreshold].rate * 100).toFixed(0)}%</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 text-gray-600">Buffer remaining</td>
+                    <td className={`py-2 text-right font-mono ${REGULATORY_THRESHOLDS[selectedThreshold].rate - stressResult.mean > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {((REGULATORY_THRESHOLDS[selectedThreshold].rate - stressResult.mean) * 100).toFixed(1)}%
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">
-              <strong>Methodology:</strong> Each iteration samples a hazard ratio from Singh 2016 (Table 2 & 5) within its 95% CI using log-normal distribution, applies risk adjustment to NJR baseline revision rate, and compares against target threshold.
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-
-  const renderUncertaintyTab = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Uncertainty Over Time</h3>
-        </div>
-        <p className="text-sm text-gray-600">
-          Visualize how projection uncertainty grows at different follow-up timepoints (1, 2, 5, 10 years) using NJR baseline revision rates and hazard ratio sampling from Singh 2016.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Iterations</label>
-              <select 
-                value={iterations} 
-                onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-              >
-                <option value={100}>100</option>
-                <option value={1000}>1,000</option>
-                <option value={5000}>5,000</option>
-                <option value={10000}>10,000</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={runSimulation}
-            disabled={isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
-          >
-            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Running...' : 'Run Simulation'}
-          </button>
-        </div>
-
-        {uncertaintyResults && (
-          <div className="mt-6 space-y-6">
-            <div>
-              <h4 className="font-medium text-gray-800 mb-4">Confidence Bands by Follow-up Year</h4>
-              <div className="relative bg-gray-50 rounded-lg p-6">
-                <div className="flex items-end justify-between h-48 gap-8 px-8">
-                  {uncertaintyResults.map((result) => {
-                    const maxRate = 0.35
-                    const meanHeight = (result.mean / maxRate) * 100
-                    const p5Height = (result.p5 / maxRate) * 100
-                    const p95Height = (result.p95 / maxRate) * 100
-                    
-                    return (
-                      <div key={result.year} className="flex-1 flex flex-col items-center">
-                        <div className="relative w-full h-40 flex flex-col justify-end items-center">
-                          <div 
-                            className="absolute bottom-0 w-8 bg-blue-100 border-l-2 border-r-2 border-blue-300 rounded-t"
-                            style={{ height: `${p95Height}%` }}
-                          >
-                            <div 
-                              className="absolute bottom-0 w-full bg-blue-200"
-                              style={{ height: `${(p5Height / p95Height) * 100}%` }}
-                            ></div>
-                          </div>
-                          <div 
-                            className="absolute w-4 h-1 bg-blue-600 rounded"
-                            style={{ bottom: `${meanHeight}%` }}
-                          ></div>
-                        </div>
-                        <div className="mt-2 text-sm font-medium text-gray-700">{result.year} yr</div>
-                      </div>
-                    )
-                  })}
-                </div>
-                <div className="absolute left-2 top-6 bottom-16 flex flex-col justify-between text-xs text-gray-400">
-                  <span>35%</span>
-                  <span>25%</span>
-                  <span>15%</span>
-                  <span>5%</span>
-                  <span>0%</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-800 mb-3">Numerical Summary</h4>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-gray-500 font-medium">Timepoint</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">Mean</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">5th %ile</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">95th %ile</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">CI Width</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {uncertaintyResults.map((result) => (
-                    <tr key={result.year}>
-                      <td className="py-1.5 text-gray-700 font-medium">{result.year}-Year</td>
-                      <td className="py-1.5 text-right font-mono">{(result.mean * 100).toFixed(2)}%</td>
-                      <td className="py-1.5 text-right font-mono text-green-600">{(result.p5 * 100).toFixed(2)}%</td>
-                      <td className="py-1.5 text-right font-mono text-red-600">{(result.p95 * 100).toFixed(2)}%</td>
-                      <td className="py-1.5 text-right font-mono text-gray-500">±{(result.ciWidth * 100 / 2).toFixed(2)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="pt-4 border-t border-gray-100 text-xs text-gray-500">
-              <strong>Interpretation:</strong> Uncertainty compounds over time as HR sampling interacts with longer follow-up periods. The CI width at 10 years is approximately {(uncertaintyResults[3].ciWidth / uncertaintyResults[0].ciWidth).toFixed(1)}x wider than at 1 year, reflecting increased parametric uncertainty for long-term projections.
+            <div className={`p-4 rounded-lg ${stressResult.pPass >= 0.50 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+              <h4 className={`font-medium mb-2 ${stressResult.pPass >= 0.50 ? 'text-amber-900' : 'text-red-900'}`}>Contingency Planning</h4>
+              {stressResult.pPass >= 0.50 ? (
+                <p className={stressResult.pPass >= 0.50 ? 'text-amber-800' : 'text-red-800'}>
+                  <strong>Study remains viable but vulnerable.</strong> If {stressResult.additionalRevisions} more revision(s) occur, 
+                  regulatory success probability drops but remains manageable. Prepare enhanced surveillance protocols 
+                  and consider proactive communication with regulators.
+                </p>
+              ) : (
+                <p className="text-red-800">
+                  <strong>Significant risk exposure.</strong> This scenario would materially threaten regulatory approval. 
+                  Immediate actions: (1) Investigate common factors in existing revisions, (2) Review surgical technique protocols, 
+                  (3) Consider interim analysis to assess continuation criteria.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -707,40 +609,38 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
       <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Simulation Studio</h1>
-          <p className="text-gray-500 mt-1">Monte Carlo simulations for clinical outcome projections</p>
+          <p className="text-gray-500 mt-1">Decision-focused Monte Carlo simulations for clinical strategy</p>
         </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-amber-800">
-            <p className="font-medium mb-1">Data Sources & Methodology</p>
-            <p>All simulations use real data from Singh 2016 (BMC Musculoskeletal Disorders, n=2667) for hazard ratios and 9 international registries (NJR, SHAR, NAR, NZJR, DHR, EPRD, AJRR, CJRR, AOANJRR) for baseline rates. Hazard ratios are sampled from their 95% CIs using log-normal distributions.</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 border-b border-gray-100 pb-4">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
+        <div className="bg-gray-100 rounded-xl p-1 inline-flex gap-1">
+          {scenarios.map((scenario) => {
+            const Icon = scenario.icon
             return (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                key={scenario.id}
+                onClick={() => setActiveScenario(scenario.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  activeScenario === scenario.id
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {tab.label}
+                {scenario.label}
               </button>
             )
           })}
         </div>
 
-        {activeTab === 'benchmark' && renderBenchmarkTab()}
-        {activeTab === 'endpoint' && renderEndpointTab()}
-        {activeTab === 'uncertainty' && renderUncertaintyTab()}
+        {activeScenario === 'regulatory' && renderRegulatoryScenario()}
+        {activeScenario === 'enrollment' && renderEnrollmentScenario()}
+        {activeScenario === 'stress' && renderStressTestScenario()}
+
+        <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">
+          <strong>Methodology:</strong> Simulations use Bayesian beta-binomial inference with current H-34 data 
+          ({H34_CURRENT.revisions} revisions / {H34_CURRENT.enrolled} patients). Success probabilities represent 
+          posterior estimates of meeting specified thresholds given observed data and sampling uncertainty.
+        </div>
       </div>
     </StudyLayout>
   )
