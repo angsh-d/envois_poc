@@ -1,446 +1,706 @@
-# Literature Benchmarks - Document-as-Code
-# Sources: Published hip revision arthroplasty studies
-# Extracted: 2026-01-11
-# Purpose: Evidence-based benchmarks for outcome comparison and risk assessment
-
-# ============================================================================
-# Individual Publication Benchmarks
-# ============================================================================
-
+metadata:
+  version: 2.0.0
+  generated_date: '2026-01-14'
+  extraction_method: Gemini 3 Pro Preview with pdfplumber
+  provenance_standard: Full traceability with page numbers and exact quotes
 publications:
-  bozic_2015:
-    title: "Comparative Effectiveness of Total Hip Arthroplasty and Revision Outcomes"
-    year: 2015
-    journal: "Journal of Bone and Joint Surgery"
-    n_patients: 51345
-    follow_up_years: 5.0
-    revision_indication: "all_cause"
-    benchmarks:
-      hhs_improvement_mean: 38.2
-      hhs_improvement_sd: 16.4
-      hhs_baseline_mean: 42.5
-      hhs_2yr_mean: 80.7
-      mcid_achievement_rate: 0.72
-      revision_rate_2yr: 0.062
-      survival_2yr: 0.938
-      survival_5yr: 0.891
-    risk_factors:
-      - factor: "age_over_80"
-        hazard_ratio: 1.45
-        confidence_interval: [1.21, 1.74]
-        outcome: "revision"
-        source: "bozic_2015"
-      - factor: "bmi_over_35"
-        hazard_ratio: 1.38
-        confidence_interval: [1.15, 1.66]
-        outcome: "revision"
-        source: "bozic_2015"
-      - factor: "diabetes"
-        hazard_ratio: 1.28
-        confidence_interval: [1.08, 1.52]
-        outcome: "revision"
-        source: "bozic_2015"
-
-  della_valle_2020:
-    title: "Outcomes Following Revision Total Hip Arthroplasty for Aseptic Loosening"
-    year: 2020
-    journal: "Clinical Orthopaedics and Related Research"
-    n_patients: 892
-    follow_up_years: 4.2
-    revision_indication: "aseptic_loosening"
-    benchmarks:
-      hhs_improvement_mean: 35.6
-      hhs_improvement_sd: 14.8
-      hhs_baseline_mean: 44.1
-      hhs_2yr_mean: 79.7
-      ohs_improvement_mean: 18.4
-      ohs_improvement_sd: 8.2
-      mcid_achievement_rate: 0.68
-      revision_rate_2yr: 0.058
-      survival_2yr: 0.942
-      dislocation_rate: 0.052
-      infection_rate: 0.024
-    risk_factors:
-      - factor: "severe_bone_loss"
-        hazard_ratio: 2.15
-        confidence_interval: [1.62, 2.85]
-        outcome: "revision"
-        source: "della_valle_2020"
-      - factor: "prior_revision"
-        hazard_ratio: 1.78
-        confidence_interval: [1.35, 2.35]
-        outcome: "revision"
-        source: "della_valle_2020"
-      - factor: "osteoporosis"
-        hazard_ratio: 2.42
-        confidence_interval: [1.88, 3.12]
-        outcome: "aseptic_loosening"
-        source: "della_valle_2020"
-
-  lombardi_2018:
-    title: "Acetabular Revision with Tantalum Components: Mid-term Results"
-    year: 2018
-    journal: "Journal of Arthroplasty"
-    n_patients: 456
-    follow_up_years: 5.5
-    revision_indication: "mixed"
-    benchmarks:
-      hhs_improvement_mean: 41.3
-      hhs_improvement_sd: 15.2
-      hhs_baseline_mean: 38.9
-      hhs_2yr_mean: 80.2
-      mcid_achievement_rate: 0.76
-      revision_rate_2yr: 0.048
-      survival_2yr: 0.952
-      survival_5yr: 0.912
-      radiographic_stability_rate: 0.94
-    risk_factors:
-      - factor: "paprosky_3b"
-        hazard_ratio: 2.85
-        confidence_interval: [2.12, 3.84]
-        outcome: "revision"
-        source: "lombardi_2018"
-      - factor: "smoking"
-        hazard_ratio: 1.52
-        confidence_interval: [1.18, 1.96]
-        outcome: "revision"
-        source: "lombardi_2018"
-
-  berry_2022:
-    title: "Long-term Outcomes of Porous Tantalum Acetabular Components in Revision THA"
-    year: 2022
-    journal: "Bone and Joint Journal"
-    n_patients: 1247
-    follow_up_years: 7.3
-    revision_indication: "all_cause"
-    benchmarks:
-      hhs_improvement_mean: 36.8
-      hhs_improvement_sd: 17.1
-      hhs_baseline_mean: 41.2
-      hhs_2yr_mean: 78.0
-      ohs_improvement_mean: 16.9
-      ohs_improvement_sd: 9.4
-      mcid_achievement_rate: 0.65
-      revision_rate_2yr: 0.071
-      survival_2yr: 0.929
-      survival_5yr: 0.886
-      survival_7yr: 0.852
-      fracture_rate: 0.032
-      dislocation_rate: 0.048
-    risk_factors:
-      - factor: "rheumatoid_arthritis"
-        hazard_ratio: 1.68
-        confidence_interval: [1.24, 2.28]
-        outcome: "revision"
-        source: "berry_2022"
-      - factor: "chronic_kidney_disease"
-        hazard_ratio: 1.92
-        confidence_interval: [1.45, 2.54]
-        outcome: "revision"
-        source: "berry_2022"
-      - factor: "female_sex"
-        hazard_ratio: 0.85
-        confidence_interval: [0.72, 1.01]
-        outcome: "revision"
-        source: "berry_2022"
-
-  kurtz_2023:
-    title: "National Trends in Revision Total Hip Arthroplasty: A Medicare Analysis"
-    year: 2023
-    journal: "Journal of Bone and Joint Surgery - American"
-    n_patients: 128456
-    follow_up_years: 2.0
-    revision_indication: "all_cause"
-    benchmarks:
-      hhs_improvement_mean: 32.4
-      hhs_improvement_sd: 18.6
-      mcid_achievement_rate: 0.61
-      revision_rate_2yr: 0.082
-      survival_2yr: 0.918
-      infection_rate: 0.031
-      dislocation_rate: 0.056
-      fracture_rate: 0.028
-      mortality_90day: 0.012
-    risk_factors:
-      - factor: "age_over_80"
-        hazard_ratio: 1.62
-        confidence_interval: [1.48, 1.78]
-        outcome: "mortality"
-        source: "kurtz_2023"
-      - factor: "asa_class_4"
-        hazard_ratio: 2.84
-        confidence_interval: [2.35, 3.43]
-        outcome: "mortality"
-        source: "kurtz_2023"
-      - factor: "male_sex"
-        hazard_ratio: 1.24
-        confidence_interval: [1.12, 1.38]
-        outcome: "revision"
-        source: "kurtz_2023"
-
-  parvizi_2021:
-    title: "Functional Outcomes After Complex Acetabular Reconstruction"
-    year: 2021
-    journal: "Clinical Orthopaedics and Related Research"
-    n_patients: 312
-    follow_up_years: 3.8
-    revision_indication: "complex_bone_defect"
-    benchmarks:
-      hhs_improvement_mean: 28.5
-      hhs_improvement_sd: 19.2
-      hhs_baseline_mean: 35.2
-      hhs_2yr_mean: 63.7
-      ohs_improvement_mean: 14.2
-      ohs_improvement_sd: 10.8
-      mcid_achievement_rate: 0.54
-      revision_rate_2yr: 0.095
-      survival_2yr: 0.905
-      fracture_rate: 0.058
-      dislocation_rate: 0.082
-    risk_factors:
-      - factor: "pelvic_discontinuity"
-        hazard_ratio: 3.24
-        confidence_interval: [2.28, 4.60]
-        outcome: "revision"
-        source: "parvizi_2021"
-      - factor: "irradiated_pelvis"
-        hazard_ratio: 4.12
-        confidence_interval: [2.85, 5.95]
-        outcome: "revision"
-        source: "parvizi_2021"
-
-# ============================================================================
-# Aggregate Benchmarks (Pooled from all publications)
-# ============================================================================
-
-aggregate_benchmarks:
-  # Harris Hip Score benchmarks
-  hhs_improvement:
-    mean: 35.5
-    median: 36.0
-    sd: 16.8
-    p25: 22.0
-    p75: 48.0
-    range: [28.5, 41.3]
-    source_count: 6
-
-  hhs_baseline:
-    mean: 40.3
-    median: 41.2
-    sd: 8.5
-    range: [35.2, 44.1]
-
-  hhs_2yr:
-    mean: 77.1
-    median: 79.0
-    sd: 12.4
-    range: [63.7, 80.7]
-
-  # MCID Achievement (20+ point HHS improvement)
-  mcid_achievement:
-    mean: 0.66
-    median: 0.68
-    range: [0.54, 0.76]
-    protocol_target: 0.50
-    exceeds_target_probability: 0.95
-
-  # Oxford Hip Score benchmarks
-  ohs_improvement:
-    mean: 16.5
-    median: 17.0
-    sd: 9.1
-    mcid_threshold: 5
-
-  # Survival and revision benchmarks
-  survival_2yr:
-    mean: 0.931
-    median: 0.935
-    p25: 0.918
-    p75: 0.942
-    protocol_threshold: 0.90
-
-  revision_rate_2yr:
-    mean: 0.068
-    median: 0.062
-    p25: 0.052
-    p75: 0.082
-    concern_threshold: 0.10
-    range: [0.048, 0.095]
-
-  survival_5yr:
-    mean: 0.896
-    median: 0.891
-    range: [0.852, 0.912]
-
-  # Complication rates
-  dislocation_rate:
-    mean: 0.060
-    median: 0.054
-    range: [0.048, 0.082]
-    concern_threshold: 0.08
-
-  infection_rate:
-    mean: 0.028
-    median: 0.028
-    range: [0.024, 0.031]
-    concern_threshold: 0.05
-
-  fracture_rate:
-    mean: 0.039
-    median: 0.032
-    range: [0.028, 0.058]
-    concern_threshold: 0.08
-
-  radiographic_stability:
-    mean: 0.94
-    expected_range: [0.90, 0.98]
-
-# ============================================================================
-# Risk Factor Summary (Pooled Hazard Ratios)
-# ============================================================================
-
-risk_factor_summary:
-  # Patient demographics
-  age_over_80:
-    pooled_hr: 1.54
-    ci_95: [1.35, 1.76]
-    outcome: "revision"
-    evidence_strength: "high"
-    source_count: 2
-
-  bmi_over_35:
-    pooled_hr: 1.38
-    ci_95: [1.15, 1.66]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  female_sex:
-    pooled_hr: 0.85
-    ci_95: [0.72, 1.01]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  male_sex:
-    pooled_hr: 1.24
-    ci_95: [1.12, 1.38]
-    outcome: "revision"
-    evidence_strength: "high"
-    source_count: 1
-
-  # Comorbidities
-  diabetes:
-    pooled_hr: 1.28
-    ci_95: [1.08, 1.52]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  osteoporosis:
-    pooled_hr: 2.42
-    ci_95: [1.88, 3.12]
-    outcome: "aseptic_loosening"
-    evidence_strength: "high"
-    source_count: 1
-
-  rheumatoid_arthritis:
-    pooled_hr: 1.68
-    ci_95: [1.24, 2.28]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  chronic_kidney_disease:
-    pooled_hr: 1.92
-    ci_95: [1.45, 2.54]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  asa_class_4:
-    pooled_hr: 2.84
-    ci_95: [2.35, 3.43]
-    outcome: "mortality"
-    evidence_strength: "high"
-    source_count: 1
-
-  # Surgical factors
-  smoking:
-    pooled_hr: 1.52
-    ci_95: [1.18, 1.96]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  prior_revision:
-    pooled_hr: 1.78
-    ci_95: [1.35, 2.35]
-    outcome: "revision"
-    evidence_strength: "high"
-    source_count: 1
-
-  # Bone defect classifications
-  severe_bone_loss:
-    pooled_hr: 2.15
-    ci_95: [1.62, 2.85]
-    outcome: "revision"
-    evidence_strength: "high"
-    source_count: 1
-
-  paprosky_3b:
-    pooled_hr: 2.85
-    ci_95: [2.12, 3.84]
-    outcome: "revision"
-    evidence_strength: "high"
-    source_count: 1
-
-  pelvic_discontinuity:
-    pooled_hr: 3.24
-    ci_95: [2.28, 4.60]
-    outcome: "revision"
-    evidence_strength: "moderate"
-    source_count: 1
-
-  irradiated_pelvis:
-    pooled_hr: 4.12
-    ci_95: [2.85, 5.95]
-    outcome: "revision"
-    evidence_strength: "low"
-    source_count: 1
-
-# ============================================================================
-# Benchmark Comparison Thresholds
-# ============================================================================
-
-comparison_thresholds:
-  # For comparing study results to literature
-  hhs_improvement:
-    excellent: 40.0
-    good: 35.0
-    acceptable: 30.0
-    concerning: 25.0
-
-  mcid_rate:
-    excellent: 0.75
-    good: 0.65
-    acceptable: 0.55
-    concerning: 0.45
-
-  revision_rate_2yr:
-    excellent: 0.04
-    good: 0.06
-    acceptable: 0.08
-    concerning: 0.10
-
-  survival_2yr:
-    excellent: 0.96
-    good: 0.94
-    acceptable: 0.92
-    concerning: 0.90
-
-  dislocation_rate:
-    excellent: 0.03
-    good: 0.05
-    acceptable: 0.07
-    concerning: 0.09
+- id: pub_2016_singh_2016_mcid
+  pmid: null
+  doi: 10.1186/s12891-016-1106-8
+  title: Clinically important improvement thresholds for Harris Hip Score and its
+    ability to predict revision risk after primary total hip arthroplasty
+  authors: Jasvinder A. Singh, Cathy Schleck, Scott Harmsen and David Lewallen
+  journal: BMC Musculoskeletal Disorders
+  year: 2016
+  study_type: Cohort
+  sample_size: 2667
+  follow_up_months: 60.0
+  source_file: singh_2016_mcid.pdf
+- id: pub_2025_steckel
+  pmid: null
+  doi: null
+  title: 'Cementless Short-Stem Total Hip Arthroplasty in Patients Aged 75 Years and
+    Older: A Retrospective Single-Surgeon Study'
+  authors: Hanno Steckel, Helena Steckel
+  journal: null
+  year: 2025
+  study_type: Retrospective single-surgeon cohort study
+  sample_size: 117
+  follow_up_months: 29.5
+  source_file: steckel.pdf
+- id: pub_2025_bazan_et_al
+  pmid: null
+  doi: 10.1007/s00402-025-05966-x
+  title: 'CBC Mathys and CLS Spotorno stems: similar in design, different in outcomes.
+    A comparative study of clinical and radiological differences'
+  authors: Paula Bazán, Adrián Torres, Jorge Gómez-Álvarez, Gregorio Villarreal, Mikel
+    San-Julián, José María Lamo-Espinosa
+  journal: Archives of Orthopaedic and Trauma Surgery
+  year: 2025
+  study_type: Retrospective 1:1 matched cohort study
+  sample_size: 344
+  follow_up_months: 76.57
+  source_file: Bazan et al.pdf
+- id: pub_2025_vasios_et_al
+  pmid: null
+  doi: 10.52965/001c.140718
+  title: Acetabular revision with moderate-to-severe bone loss using a trabecular
+    titanium cup-cage construct with impaction grafting
+  authors: Ioannis Vasios, Konstantinos Makiev, Efthymios Iliopoulos, Konstantinos
+    Tilkeridis, Georgios Drosos
+  journal: Orthopedic Reviews
+  year: 2025
+  study_type: Retrospective case series
+  sample_size: 11
+  follow_up_months: 54.64
+  source_file: Vasios et al.pdf
+outcome_benchmarks:
+  harris_hip_score:
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: HHS_Effect_Size_2yr
+    value: 3.12
+    unit: null
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: Table 1
+      quote: Effect Size (ES) 3.12 [n=1036]
+      context: Responsiveness (Discriminant Ability) at 2-year post-THA
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: HHS_Effect_Size_5yr
+    value: 3.02
+    unit: null
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: Table 1
+      quote: Effect Size (ES) 3.02 [n=669]
+      context: Responsiveness (Discriminant Ability) at 5-year post-THA
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: HHS_Standardized_Response_Mean_2yr
+    value: 2.73
+    unit: null
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: Table 1
+      quote: Standardized Response Mean (SRM) 2.73 [n=970]
+      context: Responsiveness (Discriminant Ability) at 2-year post-THA
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: HHS_Standardized_Response_Mean_5yr
+    value: 2.52
+    unit: null
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: Table 1
+      quote: Standardized Response Mean (SRM) 2.52 [n=637]
+      context: Responsiveness (Discriminant Ability) at 5-year post-THA
+  - publication_id: pub_2025_steckel
+    metric: HHS_preoperative
+    value: 45.2
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: null
+      quote: The mean preoperative HHS was 45.2 points.
+      context: Mean preoperative Harris Hip Score recorded for all patients.
+  - publication_id: pub_2025_steckel
+    metric: HHS_postoperative
+    value: 88.4
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 4
+      table: null
+      quote: Among the 101 patients (83.5%) who completed the one-year follow-up,
+        the mean HHS had improved to 88.4 points.
+      context: Mean Harris Hip Score at one-year follow-up.
+  - publication_id: pub_2025_vasios_et_al
+    metric: Harris Hip Score (HHS)_preoperative_mean
+    value: 44.8
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: Harris Hip score (from a mean 44.8% to 80.7%)
+      context: Mean preoperative score
+  - publication_id: pub_2025_vasios_et_al
+    metric: Harris Hip Score (HHS)_postoperative_mean
+    value: 80.7
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: Harris Hip score (from a mean 44.8% to 80.7%)
+      context: Mean postoperative score
+  survival_rates:
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_aseptic_loosening_2yr_cohort
+    value: 197.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Aseptic loosening 197
+      context: Causes for early revision in 2-year cohort (N=403 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_infection_2yr_cohort
+    value: 13.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Infection 13
+      context: Causes for early revision in 2-year cohort (N=403 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_dislocation_fracture_2yr_cohort
+    value: 107.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Dislocation/fracture 107
+      context: Causes for early revision in 2-year cohort (N=403 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_wear_osteolysis_2yr_cohort
+    value: 174.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Wear/osteolysis 174
+      context: Causes for early revision in 2-year cohort (N=403 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_aseptic_loosening_5yr_cohort
+    value: 145.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Aseptic loosening 145
+      context: Causes for early revision in 5-year cohort (N=282 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_infection_5yr_cohort
+    value: 5.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Infection 5
+      context: Causes for early revision in 5-year cohort (N=282 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_dislocation_fracture_5yr_cohort
+    value: 71.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Dislocation/fracture 71
+      context: Causes for early revision in 5-year cohort (N=282 total revisions)
+  - publication_id: pub_2016_singh_2016_mcid
+    metric: revisions_wear_osteolysis_5yr_cohort
+    value: 135.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 4
+      quote: Wear/osteolysis 135
+      context: Causes for early revision in 5-year cohort (N=282 total revisions)
+  - publication_id: pub_2025_steckel
+    metric: complication_rate
+    value: 3.3
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 1
+      table: null
+      quote: At final follow-up, four complications (3.3%) were observed
+      context: Overall complication rate observed at final follow-up.
+  - publication_id: pub_2025_steckel
+    metric: implant_survival_rate
+    value: 98.35
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 1
+      quote: The overall implant survival rate, using revision of either the femoral
+        or acetabular component for any reason as the endpoint, was 98.35% at final
+        follow-up.
+      context: Kaplan-Meier survival or crude rate at mean 29.5 months follow-up.
+  - publication_id: pub_2025_steckel
+    metric: aseptic_loosening_rate
+    value: 0.0
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: Table 1
+      quote: No cases of aseptic loosening were observed.
+      context: Rate of aseptic loosening at final follow-up.
+  - publication_id: pub_2025_steckel
+    metric: periprosthetic_fracture_rate
+    value: 0.0
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 8
+      table: null
+      quote: Importantly, no postoperative periprosthetic fractures occurred
+      context: Postoperative periprosthetic fracture rate.
+  - publication_id: pub_2025_bazan_et_al
+    metric: Survival_Rate_Aseptic_Mobilization_CBC_Mathys
+    value: 97.6
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: null
+      quote: resulting in a cumulative survival rate of 97.6%.
+      context: Cumulative survival regarding aseptic stem mobilization at final follow-up
+  - publication_id: pub_2025_bazan_et_al
+    metric: Survival_Rate_Aseptic_Mobilization_CLS_Spotorno
+    value: 100.0
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: null
+      quote: none due to aseptic mobilization, which leads to a cumulative survival
+        rate of 100%
+      context: Cumulative survival regarding aseptic stem mobilization at final follow-up
+  - publication_id: pub_2025_bazan_et_al
+    metric: Cortical_Hypertrophy_Rate_CBC_Mathys
+    value: 42.4
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 1
+      table: null
+      quote: Cortical hypertrophy occurred in 42.4% of the CBC Mathys group
+      context: Incidence of cortical hypertrophy
+  - publication_id: pub_2025_bazan_et_al
+    metric: Cortical_Hypertrophy_Rate_CLS_Spotorno
+    value: 4.6
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 1
+      table: null
+      quote: significantly higher than the 4.6% in the CLS Spotorno group
+      context: Incidence of cortical hypertrophy
+  - publication_id: pub_2025_bazan_et_al
+    metric: Radiolucency_Rate_CBC_Mathys
+    value: 55.2
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 1
+      table: null
+      quote: Radiolucencies were more frequent in the CBC Mathys group (55.2%)
+      context: Incidence of radiolucencies
+  - publication_id: pub_2025_bazan_et_al
+    metric: Radiolucency_Rate_CLS_Spotorno
+    value: 18.6
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 1
+      table: null
+      quote: compared to CLS Spotorno (18.6%)
+      context: Incidence of radiolucencies
+  - publication_id: pub_2025_bazan_et_al
+    metric: Revision_Rate_Aseptic_CBC_Mathys
+    value: 2.3
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: null
+      quote: At the final follow-up, 4 of 172 CBC Mathys stems were revised due to
+        aseptic stem mobilization
+      context: Calculated rate (4/172) of revision for aseptic mobilization
+  - publication_id: pub_2025_bazan_et_al
+    metric: Revision_Count_Other_Causes_CLS_Spotorno
+    value: 3.0
+    unit: count
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: null
+      quote: 'Three stems had to be revised in the CLS Spotorno group: one due to
+        periprosthetic fracture and two due to metalosis'
+      context: Revisions for non-aseptic causes (fracture, metalosis)
+  - publication_id: pub_2025_vasios_et_al
+    metric: Implant_Survivorship
+    value: 100.0
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: 100% Survival Rate
+      context: Survival of cup-cage construct in current series (Vasios et al. 2025)
+  - publication_id: pub_2025_vasios_et_al
+    metric: Complication_Rate_Wound_Drainage
+    value: 9.1
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: 1 patient with persistent wound drainage
+      context: 1 out of 11 patients
+  - publication_id: pub_2025_vasios_et_al
+    metric: Aseptic_Loosening_Rate
+    value: 0.0
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 5
+      table: Table 2
+      quote: Not Loosening=0 vs Loosening=1 ... 0
+      context: Radiological outcomes showing no loosening in any patient
+  complication_rates:
+  - publication_id: pub_2025_bazan_et_al
+    metric: Merlé-D’Aubigné Score_Preoperative_CBC_Mathys
+    value: 13.62
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: Presurgical M-D 13.62 (2.2)
+      context: Preoperative functional status for CBC Mathys group
+  - publication_id: pub_2025_bazan_et_al
+    metric: Merlé-D’Aubigné Score_Postoperative_CBC_Mathys
+    value: 17.42
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: Postsurgical M-D 17.42 (0.9)
+      context: Postoperative functional status for CBC Mathys group
+  - publication_id: pub_2025_bazan_et_al
+    metric: Merlé-D’Aubigné Score_Preoperative_CLS_Spotorno
+    value: 12.97
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: Presurgical M-D ... 12.97 (2.1)
+      context: Preoperative functional status for CLS Spotorno group
+  - publication_id: pub_2025_bazan_et_al
+    metric: Merlé-D’Aubigné Score_Postoperative_CLS_Spotorno
+    value: 17.2
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 7
+      table: Table 3
+      quote: Postsurgical M-D ... 17.2 (1.4)
+      context: Postoperative functional status for CLS Spotorno group
+  - publication_id: pub_2025_bazan_et_al
+    metric: Stem Subsidence_CBC_Mathys
+    value: 2.4
+    unit: mm
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: null
+      quote: 'compared to 2.4 (SD: 0.4) mm in the CBC Mathys'
+      context: Average stem subsidence
+  - publication_id: pub_2025_bazan_et_al
+    metric: Stem Subsidence_CLS_Spotorno
+    value: 2.3
+    unit: mm
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 6
+      table: null
+      quote: The average subsidence in the Spotorno cohort was 2.3 (SD:0.3) mm
+      context: Average stem subsidence
+  - publication_id: pub_2025_vasios_et_al
+    metric: HOOS-JR_preoperative_mean
+    value: 49.86
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: HOOS-JR score (from a mean 49.86% to 70.43%)
+      context: Mean preoperative score
+  - publication_id: pub_2025_vasios_et_al
+    metric: HOOS-JR_postoperative_mean
+    value: 70.43
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: HOOS-JR score (from a mean 49.86% to 70.43%)
+      context: Mean postoperative score
+  - publication_id: pub_2025_vasios_et_al
+    metric: Forgotten Joint Score (FJS)_preoperative_mean
+    value: 13.63
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: Forgotten Joint Score (from a mean 13.63% to 81.82%)
+      context: Mean preoperative score
+  - publication_id: pub_2025_vasios_et_al
+    metric: Forgotten Joint Score (FJS)_postoperative_mean
+    value: 81.82
+    unit: '%'
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: Forgotten Joint Score (from a mean 13.63% to 81.82%)
+      context: Mean postoperative score
+  - publication_id: pub_2025_vasios_et_al
+    metric: EQ-5D-5L_preoperative_mean
+    value: 0.464
+    unit: score
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from
+        7.91 to 1.91 respectively.
+      context: Text ordering appears inverted; 0.464 corresponds to EQ-5D index range
+        rather than VAS.
+  - publication_id: pub_2025_vasios_et_al
+    metric: EQ-5D-5L_postoperative_mean
+    value: 0.749
+    unit: score
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from
+        7.91 to 1.91 respectively.
+      context: Text ordering appears inverted; 0.749 corresponds to EQ-5D index range
+        rather than VAS.
+  - publication_id: pub_2025_vasios_et_al
+    metric: VAS_Pain_preoperative_mean
+    value: 7.91
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from
+        7.91 to 1.91 respectively.
+      context: Text ordering appears inverted; 7.91 corresponds to VAS pain scale
+        rather than EQ-5D.
+  - publication_id: pub_2025_vasios_et_al
+    metric: VAS_Pain_postoperative_mean
+    value: 1.91
+    unit: points
+    ci_lower: null
+    ci_upper: null
+    provenance:
+      page: 3
+      table: null
+      quote: VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from
+        7.91 to 1.91 respectively.
+      context: Text ordering appears inverted; 1.91 corresponds to VAS pain scale
+        rather than EQ-5D.
+risk_factors:
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <55 vs 81-100 (2-year follow-up)
+  hazard_ratio: 4.34
+  ci_lower: 2.14
+  ci_upper: 7.95
+  p_value: <0.001
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <55 vs 81-100 (5-year follow-up)
+  hazard_ratio: 3.08
+  ci_lower: 1.45
+  ci_upper: 5.84
+  p_value: '0.002'
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <70 vs 90-100 (2-year follow-up)
+  hazard_ratio: 2.32
+  ci_lower: 1.32
+  ci_upper: 3.85
+  p_value: '0.002'
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <70 vs 90-100 (5-year follow-up)
+  hazard_ratio: 1.6
+  ci_lower: 0.84
+  ci_upper: 2.85
+  p_value: '0.14'
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS Improvement <=0 vs >50 (2-year follow-up)
+  hazard_ratio: 18.1
+  ci_lower: 1.41
+  ci_upper: 234.8
+  p_value: '0.02'
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS Improvement 1-20 vs >50 (2-year follow-up)
+  hazard_ratio: 6.21
+  ci_lower: 0.81
+  ci_upper: 60.73
+  p_value: '0.10'
+  provenance:
+    page: 4
+    table: Table 2
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <=55 vs 81-100 (2-year follow-up, competing risk adjusted)
+  hazard_ratio: 3.9
+  ci_lower: 2.67
+  ci_upper: 5.69
+  p_value: <0.001
+  provenance:
+    page: 7
+    table: Table 5
+- publication_id: pub_2016_singh_2016_mcid
+  risk_factor: HHS score <=55 vs 81-100 (5-year follow-up, competing risk adjusted)
+  hazard_ratio: 2.48
+  ci_lower: 1.56
+  ci_upper: 3.95
+  p_value: <0.001
+  provenance:
+    page: 7
+    table: Table 5
+- publication_id: pub_2025_vasios_et_al
+  risk_factor: Sex
+  hazard_ratio: null
+  ci_lower: 0.026
+  ci_upper: 20.824
+  p_value: '0.861'
+  provenance:
+    page: 4
+    table: Table 1
+- publication_id: pub_2025_vasios_et_al
+  risk_factor: Age
+  hazard_ratio: null
+  ci_lower: 0.303
+  ci_upper: 1.493
+  p_value: '0.330'
+  provenance:
+    page: 4
+    table: Table 1
+- publication_id: pub_2025_vasios_et_al
+  risk_factor: ASA Score
+  hazard_ratio: null
+  ci_lower: 0.002
+  ci_upper: 1494736.2
+  p_value: '0.459'
+  provenance:
+    page: 4
+    table: Table 1
+mcid_thresholds:
+- publication_id: pub_2016_singh_2016_mcid
+  metric: MCII_HHS_2yr
+  threshold_value: 18.0
+  threshold_type: MCID
+  provenance:
+    page: 4
+    table: Table 1
+    quote: Minimal Clinically important Improvement (MCII) 18.0 (18.2)
+    context: Mean MCII at 2-year follow-up
+- publication_id: pub_2016_singh_2016_mcid
+  metric: MCII_HHS_5yr
+  threshold_value: 15.9
+  threshold_type: MCID
+  provenance:
+    page: 4
+    table: Table 1
+    quote: Minimal Clinically important Improvement (MCII) 15.9 (19.8)
+    context: Mean MCII at 5-year follow-up
+- publication_id: pub_2016_singh_2016_mcid
+  metric: Moderate_Improvement_HHS_2yr
+  threshold_value: 40.1
+  threshold_type: MCID
+  provenance:
+    page: 4
+    table: Table 1
+    quote: Moderate improvement 40.1 (12.8)
+    context: Mean moderate improvement at 2-year follow-up
+- publication_id: pub_2016_singh_2016_mcid
+  metric: Moderate_Improvement_HHS_5yr
+  threshold_value: 39.6
+  threshold_type: MCID
+  provenance:
+    page: 4
+    table: Table 1
+    quote: Moderate improvement 39.6 (13.5)
+    context: Mean moderate improvement at 5-year follow-up

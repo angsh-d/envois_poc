@@ -1,0 +1,715 @@
+[
+  {
+    "publication": {
+      "pmid": null,
+      "doi": "10.1186/s12891-016-1106-8",
+      "title": "Clinically important improvement thresholds for Harris Hip Score and its ability to predict revision risk after primary total hip arthroplasty",
+      "authors": "Jasvinder A. Singh, Cathy Schleck, Scott Harmsen and David Lewallen",
+      "journal": "BMC Musculoskeletal Disorders",
+      "year": 2016,
+      "study_type": "Cohort",
+      "sample_size": 2667,
+      "follow_up_months": 60.0
+    },
+    "outcomes": [
+      {
+        "metric_name": "HHS_Effect_Size_2yr",
+        "value": 3.12,
+        "unit": null,
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Effect Size (ES) 3.12 [n=1036]",
+        "context": "Responsiveness (Discriminant Ability) at 2-year post-THA"
+      },
+      {
+        "metric_name": "HHS_Effect_Size_5yr",
+        "value": 3.02,
+        "unit": null,
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Effect Size (ES) 3.02 [n=669]",
+        "context": "Responsiveness (Discriminant Ability) at 5-year post-THA"
+      },
+      {
+        "metric_name": "HHS_Standardized_Response_Mean_2yr",
+        "value": 2.73,
+        "unit": null,
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Standardized Response Mean (SRM) 2.73 [n=970]",
+        "context": "Responsiveness (Discriminant Ability) at 2-year post-THA"
+      },
+      {
+        "metric_name": "HHS_Standardized_Response_Mean_5yr",
+        "value": 2.52,
+        "unit": null,
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Standardized Response Mean (SRM) 2.52 [n=637]",
+        "context": "Responsiveness (Discriminant Ability) at 5-year post-THA"
+      }
+    ],
+    "hazard_ratios": [
+      {
+        "risk_factor": "HHS score <55 vs 81-100 (2-year follow-up)",
+        "hazard_ratio": 4.34,
+        "ci_lower": 2.14,
+        "ci_upper": 7.95,
+        "p_value": "<0.001",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS score <55 vs 81-100 (5-year follow-up)",
+        "hazard_ratio": 3.08,
+        "ci_lower": 1.45,
+        "ci_upper": 5.84,
+        "p_value": "0.002",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS score <70 vs 90-100 (2-year follow-up)",
+        "hazard_ratio": 2.32,
+        "ci_lower": 1.32,
+        "ci_upper": 3.85,
+        "p_value": "0.002",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS score <70 vs 90-100 (5-year follow-up)",
+        "hazard_ratio": 1.6,
+        "ci_lower": 0.84,
+        "ci_upper": 2.85,
+        "p_value": "0.14",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS Improvement <=0 vs >50 (2-year follow-up)",
+        "hazard_ratio": 18.1,
+        "ci_lower": 1.41,
+        "ci_upper": 234.8,
+        "p_value": "0.02",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS Improvement 1-20 vs >50 (2-year follow-up)",
+        "hazard_ratio": 6.21,
+        "ci_lower": 0.81,
+        "ci_upper": 60.73,
+        "p_value": "0.10",
+        "page_number": 4,
+        "table_reference": "Table 2"
+      },
+      {
+        "risk_factor": "HHS score <=55 vs 81-100 (2-year follow-up, competing risk adjusted)",
+        "hazard_ratio": 3.9,
+        "ci_lower": 2.67,
+        "ci_upper": 5.69,
+        "p_value": "<0.001",
+        "page_number": 7,
+        "table_reference": "Table 5"
+      },
+      {
+        "risk_factor": "HHS score <=55 vs 81-100 (5-year follow-up, competing risk adjusted)",
+        "hazard_ratio": 2.48,
+        "ci_lower": 1.56,
+        "ci_upper": 3.95,
+        "p_value": "<0.001",
+        "page_number": 7,
+        "table_reference": "Table 5"
+      }
+    ],
+    "mcid_thresholds": [
+      {
+        "metric_name": "MCII_HHS_2yr",
+        "value": 18.0,
+        "unit": "points",
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Minimal Clinically important Improvement (MCII) 18.0 (18.2)",
+        "context": "Mean MCII at 2-year follow-up"
+      },
+      {
+        "metric_name": "MCII_HHS_5yr",
+        "value": 15.9,
+        "unit": "points",
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Minimal Clinically important Improvement (MCII) 15.9 (19.8)",
+        "context": "Mean MCII at 5-year follow-up"
+      },
+      {
+        "metric_name": "Moderate_Improvement_HHS_2yr",
+        "value": 40.1,
+        "unit": "points",
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Moderate improvement 40.1 (12.8)",
+        "context": "Mean moderate improvement at 2-year follow-up"
+      },
+      {
+        "metric_name": "Moderate_Improvement_HHS_5yr",
+        "value": 39.6,
+        "unit": "points",
+        "page_number": 4,
+        "table_reference": "Table 1",
+        "exact_quote": "Moderate improvement 39.6 (13.5)",
+        "context": "Mean moderate improvement at 5-year follow-up"
+      }
+    ],
+    "survival_rates": [
+      {
+        "metric_name": "revisions_aseptic_loosening_2yr_cohort",
+        "value": 197.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Aseptic loosening 197",
+        "context": "Causes for early revision in 2-year cohort (N=403 total revisions)"
+      },
+      {
+        "metric_name": "revisions_infection_2yr_cohort",
+        "value": 13.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Infection 13",
+        "context": "Causes for early revision in 2-year cohort (N=403 total revisions)"
+      },
+      {
+        "metric_name": "revisions_dislocation_fracture_2yr_cohort",
+        "value": 107.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Dislocation/fracture 107",
+        "context": "Causes for early revision in 2-year cohort (N=403 total revisions)"
+      },
+      {
+        "metric_name": "revisions_wear_osteolysis_2yr_cohort",
+        "value": 174.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Wear/osteolysis 174",
+        "context": "Causes for early revision in 2-year cohort (N=403 total revisions)"
+      },
+      {
+        "metric_name": "revisions_aseptic_loosening_5yr_cohort",
+        "value": 145.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Aseptic loosening 145",
+        "context": "Causes for early revision in 5-year cohort (N=282 total revisions)"
+      },
+      {
+        "metric_name": "revisions_infection_5yr_cohort",
+        "value": 5.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Infection 5",
+        "context": "Causes for early revision in 5-year cohort (N=282 total revisions)"
+      },
+      {
+        "metric_name": "revisions_dislocation_fracture_5yr_cohort",
+        "value": 71.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Dislocation/fracture 71",
+        "context": "Causes for early revision in 5-year cohort (N=282 total revisions)"
+      },
+      {
+        "metric_name": "revisions_wear_osteolysis_5yr_cohort",
+        "value": 135.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 4",
+        "exact_quote": "Wear/osteolysis 135",
+        "context": "Causes for early revision in 5-year cohort (N=282 total revisions)"
+      }
+    ],
+    "source_file": "singh_2016_mcid.pdf"
+  },
+  {
+    "publication": {
+      "pmid": null,
+      "doi": null,
+      "title": "Cementless Short-Stem Total Hip Arthroplasty in Patients Aged 75 Years and Older: A Retrospective Single-Surgeon Study",
+      "authors": "Hanno Steckel, Helena Steckel",
+      "journal": null,
+      "year": 2025,
+      "study_type": "Retrospective single-surgeon cohort study",
+      "sample_size": 117,
+      "follow_up_months": 29.5
+    },
+    "outcomes": [
+      {
+        "metric_name": "HHS_preoperative",
+        "value": 45.2,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": null,
+        "exact_quote": "The mean preoperative HHS was 45.2 points.",
+        "context": "Mean preoperative Harris Hip Score recorded for all patients."
+      },
+      {
+        "metric_name": "HHS_postoperative",
+        "value": 88.4,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 4,
+        "table_reference": null,
+        "exact_quote": "Among the 101 patients (83.5%) who completed the one-year follow-up, the mean HHS had improved to 88.4 points.",
+        "context": "Mean Harris Hip Score at one-year follow-up."
+      }
+    ],
+    "hazard_ratios": [],
+    "mcid_thresholds": [],
+    "survival_rates": [
+      {
+        "metric_name": "complication_rate",
+        "value": 3.3,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 1,
+        "table_reference": null,
+        "exact_quote": "At final follow-up, four complications (3.3%) were observed",
+        "context": "Overall complication rate observed at final follow-up."
+      },
+      {
+        "metric_name": "implant_survival_rate",
+        "value": 98.35,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 1",
+        "exact_quote": "The overall implant survival rate, using revision of either the femoral or acetabular component for any reason as the endpoint, was 98.35% at final follow-up.",
+        "context": "Kaplan-Meier survival or crude rate at mean 29.5 months follow-up."
+      },
+      {
+        "metric_name": "aseptic_loosening_rate",
+        "value": 0.0,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": "Table 1",
+        "exact_quote": "No cases of aseptic loosening were observed.",
+        "context": "Rate of aseptic loosening at final follow-up."
+      },
+      {
+        "metric_name": "periprosthetic_fracture_rate",
+        "value": 0.0,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 8,
+        "table_reference": null,
+        "exact_quote": "Importantly, no postoperative periprosthetic fractures occurred",
+        "context": "Postoperative periprosthetic fracture rate."
+      }
+    ],
+    "source_file": "steckel.pdf"
+  },
+  {
+    "publication": {
+      "pmid": null,
+      "doi": "10.1007/s00402-025-05966-x",
+      "title": "CBC Mathys and CLS Spotorno stems: similar in design, different in outcomes. A comparative study of clinical and radiological differences",
+      "authors": "Paula Baz\u00e1n, Adri\u00e1n Torres, Jorge G\u00f3mez-\u00c1lvarez, Gregorio Villarreal, Mikel San-Juli\u00e1n, Jos\u00e9 Mar\u00eda Lamo-Espinosa",
+      "journal": "Archives of Orthopaedic and Trauma Surgery",
+      "year": 2025,
+      "study_type": "Retrospective 1:1 matched cohort study",
+      "sample_size": 344,
+      "follow_up_months": 76.57
+    },
+    "outcomes": [
+      {
+        "metric_name": "Merl\u00e9-D\u2019Aubign\u00e9 Score_Preoperative_CBC_Mathys",
+        "value": 13.62,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "Presurgical M-D 13.62 (2.2)",
+        "context": "Preoperative functional status for CBC Mathys group"
+      },
+      {
+        "metric_name": "Merl\u00e9-D\u2019Aubign\u00e9 Score_Postoperative_CBC_Mathys",
+        "value": 17.42,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "Postsurgical M-D 17.42 (0.9)",
+        "context": "Postoperative functional status for CBC Mathys group"
+      },
+      {
+        "metric_name": "Merl\u00e9-D\u2019Aubign\u00e9 Score_Preoperative_CLS_Spotorno",
+        "value": 12.97,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "Presurgical M-D ... 12.97 (2.1)",
+        "context": "Preoperative functional status for CLS Spotorno group"
+      },
+      {
+        "metric_name": "Merl\u00e9-D\u2019Aubign\u00e9 Score_Postoperative_CLS_Spotorno",
+        "value": 17.2,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "Postsurgical M-D ... 17.2 (1.4)",
+        "context": "Postoperative functional status for CLS Spotorno group"
+      },
+      {
+        "metric_name": "Stem Subsidence_CBC_Mathys",
+        "value": 2.4,
+        "unit": "mm",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": null,
+        "exact_quote": "compared to 2.4 (SD: 0.4) mm in the CBC Mathys",
+        "context": "Average stem subsidence"
+      },
+      {
+        "metric_name": "Stem Subsidence_CLS_Spotorno",
+        "value": 2.3,
+        "unit": "mm",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": null,
+        "exact_quote": "The average subsidence in the Spotorno cohort was 2.3 (SD:0.3) mm",
+        "context": "Average stem subsidence"
+      }
+    ],
+    "hazard_ratios": [],
+    "mcid_thresholds": [],
+    "survival_rates": [
+      {
+        "metric_name": "Survival_Rate_Aseptic_Mobilization_CBC_Mathys",
+        "value": 97.6,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": null,
+        "exact_quote": "resulting in a cumulative survival rate of 97.6%.",
+        "context": "Cumulative survival regarding aseptic stem mobilization at final follow-up"
+      },
+      {
+        "metric_name": "Survival_Rate_Aseptic_Mobilization_CLS_Spotorno",
+        "value": 100.0,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": null,
+        "exact_quote": "none due to aseptic mobilization, which leads to a cumulative survival rate of 100%",
+        "context": "Cumulative survival regarding aseptic stem mobilization at final follow-up"
+      },
+      {
+        "metric_name": "Cortical_Hypertrophy_Rate_CBC_Mathys",
+        "value": 42.4,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 1,
+        "table_reference": null,
+        "exact_quote": "Cortical hypertrophy occurred in 42.4% of the CBC Mathys group",
+        "context": "Incidence of cortical hypertrophy"
+      },
+      {
+        "metric_name": "Cortical_Hypertrophy_Rate_CLS_Spotorno",
+        "value": 4.6,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 1,
+        "table_reference": null,
+        "exact_quote": "significantly higher than the 4.6% in the CLS Spotorno group",
+        "context": "Incidence of cortical hypertrophy"
+      },
+      {
+        "metric_name": "Radiolucency_Rate_CBC_Mathys",
+        "value": 55.2,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 1,
+        "table_reference": null,
+        "exact_quote": "Radiolucencies were more frequent in the CBC Mathys group (55.2%)",
+        "context": "Incidence of radiolucencies"
+      },
+      {
+        "metric_name": "Radiolucency_Rate_CLS_Spotorno",
+        "value": 18.6,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 1,
+        "table_reference": null,
+        "exact_quote": "compared to CLS Spotorno (18.6%)",
+        "context": "Incidence of radiolucencies"
+      },
+      {
+        "metric_name": "Revision_Rate_Aseptic_CBC_Mathys",
+        "value": 2.3,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 6,
+        "table_reference": null,
+        "exact_quote": "At the final follow-up, 4 of 172 CBC Mathys stems were revised due to aseptic stem mobilization",
+        "context": "Calculated rate (4/172) of revision for aseptic mobilization"
+      },
+      {
+        "metric_name": "Revision_Count_Other_Causes_CLS_Spotorno",
+        "value": 3.0,
+        "unit": "count",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": null,
+        "exact_quote": "Three stems had to be revised in the CLS Spotorno group: one due to periprosthetic fracture and two due to metalosis",
+        "context": "Revisions for non-aseptic causes (fracture, metalosis)"
+      }
+    ],
+    "source_file": "Bazan et al.pdf"
+  },
+  {
+    "publication": {
+      "pmid": null,
+      "doi": "10.52965/001c.140718",
+      "title": "Acetabular revision with moderate-to-severe bone loss using a trabecular titanium cup-cage construct with impaction grafting",
+      "authors": "Ioannis Vasios, Konstantinos Makiev, Efthymios Iliopoulos, Konstantinos Tilkeridis, Georgios Drosos",
+      "journal": "Orthopedic Reviews",
+      "year": 2025,
+      "study_type": "Retrospective case series",
+      "sample_size": 11,
+      "follow_up_months": 54.64
+    },
+    "outcomes": [
+      {
+        "metric_name": "Harris Hip Score (HHS)_preoperative_mean",
+        "value": 44.8,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "Harris Hip score (from a mean 44.8% to 80.7%)",
+        "context": "Mean preoperative score"
+      },
+      {
+        "metric_name": "Harris Hip Score (HHS)_postoperative_mean",
+        "value": 80.7,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "Harris Hip score (from a mean 44.8% to 80.7%)",
+        "context": "Mean postoperative score"
+      },
+      {
+        "metric_name": "HOOS-JR_preoperative_mean",
+        "value": 49.86,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "HOOS-JR score (from a mean 49.86% to 70.43%)",
+        "context": "Mean preoperative score"
+      },
+      {
+        "metric_name": "HOOS-JR_postoperative_mean",
+        "value": 70.43,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "HOOS-JR score (from a mean 49.86% to 70.43%)",
+        "context": "Mean postoperative score"
+      },
+      {
+        "metric_name": "Forgotten Joint Score (FJS)_preoperative_mean",
+        "value": 13.63,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "Forgotten Joint Score (from a mean 13.63% to 81.82%)",
+        "context": "Mean preoperative score"
+      },
+      {
+        "metric_name": "Forgotten Joint Score (FJS)_postoperative_mean",
+        "value": 81.82,
+        "unit": "%",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "Forgotten Joint Score (from a mean 13.63% to 81.82%)",
+        "context": "Mean postoperative score"
+      },
+      {
+        "metric_name": "EQ-5D-5L_preoperative_mean",
+        "value": 0.464,
+        "unit": "score",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from 7.91 to 1.91 respectively.",
+        "context": "Text ordering appears inverted; 0.464 corresponds to EQ-5D index range rather than VAS."
+      },
+      {
+        "metric_name": "EQ-5D-5L_postoperative_mean",
+        "value": 0.749,
+        "unit": "score",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from 7.91 to 1.91 respectively.",
+        "context": "Text ordering appears inverted; 0.749 corresponds to EQ-5D index range rather than VAS."
+      },
+      {
+        "metric_name": "VAS_Pain_preoperative_mean",
+        "value": 7.91,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from 7.91 to 1.91 respectively.",
+        "context": "Text ordering appears inverted; 7.91 corresponds to VAS pain scale rather than EQ-5D."
+      },
+      {
+        "metric_name": "VAS_Pain_postoperative_mean",
+        "value": 1.91,
+        "unit": "points",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 3,
+        "table_reference": null,
+        "exact_quote": "VAS score and the EQ-5D-5L score from a mean 0.464 to 0.749 and from 7.91 to 1.91 respectively.",
+        "context": "Text ordering appears inverted; 1.91 corresponds to VAS pain scale rather than EQ-5D."
+      }
+    ],
+    "hazard_ratios": [
+      {
+        "risk_factor": "Sex",
+        "hazard_ratio": null,
+        "ci_lower": 0.026,
+        "ci_upper": 20.824,
+        "p_value": "0.861",
+        "page_number": 4,
+        "table_reference": "Table 1"
+      },
+      {
+        "risk_factor": "Age",
+        "hazard_ratio": null,
+        "ci_lower": 0.303,
+        "ci_upper": 1.493,
+        "p_value": "0.330",
+        "page_number": 4,
+        "table_reference": "Table 1"
+      },
+      {
+        "risk_factor": "ASA Score",
+        "hazard_ratio": null,
+        "ci_lower": 0.002,
+        "ci_upper": 1494736.2,
+        "p_value": "0.459",
+        "page_number": 4,
+        "table_reference": "Table 1"
+      }
+    ],
+    "mcid_thresholds": [],
+    "survival_rates": [
+      {
+        "metric_name": "Implant_Survivorship",
+        "value": 100.0,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "100% Survival Rate",
+        "context": "Survival of cup-cage construct in current series (Vasios et al. 2025)"
+      },
+      {
+        "metric_name": "Complication_Rate_Wound_Drainage",
+        "value": 9.1,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 7,
+        "table_reference": "Table 3",
+        "exact_quote": "1 patient with persistent wound drainage",
+        "context": "1 out of 11 patients"
+      },
+      {
+        "metric_name": "Aseptic_Loosening_Rate",
+        "value": 0.0,
+        "unit": "percent",
+        "confidence_interval_lower": null,
+        "confidence_interval_upper": null,
+        "page_number": 5,
+        "table_reference": "Table 2",
+        "exact_quote": "Not Loosening=0 vs Loosening=1 ... 0",
+        "context": "Radiological outcomes showing no loosening in any patient"
+      }
+    ],
+    "source_file": "Vasios et al.pdf"
+  }
+]
