@@ -70,10 +70,10 @@ export default function DataAgents({ params }: DataAgentsProps) {
       id: 'registry',
       name: 'Registry Agent',
       icon: Globe,
-      description: 'Retrieves and compares data against international joint replacement registry benchmarks',
-      capabilities: ['Registry data lookup', 'Benchmark comparison', 'Survival analysis', 'Regional comparison'],
-      inputs: ['Registry YAML (5 registries)', 'Study metrics', 'Comparison parameters'],
-      outputs: ['Registry benchmarks', 'Comparison reports', 'Survival rates'],
+      description: 'Retrieves and compares data against international joint replacement registry benchmarks for revision THA',
+      capabilities: ['Registry data lookup', 'Benchmark comparison', 'Revision THA survival analysis', 'Regional comparison'],
+      inputs: ['Registry YAML (9 registries)', 'Study metrics', 'Comparison parameters'],
+      outputs: ['Registry benchmarks', 'Comparison reports', 'Revision survival rates'],
       level: 1
     },
     {
@@ -286,25 +286,46 @@ export default function DataAgents({ params }: DataAgentsProps) {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     <tr>
-                      <td className="py-2 font-medium text-gray-800">AOANJRR</td>
-                      <td className="py-2 text-gray-600">Australia</td>
-                      <td className="py-2 text-right text-gray-800">45,892</td>
-                      <td className="py-2 text-gray-600">1999-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Survival (1-15yr), revision rates, reasons</td>
-                    </tr>
-                    <tr>
                       <td className="py-2 font-medium text-gray-800">NJR</td>
                       <td className="py-2 text-gray-600">UK</td>
                       <td className="py-2 text-right text-gray-800">38,456</td>
                       <td className="py-2 text-gray-600">2003-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Survival, outcomes, implant tracking</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 95.8% (10yr), outcomes</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-medium text-gray-800">SHAR</td>
                       <td className="py-2 text-gray-600">Sweden</td>
                       <td className="py-2 text-right text-gray-800">~25,000</td>
                       <td className="py-2 text-gray-600">1979-2023</td>
-                      <td className="py-2 text-gray-600 text-xs">Long-term survival, PROMs</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 77.8% (10yr), PROMs</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">NAR</td>
+                      <td className="py-2 text-gray-600">Norway</td>
+                      <td className="py-2 text-right text-gray-800">~12,000</td>
+                      <td className="py-2 text-gray-600">1987-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 79% (10yr), re-revision rates</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">NZJR</td>
+                      <td className="py-2 text-gray-600">New Zealand</td>
+                      <td className="py-2 text-right text-gray-800">~8,500</td>
+                      <td className="py-2 text-gray-600">1999-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 79% (10yr), K-M curves</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">DHR</td>
+                      <td className="py-2 text-gray-600">Denmark</td>
+                      <td className="py-2 text-right text-gray-800">~6,500</td>
+                      <td className="py-2 text-gray-600">1995-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 90% (10yr), revision reasons</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">EPRD</td>
+                      <td className="py-2 text-gray-600">Germany</td>
+                      <td className="py-2 text-right text-gray-800">~45,000</td>
+                      <td className="py-2 text-gray-600">2012-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Revision THA survival 85% (5yr), K-M analysis</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-medium text-gray-800">AJRR</td>
@@ -319,6 +340,13 @@ export default function DataAgents({ params }: DataAgentsProps) {
                       <td className="py-2 text-right text-gray-800">~15,000</td>
                       <td className="py-2 text-gray-600">2001-2023</td>
                       <td className="py-2 text-gray-600 text-xs">Revision rates, hospital outcomes</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 font-medium text-gray-800">AOANJRR</td>
+                      <td className="py-2 text-gray-600">Australia</td>
+                      <td className="py-2 text-right text-gray-800">45,892</td>
+                      <td className="py-2 text-gray-600">1999-2023</td>
+                      <td className="py-2 text-gray-600 text-xs">Survival (1-15yr), revision rates, reasons</td>
                     </tr>
                   </tbody>
                 </table>
@@ -575,7 +603,7 @@ export default function DataAgents({ params }: DataAgentsProps) {
                 <tr>
                   <td className="py-2 text-gray-800">Registry Norms</td>
                   <td className="py-2 text-center"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">REAL (Curated)</span></td>
-                  <td className="py-2 text-gray-600">5 registries, 218K+ procedures</td>
+                  <td className="py-2 text-gray-600">9 registries, 285K+ revision THA procedures</td>
                 </tr>
               </tbody>
             </table>
@@ -762,7 +790,7 @@ export default function DataAgents({ params }: DataAgentsProps) {
               <pre>{`┌─────────────────────────────────────────────────────────────────────────┐
 │                           DATA SOURCES                                   │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  H-34 Excel (37 pts)  │  Literature PDFs (12)  │  Registry YAML (5)     │
+│  H-34 Excel (37 pts)  │  Literature PDFs (12)  │  Registry YAML (9)     │
 │         ↓             │          ↓              │         ↓              │
 │    Excel Loader       │    PDF Extractor        │    YAML Loader         │
 │         ↓             │          ↓              │         ↓              │
