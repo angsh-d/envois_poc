@@ -100,7 +100,7 @@ class SafetyService:
 
         synthesis_result = await self._synthesis_agent.run(synthesis_context)
 
-        # Build response
+        # Build response with full provenance
         return {
             "success": True,
             "assessment_date": datetime.utcnow().isoformat(),
@@ -110,6 +110,7 @@ class SafetyService:
             "n_signals": data.get("n_signals", 0),
             "metrics": data.get("metrics", []),
             "registry_comparison": data.get("registry_comparison", {}),
+            "registry_breakdown": data.get("registry_breakdown", []),
             "literature_benchmarks": literature_result.data.get("aggregate_benchmarks", {}) if literature_result.success else {},
             "narrative": synthesis_result.narrative if synthesis_result.success else safety_result.narrative,
             "sources": [s.to_dict() for s in safety_result.sources],

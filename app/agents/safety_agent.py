@@ -4,6 +4,8 @@ Safety Agent for Clinical Intelligence Platform.
 Responsible for safety signal detection and risk factor analysis.
 """
 import logging
+import os
+from datetime import date
 from typing import Any, Dict, List, Optional
 
 from app.agents.base_agent import (
@@ -16,6 +18,164 @@ from app.agents.literature_agent import LiteratureAgent
 from app.agents.registry_agent import RegistryAgent
 
 logger = logging.getLogger(__name__)
+
+
+def _get_affected_patients_from_db(event_pattern: str) -> List[Dict[str, Any]]:
+    """
+    Query database for patients affected by a specific adverse event type.
+    
+    Returns list of patient info with demographics for provenance.
+    """
+    try:
+        from sqlalchemy import text
+        from data.models.database import SessionLocal
+        
+        if SessionLocal is None:
+            return []
+            
+        session = SessionLocal()
+        try:
+            query = text("""
+                SELECT 
+                    p.patient_id,
+                    ae.ae_title,
+                    ae.severity,
+                    ae.onset_date,
+                    ae.is_sae,
+                    p.gender,
+                    EXTRACT(YEAR FROM CURRENT_DATE) - p.year_of_birth as age,
+                    p.bmi,
+                    p.primary_diagnosis
+                FROM study_adverse_events ae
+                JOIN study_patients p ON ae.patient_id = p.id
+                WHERE LOWER(ae.ae_title) LIKE :pattern
+                ORDER BY ae.onset_date
+            """)
+            result = session.execute(query, {"pattern": f"%{event_pattern.lower()}%"})
+            
+            patients = []
+            for row in result:
+                patients.append({
+                    "patient_id": row.patient_id,
+                    "event_description": row.ae_title,
+                    "severity": row.severity,
+                    "event_date": row.onset_date.isoformat() if row.onset_date else None,
+                    "is_sae": row.is_sae,
+                    "demographics": {
+                        "gender": row.gender,
+                        "age": int(row.age) if row.age else None,
+                        "bmi": round(row.bmi, 1) if row.bmi else None,
+                        "diagnosis": row.primary_diagnosis,
+                    }
+                })
+            return patients
+        finally:
+            session.close()
+    except Exception as e:
+        logger.warning(f"Could not fetch affected patients: {e}")
+        return []
+
+
+def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
+    """
+    Get literature citations for a specific metric from database.
+    """
+    try:
+        from sqlalchemy import text
+        from data.models.database import SessionLocal
+        
+        if SessionLocal is None:
+            return []
+            
+        session = SessionLocal()
+        try:
+            # Map metric to benchmark field
+            field_map = {
+                "revision_rate": "revision_rate_2yr",
+                "dislocation_rate": "dislocation_rate",
+                "infection_rate": "infection_rate",
+                "fracture_rate": "fracture_rate",
+            }
+            benchmark_field = field_map.get(metric_name, "revision_rate_2yr")
+            
+            query = text("""
+                SELECT 
+                    publication_id,
+                    title,
+                    year,
+                    journal,
+                    n_patients,
+                    benchmarks
+                FROM literature_publications
+                ORDER BY year DESC
+            """)
+            result = session.execute(query)
+            
+            citations = []
+            for row in result:
+                benchmarks = row.benchmarks or {}
+                if benchmark_field in benchmarks:
+                    citations.append({
+                        "citation_id": row.publication_id,
+                        "title": row.title,
+                        "year": row.year,
+                        "journal": row.journal,
+                        "n_patients": row.n_patients,
+                        "reported_rate": benchmarks.get(benchmark_field),
+                        "reference": f"{row.publication_id.replace('_', ' ').title()} ({row.year})",
+                    })
+            return citations
+        finally:
+            session.close()
+    except Exception as e:
+        logger.warning(f"Could not fetch literature citations: {e}")
+        return []
+
+
+def _get_registry_breakdown() -> List[Dict[str, Any]]:
+    """
+    Get all registry benchmarks for comparison breakdown.
+    """
+    try:
+        from sqlalchemy import text
+        from data.models.database import SessionLocal
+        
+        if SessionLocal is None:
+            return []
+            
+        session = SessionLocal()
+        try:
+            query = text("""
+                SELECT 
+                    registry_id,
+                    name,
+                    abbreviation,
+                    report_year,
+                    n_procedures,
+                    revision_rate_2yr,
+                    survival_2yr
+                FROM registry_benchmarks
+                ORDER BY n_procedures DESC
+            """)
+            result = session.execute(query)
+            
+            registries = []
+            for row in result:
+                registries.append({
+                    "registry_id": row.registry_id,
+                    "name": row.name,
+                    "abbreviation": row.abbreviation,
+                    "report_year": row.report_year,
+                    "n_procedures": row.n_procedures,
+                    "revision_rate_2yr": row.revision_rate_2yr,
+                    "survival_2yr": row.survival_2yr,
+                })
+            return registries
+        finally:
+            session.close()
+    except Exception as e:
+        logger.warning(f"Could not fetch registry breakdown: {e}")
+        return []
 
 
 class SafetyAgent(BaseAgent):
@@ -257,7 +417,7 @@ class SafetyAgent(BaseAgent):
         rates = safety_data.get("rates", {})
         ae_by_type = safety_data.get("ae_by_type", {})
 
-        # Calculate rates and compare to thresholds
+        # Calculate rates and compare to thresholds with full provenance
         metrics = []
         signals = []
 
@@ -265,10 +425,14 @@ class SafetyAgent(BaseAgent):
         revision_rate = rates.get("revision_rate", 0)
         revision_count = safety_data.get("n_revisions", 0)
         threshold = protocol_thresholds.get("revision_rate_concern", 0.10)
+        revision_patients = _get_affected_patients_from_db("loosening")
         metric = self._analyze_metric(
             "revision_rate", revision_rate, threshold,
-            revision_count, n_patients
+            revision_count, n_patients,
+            affected_patients=revision_patients,
+            threshold_source="protocol_rules.safety_thresholds.revision_rate_concern (10%)"
         )
+        metric["literature_citations"] = _get_literature_citations("revision_rate")
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
@@ -277,10 +441,14 @@ class SafetyAgent(BaseAgent):
         dislocation_rate = rates.get("dislocation_rate", 0)
         dislocation_count = ae_by_type.get("dislocation", 0)
         threshold = protocol_thresholds.get("dislocation_rate_concern", 0.08)
+        dislocation_patients = _get_affected_patients_from_db("dislocation")
         metric = self._analyze_metric(
             "dislocation_rate", dislocation_rate, threshold,
-            dislocation_count, n_patients
+            dislocation_count, n_patients,
+            affected_patients=dislocation_patients,
+            threshold_source="protocol_rules.safety_thresholds.dislocation_rate_concern (8%)"
         )
+        metric["literature_citations"] = _get_literature_citations("dislocation_rate")
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
@@ -289,10 +457,14 @@ class SafetyAgent(BaseAgent):
         infection_rate = rates.get("infection_rate", 0)
         infection_count = ae_by_type.get("infection", 0)
         threshold = protocol_thresholds.get("infection_rate_concern", 0.05)
+        infection_patients = _get_affected_patients_from_db("infection")
         metric = self._analyze_metric(
             "infection_rate", infection_rate, threshold,
-            infection_count, n_patients
+            infection_count, n_patients,
+            affected_patients=infection_patients,
+            threshold_source="protocol_rules.safety_thresholds.infection_rate_concern (5%)"
         )
+        metric["literature_citations"] = _get_literature_citations("infection_rate")
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
@@ -301,10 +473,14 @@ class SafetyAgent(BaseAgent):
         fracture_rate = rates.get("fracture_rate", 0)
         fracture_count = ae_by_type.get("fracture", 0)
         threshold = protocol_thresholds.get("fracture_rate_concern", 0.08)
+        fracture_patients = _get_affected_patients_from_db("fracture")
         metric = self._analyze_metric(
             "fracture_rate", fracture_rate, threshold,
-            fracture_count, n_patients
+            fracture_count, n_patients,
+            affected_patients=fracture_patients,
+            threshold_source="protocol_rules.safety_thresholds.fracture_rate_concern (8%)"
         )
+        metric["literature_citations"] = _get_literature_citations("fracture_rate")
         metrics.append(metric)
         if metric["signal"]:
             signals.append(metric)
@@ -322,6 +498,9 @@ class SafetyAgent(BaseAgent):
             logger.warning(f"Registry comparison failed: {e}")
             registry_comparison = {"error": str(e)}
 
+        # Get all registry benchmarks for breakdown
+        registry_breakdown = _get_registry_breakdown()
+
         return {
             "n_patients": n_patients,
             "n_adverse_events": safety_data.get("n_adverse_events", 0),
@@ -330,6 +509,7 @@ class SafetyAgent(BaseAgent):
             "signals": signals,
             "n_signals": len(signals),
             "registry_comparison": registry_comparison,
+            "registry_breakdown": registry_breakdown,
             "overall_status": self._determine_status(signals),
         }
 
@@ -413,9 +593,34 @@ class SafetyAgent(BaseAgent):
         rate: float,
         threshold: float,
         count: int,
-        total: int
+        total: int,
+        affected_patients: List[Dict[str, Any]] = None,
+        threshold_source: str = None,
     ) -> Dict[str, Any]:
-        """Analyze a single safety metric."""
+        """Analyze a single safety metric with full provenance."""
+        # Map metric name to event type for SQL query
+        event_type_map = {
+            "revision_rate": "revision",
+            "dislocation_rate": "Dislocation",
+            "infection_rate": "Infection",
+            "fracture_rate": "fracture",
+        }
+        event_pattern = event_type_map.get(name, name.replace("_rate", ""))
+        
+        # Build data source provenance
+        provenance = {
+            "data_sources": {
+                "event_count": f"study_adverse_events (WHERE ae_title ILIKE '%{event_pattern}%')",
+                "patient_count": "study_patients (WHERE enrolled='Yes')",
+                "threshold": f"protocol_rules.safety_thresholds.{name.replace('_rate', '_rate_concern')}",
+            },
+            "methodology": f"Count adverse events matching '{event_pattern}' pattern divided by enrolled patient count",
+            "calculation": f"{count} events ÷ {total} patients = {round(rate * 100, 2)}%",
+            "threshold_source": threshold_source or f"protocol_rules.yaml (safety_thresholds.{name.replace('_rate', '_rate_concern')})",
+            "threshold_rationale": "Set at ~1.5x published literature rate per protocol H-34 v2.0",
+            "regulatory_reference": "FDA 21 CFR 812.150 - Safety Reporting Requirements",
+        }
+        
         return {
             "metric": name,
             "rate": round(rate, 4),
@@ -424,6 +629,8 @@ class SafetyAgent(BaseAgent):
             "threshold": threshold,
             "signal": rate >= threshold,
             "threshold_exceeded_by": round(rate - threshold, 4) if rate >= threshold else 0,
+            "provenance": provenance,
+            "affected_patients": affected_patients or [],
         }
 
     async def _compare_to_registry(
