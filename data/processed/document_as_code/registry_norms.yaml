@@ -134,14 +134,6 @@ registries:
     population: "revision_tha"
     n_procedures: 140845
     n_primary: 796071
-    survival_1yr: 0.970
-    survival_2yr: 0.950
-    survival_5yr: 0.915
-    survival_10yr: 0.870
-    revision_rate_1yr: 0.030
-    revision_rate_2yr: 0.050
-    revision_rate_5yr: 0.085
-    revision_rate_10yr: 0.130
     revision_reasons:
       - reason: "infection"
         percentage: 0.214
@@ -168,14 +160,15 @@ registries:
       source_file: "data/raw/downloaded_registry/AJRR_2024_Annual_Report.pdf"
       extraction_date: "2026-01-14"
       survival_rates:
+        data_quality: "graphical_only"
+        limitation: "AJRR 2024 report presents revision THA survival data only in Kaplan-Meier figures without tabulated numeric values. Precise survival rates cannot be extracted with full provenance from graphical content."
         page: 66
-        table: "Figure 2.44"
-        quote: "Cumulative Percent Re-Revision after Revision Total Hip Arthroplasty for Dual Mobility by liner type in Medicare Patients 65 Years of Age and Older, 2012-2023"
-        notes: "Data for Standard Bearing liner subgroup (N=36,763), largest cohort"
+        table: "Figure 2.44 - Cumulative Percent Re-Revision after Revision Total Hip Arthroplasty"
+        notes: "Survival rate extraction excluded due to graphical-only presentation. For precise AJRR survival data, refer to the published figure or request tabulated data from AJRR directly."
       revision_reasons:
         page: 58
         table: "Figure 2.32"
-      notes: "Survival rates for Standard Bearing liner subgroup from Medicare population 65+. Comprehensive revision reason breakdown."
+      notes: "Revision reasons extracted from Figure 2.32. AJRR presents survival curves graphically without numeric tables; survival rates excluded to maintain 100% provenance traceability."
 
   aoanjrr:
     name: "Australian Orthopaedic Association National Joint Replacement Registry"
