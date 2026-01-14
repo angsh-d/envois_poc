@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import StudyLayout from './StudyLayout'
 import {
-  Shield,
-  Users,
-  AlertTriangle,
   Play,
   RefreshCw,
   CheckCircle,
@@ -11,18 +8,17 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
-  Minus,
   ChevronDown,
   ChevronUp,
   Info,
-  Cpu
+  Cpu,
+  Users,
+  AlertTriangle
 } from 'lucide-react'
 
 interface SimulationStudioProps {
   params: { studyId: string }
 }
-
-type ScenarioType = 'regulatory' | 'enrollment' | 'stress'
 
 const H34_CURRENT = {
   enrolled: 37,
@@ -32,15 +28,9 @@ const H34_CURRENT = {
 }
 
 const REGULATORY_THRESHOLDS = {
-  fda_510k: { rate: 0.10, label: 'FDA 510(k) Benchmark', description: '≤10% 5-year revision rate' },
-  mdr_pmcf: { rate: 0.12, label: 'MDR PMCF Threshold', description: '≤12% cumulative revision' },
-  registry_parity: { rate: 0.09, label: 'Registry Parity (NJR)', description: '≤9% to match NJR 5-year' },
-}
-
-const REGISTRY_BASELINE = {
-  njr_5yr: 0.090,
-  njr_ci_lower: 0.088,
-  njr_ci_upper: 0.092,
+  fda_510k: { rate: 0.10, label: 'FDA 510(k)', description: '≤10% revision rate' },
+  mdr_pmcf: { rate: 0.12, label: 'MDR PMCF', description: '≤12% revision rate' },
+  registry_parity: { rate: 0.09, label: 'Registry Parity', description: '≤9% (NJR match)' },
 }
 
 function sampleBeta(successes: number, failures: number): number {
@@ -56,14 +46,15 @@ function sampleBeta(successes: number, failures: number): number {
   return x / (x + y)
 }
 
-function sampleNormal(mean: number, sd: number): number {
-  const u1 = Math.random()
-  const u2 = Math.random()
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-  return mean + sd * z
+function sampleBinomial(n: number, p: number): number {
+  let successes = 0
+  for (let i = 0; i < n; i++) {
+    if (Math.random() < p) successes++
+  }
+  return successes
 }
 
-function runRegulatorySimulation(iterations: number, threshold: number) {
+function runBaselineSimulation(iterations: number, threshold: number) {
   const revisions = H34_CURRENT.revisions
   const n = H34_CURRENT.enrolled
   let passCount = 0
@@ -76,24 +67,14 @@ function runRegulatorySimulation(iterations: number, threshold: number) {
   }
   
   const sortedRates = [...rates].sort((a, b) => a - b)
-  const pPass = passCount / iterations
   
   return {
-    pPass,
+    pPass: passCount / iterations,
     mean: rates.reduce((a, b) => a + b, 0) / rates.length,
     p5: sortedRates[Math.floor(iterations * 0.05)],
     p50: sortedRates[Math.floor(iterations * 0.50)],
     p95: sortedRates[Math.floor(iterations * 0.95)],
-    threshold,
   }
-}
-
-function sampleBinomial(n: number, p: number): number {
-  let successes = 0
-  for (let i = 0; i < n; i++) {
-    if (Math.random() < p) successes++
-  }
-  return successes
 }
 
 function runEnrollmentSimulation(iterations: number, additionalPatients: number, threshold: number) {
@@ -102,7 +83,6 @@ function runEnrollmentSimulation(iterations: number, additionalPatients: number,
   const newN = currentN + additionalPatients
   
   let passCount = 0
-  const rates: number[] = []
   
   for (let i = 0; i < iterations; i++) {
     const sampledRate = sampleBeta(currentRevisions + 1, currentN - currentRevisions + 1)
@@ -110,679 +90,388 @@ function runEnrollmentSimulation(iterations: number, additionalPatients: number,
     const totalRevisions = currentRevisions + newRevisions
     const posteriorRate = sampleBeta(totalRevisions + 1, newN - totalRevisions + 1)
     
-    rates.push(posteriorRate)
     if (posteriorRate <= threshold) passCount++
   }
   
-  const sortedRates = [...rates].sort((a, b) => a - b)
-  
   return {
     pPass: passCount / iterations,
-    mean: rates.reduce((a, b) => a + b, 0) / rates.length,
-    p5: sortedRates[Math.floor(iterations * 0.05)],
-    p50: sortedRates[Math.floor(iterations * 0.50)],
-    p95: sortedRates[Math.floor(iterations * 0.95)],
-    newN,
     additionalPatients,
+    newN,
   }
 }
 
-function runStressTestSimulation(iterations: number, additionalRevisions: number, threshold: number) {
+function runStressSimulation(iterations: number, additionalRevisions: number, threshold: number) {
   const totalRevisions = H34_CURRENT.revisions + additionalRevisions
   const n = H34_CURRENT.enrolled
   let passCount = 0
-  const rates: number[] = []
   
   for (let i = 0; i < iterations; i++) {
     const sampledRate = sampleBeta(totalRevisions + 1, n - totalRevisions + 1)
-    rates.push(sampledRate)
     if (sampledRate <= threshold) passCount++
   }
   
-  const sortedRates = [...rates].sort((a, b) => a - b)
-  
   return {
     pPass: passCount / iterations,
-    mean: rates.reduce((a, b) => a + b, 0) / rates.length,
-    p5: sortedRates[Math.floor(iterations * 0.05)],
-    p50: sortedRates[Math.floor(iterations * 0.50)],
-    p95: sortedRates[Math.floor(iterations * 0.95)],
-    totalRevisions,
     additionalRevisions,
+    totalRevisions,
   }
 }
 
-function VerdictBadge({ probability }: { probability: number }) {
+interface SimulationResults {
+  baseline: ReturnType<typeof runBaselineSimulation>
+  enrollment: ReturnType<typeof runEnrollmentSimulation>[]
+  stress: ReturnType<typeof runStressSimulation>[]
+}
+
+function VerdictBadge({ probability, size = 'normal' }: { probability: number; size?: 'normal' | 'small' }) {
+  const baseClasses = size === 'small' 
+    ? 'px-2 py-1 text-xs rounded-full font-medium'
+    : 'px-3 py-1.5 text-sm rounded-full font-semibold'
+  
   if (probability >= 0.80) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
-        <CheckCircle className="w-5 h-5" />
-        <span className="font-semibold">High Confidence</span>
-      </div>
+      <span className={`${baseClasses} bg-green-100 text-green-800`}>
+        High Confidence
+      </span>
     )
   } else if (probability >= 0.50) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full">
-        <AlertCircle className="w-5 h-5" />
-        <span className="font-semibold">Uncertain</span>
-      </div>
+      <span className={`${baseClasses} bg-amber-100 text-amber-800`}>
+        Uncertain
+      </span>
     )
   } else {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-full">
-        <XCircle className="w-5 h-5" />
-        <span className="font-semibold">At Risk</span>
-      </div>
+      <span className={`${baseClasses} bg-red-100 text-red-800`}>
+        At Risk
+      </span>
     )
   }
 }
 
-function ProbabilityMeter({ probability, label }: { probability: number; label: string }) {
-  const percentage = probability * 100
-  const color = probability >= 0.80 ? 'bg-green-500' : probability >= 0.50 ? 'bg-amber-500' : 'bg-red-500'
+function ProbabilityCard({ 
+  probability, 
+  label, 
+  sublabel,
+  delta,
+  highlighted = false 
+}: { 
+  probability: number
+  label: string
+  sublabel?: string
+  delta?: number
+  highlighted?: boolean
+}) {
+  const bgColor = probability >= 0.80 ? 'bg-green-50 border-green-200' 
+    : probability >= 0.50 ? 'bg-amber-50 border-amber-200' 
+    : 'bg-red-50 border-red-200'
   
+  const textColor = probability >= 0.80 ? 'text-green-700' 
+    : probability >= 0.50 ? 'text-amber-700' 
+    : 'text-red-700'
+
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-600">{label}</span>
-        <span className="font-bold text-gray-900">{percentage.toFixed(1)}%</span>
+    <div className={`p-4 rounded-xl border ${highlighted ? bgColor : 'bg-gray-50 border-gray-200'} text-center transition-all`}>
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className={`text-2xl font-bold ${highlighted ? textColor : 'text-gray-900'}`}>
+        {(probability * 100).toFixed(0)}%
       </div>
-      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-        <div 
-          className={`h-full ${color} transition-all duration-500`}
-          style={{ width: `${percentage}%` }}
-        ></div>
-      </div>
+      {sublabel && <div className="text-xs text-gray-400 mt-0.5">{sublabel}</div>}
+      {delta !== undefined && (
+        <div className={`flex items-center justify-center gap-1 mt-1 text-xs ${delta > 0 ? 'text-green-600' : delta < 0 ? 'text-red-600' : 'text-gray-400'}`}>
+          {delta > 0 ? <TrendingUp className="w-3 h-3" /> : delta < 0 ? <TrendingDown className="w-3 h-3" /> : null}
+          {delta > 0 ? '+' : ''}{(delta * 100).toFixed(0)}%
+        </div>
+      )}
     </div>
   )
 }
 
 export default function SimulationStudio({ params }: SimulationStudioProps) {
-  const [activeScenario, setActiveScenario] = useState<ScenarioType>('regulatory')
-  const [iterations, setIterations] = useState(5000)
+  const [iterations] = useState(5000)
   const [isRunning, setIsRunning] = useState(false)
-  
   const [selectedThreshold, setSelectedThreshold] = useState<keyof typeof REGULATORY_THRESHOLDS>('fda_510k')
-  const [regulatoryResult, setRegulatoryResult] = useState<ReturnType<typeof runRegulatorySimulation> | null>(null)
-  
-  const [additionalPatients, setAdditionalPatients] = useState(20)
-  const [enrollmentResults, setEnrollmentResults] = useState<ReturnType<typeof runEnrollmentSimulation>[] | null>(null)
-  const [enrollmentBaseline, setEnrollmentBaseline] = useState<number | null>(null)
-  
-  const [additionalRevisions, setAdditionalRevisions] = useState(2)
-  const [stressResult, setStressResult] = useState<ReturnType<typeof runStressTestSimulation> | null>(null)
-  
+  const [results, setResults] = useState<SimulationResults | null>(null)
   const [showMethodology, setShowMethodology] = useState(false)
   const [simulationProgress, setSimulationProgress] = useState(0)
 
-  const scenarios = [
-    { id: 'regulatory' as const, label: 'Regulatory Go/No-Go', icon: Shield, question: 'Will we pass regulatory thresholds?' },
-    { id: 'enrollment' as const, label: 'Enrollment Decision', icon: Users, question: 'Should we add more patients?' },
-    { id: 'stress' as const, label: 'Stress Test', icon: AlertTriangle, question: 'What if more revisions occur?' },
-  ]
-
-  const runSimulation = () => {
+  const runAllSimulations = () => {
     setIsRunning(true)
     setSimulationProgress(0)
     
     const progressInterval = setInterval(() => {
-      setSimulationProgress(prev => Math.min(prev + Math.random() * 15 + 5, 95))
-    }, 200)
+      setSimulationProgress(prev => Math.min(prev + Math.random() * 12 + 4, 95))
+    }, 150)
     
     setTimeout(() => {
       const threshold = REGULATORY_THRESHOLDS[selectedThreshold].rate
       
-      if (activeScenario === 'regulatory') {
-        const result = runRegulatorySimulation(iterations, threshold)
-        setRegulatoryResult(result)
-      } else if (activeScenario === 'enrollment') {
-        const baseline = runRegulatorySimulation(iterations, threshold)
-        setEnrollmentBaseline(baseline.pPass)
-        const results = [10, 20, 50, 100].map(n => 
-          runEnrollmentSimulation(iterations, n, threshold)
-        )
-        setEnrollmentResults(results)
-      } else if (activeScenario === 'stress') {
-        const result = runStressTestSimulation(iterations, additionalRevisions, threshold)
-        setStressResult(result)
-      }
+      const baseline = runBaselineSimulation(iterations, threshold)
+      
+      const enrollment = [20, 50, 100].map(n => 
+        runEnrollmentSimulation(iterations, n, threshold)
+      )
+      
+      const stress = [1, 2, 3].map(r => 
+        runStressSimulation(iterations, r, threshold)
+      )
+      
+      setResults({ baseline, enrollment, stress })
       
       clearInterval(progressInterval)
       setSimulationProgress(100)
       setTimeout(() => {
         setIsRunning(false)
         setSimulationProgress(0)
-      }, 300)
-    }, 1800)
+      }, 200)
+    }, 2000)
   }
 
-  const renderRegulatoryScenario = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Question: Will H-34 pass regulatory revision rate thresholds?
-        </h3>
-        <p className="text-gray-600">
-          Based on current data ({H34_CURRENT.revisions} revisions in {H34_CURRENT.enrolled} patients), 
-          this simulation estimates the probability of meeting regulatory benchmarks using Bayesian inference.
-        </p>
-      </div>
+  const threshold = REGULATORY_THRESHOLDS[selectedThreshold]
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Regulatory Threshold</label>
-              <select 
-                value={selectedThreshold}
-                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
-              >
-                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
-                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
-                ))}
-              </select>
+  return (
+    <StudyLayout studyId={params.studyId}>
+      <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+            Simulation Studio
+          </h1>
+          <p className="text-xl text-gray-600">
+            Will H-34 meet the revision rate benchmark?
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-sm text-gray-500">Current Study Data</div>
+              <div className="text-lg font-medium text-gray-900">
+                {H34_CURRENT.revisions} revisions in {H34_CURRENT.enrolled} patients 
+                <span className="text-gray-500 font-normal"> ({(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}% observed)</span>
+              </div>
             </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Iterations</label>
-              <select 
-                value={iterations}
-                onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            
+            <div className="flex items-center gap-3">
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">Benchmark</label>
+                <select 
+                  value={selectedThreshold}
+                  onChange={(e) => {
+                    setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)
+                    setResults(null)
+                  }}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+                >
+                  {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
+                    <option key={key} value={key}>{val.label} (≤{(val.rate * 100).toFixed(0)}%)</option>
+                  ))}
+                </select>
+              </div>
+              
+              <button
+                onClick={runAllSimulations}
+                disabled={isRunning}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors font-medium"
               >
-                <option value={1000}>1,000</option>
-                <option value={5000}>5,000</option>
-                <option value={10000}>10,000</option>
-              </select>
+                {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                {isRunning ? 'Running...' : 'Run Simulation'}
+              </button>
             </div>
           </div>
-          <button
-            onClick={runSimulation}
-            disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
-          >
-            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Simulation'}
-          </button>
         </div>
 
         {isRunning && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-gray-600">
+          <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+            <div className="flex items-center gap-3 text-gray-600 mb-3">
               <Cpu className="w-5 h-5 animate-pulse" />
               <span>Running {iterations.toLocaleString()} Monte Carlo iterations...</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gray-800 transition-all duration-200"
+                className="h-full bg-gray-800 transition-all duration-150"
                 style={{ width: `${simulationProgress}%` }}
               ></div>
             </div>
           </div>
         )}
 
-        {!isRunning && regulatoryResult && (
+        {!isRunning && results && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl">
-              <div>
-                <div className="text-5xl font-bold text-gray-900">
-                  {(regulatoryResult.pPass * 100).toFixed(1)}%
+            
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+              <div className="text-center space-y-4">
+                <div className="text-sm text-gray-500 uppercase tracking-wide">
+                  Probability of Meeting {threshold.label} Benchmark
                 </div>
-                <div className="text-gray-600 mt-1">
-                  Probability of passing {REGULATORY_THRESHOLDS[selectedThreshold].label}
+                <div className="flex items-center justify-center gap-4">
+                  <div className={`text-7xl font-bold ${
+                    results.baseline.pPass >= 0.80 ? 'text-green-600' 
+                    : results.baseline.pPass >= 0.50 ? 'text-amber-600' 
+                    : 'text-red-600'
+                  }`}>
+                    {(results.baseline.pPass * 100).toFixed(0)}%
+                  </div>
+                  <VerdictBadge probability={results.baseline.pPass} />
+                </div>
+                <div className="text-gray-500">
+                  Based on current data: {H34_CURRENT.revisions} revisions / {H34_CURRENT.enrolled} patients
                 </div>
               </div>
-              <VerdictBadge probability={regulatoryResult.pPass} />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-gray-800 mb-3">Projected Revision Rate Distribution</h4>
-                <table className="w-full text-sm">
-                  <tbody className="divide-y divide-gray-100">
-                    <tr>
-                      <td className="py-2 text-gray-600">Current observed rate</td>
-                      <td className="py-2 text-right font-mono">{(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-gray-600">Simulated mean</td>
-                      <td className="py-2 text-right font-mono">{(regulatoryResult.mean * 100).toFixed(1)}%</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-gray-600">5th percentile (optimistic)</td>
-                      <td className="py-2 text-right font-mono text-green-600">{(regulatoryResult.p5 * 100).toFixed(1)}%</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-gray-600">50th percentile (median)</td>
-                      <td className="py-2 text-right font-mono">{(regulatoryResult.p50 * 100).toFixed(1)}%</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-gray-600">95th percentile (pessimistic)</td>
-                      <td className="py-2 text-right font-mono text-red-600">{(regulatoryResult.p95 * 100).toFixed(1)}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-800 mb-3">Recommendation</h4>
-                <div className={`p-4 rounded-lg ${regulatoryResult.pPass >= 0.80 ? 'bg-green-50 border border-green-200' : regulatoryResult.pPass >= 0.50 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
-                  {regulatoryResult.pPass >= 0.80 ? (
-                    <p className="text-green-800">
-                      <strong>Proceed with confidence.</strong> Current data strongly supports meeting the {REGULATORY_THRESHOLDS[selectedThreshold].description} threshold. Continue monitoring but no immediate action required.
-                    </p>
-                  ) : regulatoryResult.pPass >= 0.50 ? (
-                    <p className="text-amber-800">
-                      <strong>Proceed with caution.</strong> Outcome is uncertain. Consider extending follow-up period or increasing enrollment to strengthen the evidence base before regulatory submission.
-                    </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-gray-900">If we enroll more patients...</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {results.enrollment.map((r) => (
+                    <ProbabilityCard
+                      key={r.additionalPatients}
+                      probability={r.pPass}
+                      label={`+${r.additionalPatients} patients`}
+                      sublabel={`n=${r.newN}`}
+                      delta={r.pPass - results.baseline.pPass}
+                      highlighted={r.pPass >= 0.80}
+                    />
+                  ))}
+                </div>
+                <div className="mt-4 text-sm text-gray-600 bg-blue-50 rounded-lg p-3">
+                  {results.enrollment.some(r => r.pPass >= 0.80) ? (
+                    <>
+                      <strong className="text-blue-800">Recommendation:</strong> Adding {results.enrollment.find(r => r.pPass >= 0.80)?.additionalPatients}+ patients would bring confidence above 80%.
+                    </>
                   ) : (
-                    <p className="text-red-800">
-                      <strong>Risk mitigation needed.</strong> Current trajectory suggests difficulty meeting threshold. Recommend root cause analysis of revision cases and proactive PMCF enhancement.
-                    </p>
+                    <>
+                      <strong className="text-blue-800">Note:</strong> Even with 100 more patients, success probability remains below 80%. Consider additional strategies.
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <h3 className="font-semibold text-gray-900">If we see more revisions...</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {results.stress.map((r) => (
+                    <ProbabilityCard
+                      key={r.additionalRevisions}
+                      probability={r.pPass}
+                      label={`+${r.additionalRevisions} revision${r.additionalRevisions > 1 ? 's' : ''}`}
+                      sublabel={`${r.totalRevisions} total`}
+                      delta={r.pPass - results.baseline.pPass}
+                      highlighted={r.pPass < 0.50}
+                    />
+                  ))}
+                </div>
+                <div className="mt-4 text-sm text-gray-600 bg-red-50 rounded-lg p-3">
+                  {results.stress.find(r => r.pPass < 0.50) ? (
+                    <>
+                      <strong className="text-red-800">Warning:</strong> Just {results.stress.find(r => r.pPass < 0.50)?.additionalRevisions} more revision(s) would put success probability below 50%. Monitor closely.
+                    </>
+                  ) : (
+                    <>
+                      <strong className="text-amber-800">Moderate buffer:</strong> The study can absorb a few more revisions while maintaining viability.
+                    </>
                   )}
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
 
-  const renderEnrollmentScenario = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Question: Should we enroll more patients to improve regulatory success probability?
-        </h3>
-        <p className="text-gray-600">
-          This simulation projects how adding 10, 20, 50, or 100 additional patients would impact the probability 
-          of meeting the selected regulatory threshold, assuming similar revision patterns.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Target Threshold</label>
-              <select 
-                value={selectedThreshold}
-                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
-              >
-                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
-                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Iterations</label>
-              <select 
-                value={iterations}
-                onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value={1000}>1,000</option>
-                <option value={5000}>5,000</option>
-                <option value={10000}>10,000</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={runSimulation}
-            disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
-          >
-            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Simulation'}
-          </button>
-        </div>
-
-        {isRunning && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-gray-600">
-              <Cpu className="w-5 h-5 animate-pulse" />
-              <span>Running {iterations.toLocaleString()} Monte Carlo iterations for 4 enrollment scenarios...</span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gray-800 transition-all duration-200"
-                style={{ width: `${simulationProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {!isRunning && enrollmentResults && enrollmentBaseline !== null && (
-          <div className="space-y-6">
-            <div className="p-4 bg-gray-100 rounded-lg mb-4">
-              <div className="text-sm text-gray-600">Current baseline (n={H34_CURRENT.enrolled}): <span className="font-bold text-gray-900">{(enrollmentBaseline * 100).toFixed(1)}%</span> probability of success</div>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {enrollmentResults.map((result) => {
-                const improvement = result.pPass - enrollmentBaseline
-                
-                return (
-                  <div key={result.additionalPatients} className="bg-gray-50 rounded-xl p-4 text-center">
-                    <div className="text-sm text-gray-500 mb-1">+{result.additionalPatients} patients</div>
-                    <div className="text-3xl font-bold text-gray-900">{(result.pPass * 100).toFixed(0)}%</div>
-                    <div className="text-xs text-gray-500 mt-1">n = {result.newN}</div>
-                    <div className={`flex items-center justify-center gap-1 mt-2 text-sm ${improvement > 0 ? 'text-green-600' : improvement < 0 ? 'text-red-600' : 'text-gray-500'}`}>
-                      {improvement > 0 ? <TrendingUp className="w-4 h-4" /> : improvement < 0 ? <TrendingDown className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
-                      {improvement > 0 ? '+' : ''}{(improvement * 100).toFixed(1)}% vs current
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-800 mb-3">Projected Success by Enrollment Level</h4>
-              <div className="space-y-3">
-                {enrollmentResults.map((result) => (
-                  <ProbabilityMeter 
-                    key={result.additionalPatients}
-                    probability={result.pPass} 
-                    label={`n=${result.newN} (+${result.additionalPatients} patients)`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Recommendation</h4>
-              {(() => {
-                const best = enrollmentResults.reduce((a, b) => a.pPass > b.pPass ? a : b)
-                const marginalGain = enrollmentResults.find(r => r.pPass >= 0.80)
-                
-                if (marginalGain) {
-                  return (
-                    <p className="text-blue-800">
-                      <strong>Consider adding {marginalGain.additionalPatients} patients.</strong> This would increase total enrollment to {marginalGain.newN} and achieve ≥80% probability of regulatory success. The incremental data strengthens the safety evidence base.
-                    </p>
-                  )
-                } else {
-                  return (
-                    <p className="text-blue-800">
-                      <strong>Enrollment alone may not be sufficient.</strong> Even with +100 patients, success probability remains below 80%. Consider addressing underlying revision patterns or adjusting regulatory strategy.
-                    </p>
-                  )
-                }
-              })()}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-
-  const renderStressTestScenario = () => (
-    <div className="space-y-6">
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Question: What if we see additional revisions in the next follow-up period?
-        </h3>
-        <p className="text-gray-600">
-          This stress test simulates the impact of {additionalRevisions} additional revision(s) on regulatory success probability. 
-          Use this to understand risk exposure and plan mitigation strategies.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Additional Revisions</label>
-              <select 
-                value={additionalRevisions}
-                onChange={(e) => setAdditionalRevisions(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value={1}>+1 revision</option>
-                <option value={2}>+2 revisions</option>
-                <option value={3}>+3 revisions</option>
-                <option value={4}>+4 revisions</option>
-                <option value={5}>+5 revisions</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Target Threshold</label>
-              <select 
-                value={selectedThreshold}
-                onChange={(e) => setSelectedThreshold(e.target.value as keyof typeof REGULATORY_THRESHOLDS)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[200px]"
-              >
-                {Object.entries(REGULATORY_THRESHOLDS).map(([key, val]) => (
-                  <option key={key} value={key}>{val.label} ({(val.rate * 100).toFixed(0)}%)</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Iterations</label>
-              <select 
-                value={iterations}
-                onChange={(e) => setIterations(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value={1000}>1,000</option>
-                <option value={5000}>5,000</option>
-                <option value={10000}>10,000</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={runSimulation}
-            disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
-          >
-            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Stress Test'}
-          </button>
-        </div>
-
-        {isRunning && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-gray-600">
-              <Cpu className="w-5 h-5 animate-pulse" />
-              <span>Running {iterations.toLocaleString()} Monte Carlo iterations for stress scenario...</span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gray-800 transition-all duration-200"
-                style={{ width: `${simulationProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-
-        {!isRunning && stressResult && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-6 bg-gray-50 rounded-xl">
-                <div className="text-sm text-gray-500 mb-2">Current State</div>
-                <div className="text-3xl font-bold text-gray-900">{H34_CURRENT.revisions} revisions</div>
-                <div className="text-gray-600">in {H34_CURRENT.enrolled} patients ({(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%)</div>
-              </div>
-              <div className="p-6 bg-red-50 border border-red-200 rounded-xl">
-                <div className="text-sm text-red-600 mb-2">Stress Scenario</div>
-                <div className="text-3xl font-bold text-red-700">{stressResult.totalRevisions} revisions</div>
-                <div className="text-red-600">in {H34_CURRENT.enrolled} patients ({(stressResult.mean * 100).toFixed(1)}% projected)</div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">Probability of Still Passing {REGULATORY_THRESHOLDS[selectedThreshold].label}</div>
-                <div className="text-5xl font-bold text-gray-900">
-                  {(stressResult.pPass * 100).toFixed(1)}%
-                </div>
-              </div>
-              <VerdictBadge probability={stressResult.pPass} />
-            </div>
-
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-3">Risk Analysis</h4>
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-gray-100">
-                  <tr>
-                    <td className="py-2 text-gray-600">New revision rate (mean)</td>
-                    <td className="py-2 text-right font-mono">{(stressResult.mean * 100).toFixed(1)}%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 text-gray-600">Worst case (95th percentile)</td>
-                    <td className="py-2 text-right font-mono text-red-600">{(stressResult.p95 * 100).toFixed(1)}%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 text-gray-600">Threshold</td>
-                    <td className="py-2 text-right font-mono">{(REGULATORY_THRESHOLDS[selectedThreshold].rate * 100).toFixed(0)}%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 text-gray-600">Buffer remaining</td>
-                    <td className={`py-2 text-right font-mono ${REGULATORY_THRESHOLDS[selectedThreshold].rate - stressResult.mean > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {((REGULATORY_THRESHOLDS[selectedThreshold].rate - stressResult.mean) * 100).toFixed(1)}%
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className={`p-4 rounded-lg ${stressResult.pPass >= 0.50 ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
-              <h4 className={`font-medium mb-2 ${stressResult.pPass >= 0.50 ? 'text-amber-900' : 'text-red-900'}`}>Contingency Planning</h4>
-              {stressResult.pPass >= 0.50 ? (
-                <p className={stressResult.pPass >= 0.50 ? 'text-amber-800' : 'text-red-800'}>
-                  <strong>Study remains viable but vulnerable.</strong> If {stressResult.additionalRevisions} more revision(s) occur, 
-                  regulatory success probability drops but remains manageable. Prepare enhanced surveillance protocols 
-                  and consider proactive communication with regulators.
+            <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+              <div className="text-sm text-gray-600 space-y-2">
+                <div className="font-medium text-gray-800">Summary</div>
+                <p>
+                  With current data, there's a <strong>{(results.baseline.pPass * 100).toFixed(0)}%</strong> chance of meeting the {threshold.label} benchmark (≤{(threshold.rate * 100).toFixed(0)}% revision rate).
+                  {results.baseline.pPass >= 0.80 
+                    ? " The study is on track with high confidence."
+                    : results.baseline.pPass >= 0.50 
+                    ? " Outcome is uncertain - consider enrollment expansion or enhanced monitoring."
+                    : " The study is at risk - immediate action is recommended."
+                  }
                 </p>
-              ) : (
-                <p className="text-red-800">
-                  <strong>Significant risk exposure.</strong> This scenario would materially threaten regulatory approval. 
-                  Immediate actions: (1) Investigate common factors in existing revisions, (2) Review surgical technique protocols, 
-                  (3) Consider interim analysis to assess continuation criteria.
-                </p>
-              )}
+              </div>
             </div>
           </div>
         )}
-      </div>
-    </div>
-  )
 
-  return (
-    <StudyLayout studyId={params.studyId}>
-      <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Simulation Studio</h1>
-          <p className="text-gray-500 mt-1">Decision-focused Monte Carlo simulations for clinical strategy</p>
-        </div>
+        {!isRunning && !results && (
+          <div className="bg-gray-50 rounded-2xl border border-gray-200 p-12 text-center">
+            <div className="text-gray-400 mb-4">
+              <Play className="w-12 h-12 mx-auto" />
+            </div>
+            <div className="text-gray-600">
+              Select a benchmark and click <strong>Run Simulation</strong> to see results
+            </div>
+          </div>
+        )}
 
-        <div className="bg-gray-100 rounded-xl p-1 inline-flex gap-1">
-          {scenarios.map((scenario) => {
-            const Icon = scenario.icon
-            return (
-              <button
-                key={scenario.id}
-                onClick={() => setActiveScenario(scenario.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeScenario === scenario.id
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {scenario.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {activeScenario === 'regulatory' && renderRegulatoryScenario()}
-        {activeScenario === 'enrollment' && renderEnrollmentScenario()}
-        {activeScenario === 'stress' && renderStressTestScenario()}
-
-        <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <button
             onClick={() => setShowMethodology(!showMethodology)}
-            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <Info className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">How This Simulation Works</span>
+              <Info className="w-5 h-5 text-gray-500" />
+              <span className="font-medium text-gray-700">How This Simulation Works</span>
             </div>
             {showMethodology ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
           </button>
           
           {showMethodology && (
-            <div className="p-6 pt-2 space-y-6 border-t border-gray-200">
+            <div className="p-6 pt-2 space-y-5 border-t border-gray-100 text-sm">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Monte Carlo Simulation</h4>
-                <p className="text-gray-600 text-sm">
-                  This tool runs thousands of random simulations to estimate probabilities. Each "iteration" 
-                  generates a possible future scenario based on current data, and we count how often we'd 
-                  pass regulatory thresholds. More iterations = more reliable estimates.
+                <h4 className="font-semibold text-gray-900 mb-1">What is Monte Carlo Simulation?</h4>
+                <p className="text-gray-600">
+                  We run {iterations.toLocaleString()} random simulations based on current data. Each simulation asks: 
+                  "Given what we've observed, what might the true revision rate be?" We count how often 
+                  the simulated rate stays below the benchmark - that's your probability.
                 </p>
               </div>
               
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Bayesian Statistics</h4>
-                <p className="text-gray-600 text-sm mb-3">
-                  We use Bayesian inference with a Beta distribution to model uncertainty about the true revision rate. 
-                  With only {H34_CURRENT.revisions} revisions in {H34_CURRENT.enrolled} patients, there's substantial 
-                  uncertainty - the simulation captures this by sampling from a range of plausible rates.
+                <h4 className="font-semibold text-gray-900 mb-1">Why is the probability not 100%?</h4>
+                <p className="text-gray-600">
+                  With only {H34_CURRENT.enrolled} patients and {H34_CURRENT.revisions} revisions, there's uncertainty. 
+                  The observed rate ({(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%) might not be the "true" rate. 
+                  The simulation captures this uncertainty - the true rate could reasonably be anywhere from ~2% to ~15%.
                 </p>
-                <div className="bg-white rounded-lg p-4 font-mono text-xs text-gray-700 border border-gray-200">
-                  <div className="mb-2"><strong>Current Data:</strong></div>
-                  <div className="pl-4 space-y-1">
-                    <div>Observed: {H34_CURRENT.revisions} revisions / {H34_CURRENT.enrolled} patients = {(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%</div>
-                    <div>Posterior: Beta({H34_CURRENT.revisions + 1}, {H34_CURRENT.enrolled - H34_CURRENT.revisions + 1})</div>
-                    <div>This captures: "The true rate is likely between ~2% and ~15% with 95% confidence"</div>
-                  </div>
-                </div>
               </div>
               
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">How Each Scenario Works</h4>
-                <div className="space-y-3">
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="font-medium text-gray-800 mb-1">Regulatory Go/No-Go</div>
-                    <p className="text-gray-600 text-sm">
-                      Samples possible revision rates from the posterior distribution, then counts what fraction 
-                      are below the regulatory threshold. Example: 74.6% means ~3 out of 4 simulated futures pass.
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="font-medium text-gray-800 mb-1">Enrollment Decision</div>
-                    <p className="text-gray-600 text-sm">
-                      Projects what happens if we add more patients. For each iteration: (1) sample a rate from 
-                      current posterior, (2) simulate new revisions for additional patients, (3) update posterior 
-                      with combined data, (4) check if updated rate passes threshold.
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="font-medium text-gray-800 mb-1">Stress Test</div>
-                    <p className="text-gray-600 text-sm">
-                      Models worst-case scenarios by deterministically adding revisions to current data, then 
-                      sampling the updated posterior. Shows how much buffer we have before failing thresholds.
-                    </p>
-                  </div>
-                </div>
+                <h4 className="font-semibold text-gray-900 mb-1">Enrollment Scenarios</h4>
+                <p className="text-gray-600">
+                  Adding patients dilutes uncertainty. More data = more confidence in the true rate. 
+                  Each scenario projects expected new revisions based on current patterns, then recalculates the probability.
+                </p>
               </div>
               
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Verdict Interpretation</h4>
-                <div className="flex gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-gray-600">≥80%: High Confidence</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                    <span className="text-gray-600">50-79%: Uncertain</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="text-gray-600">&lt;50%: At Risk</span>
-                  </div>
+                <h4 className="font-semibold text-gray-900 mb-1">Stress Test Scenarios</h4>
+                <p className="text-gray-600">
+                  These show what happens if things go wrong. If {H34_CURRENT.revisions + 2} total revisions occur, 
+                  the revised rate becomes {((H34_CURRENT.revisions + 2) / H34_CURRENT.enrolled * 100).toFixed(1)}% - 
+                  which may exceed the benchmark, dramatically lowering success probability.
+                </p>
+              </div>
+              
+              <div className="flex gap-4 pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-gray-600">≥80%: High Confidence</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                  <span className="text-gray-600">50-79%: Uncertain</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <span className="text-gray-600">&lt;50%: At Risk</span>
                 </div>
               </div>
             </div>
