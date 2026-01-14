@@ -260,6 +260,146 @@ registries:
         table: "Table 6"
       notes: "CJRR 2021-2022 is the latest available report. Survival/revision risk data is presented in graphical format only (Figures 7-12, pages 46-56) and does not allow precise data extraction. Revision reasons percentages are extracted from Table 11."
 
+  nar:
+    name: "Norwegian Arthroplasty Register"
+    abbreviation: "NAR"
+    country: "Norway"
+    report_year: 2023
+    data_period: "1987-2022"
+    population: "revision_tha"
+    n_procedures: 37882
+    survival_1yr: 0.96
+    survival_2yr: 0.93
+    survival_5yr: 0.86
+    survival_10yr: 0.79
+    survival_15yr: 0.73
+    provenance:
+      source_file: "data/raw/downloaded_registry/NAR_2023_Annual_Report.pdf"
+      extraction_date: "2026-01-14"
+      survival_rates:
+        - timepoint: "1yr"
+          page: 16
+          table: "Figure A.21) All"
+          quote: "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 96% survival at 1 year."
+        - timepoint: "5yr"
+          page: 16
+          table: "Figure A.21) All"
+          quote: "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 86% survival at 5 years."
+        - timepoint: "10yr"
+          page: 16
+          table: "Figure A.21) All"
+          quote: "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 79% survival at 10 years."
+        - timepoint: "15yr"
+          page: 16
+          table: "Figure A.21) All"
+          quote: "Visual estimate from Kaplan-Meier curve. Y-axis shows approximately 73% survival at 15 years."
+      notes: "Total revision procedures calculated from Table 1 page 35. Survival rates are visual estimates from Kaplan-Meier figure."
+
+  nzjr:
+    name: "New Zealand Joint Registry"
+    abbreviation: "NZJR"
+    country: "New Zealand"
+    report_year: 2024
+    data_period: "1999-2024"
+    population: "revision_tha"
+    n_procedures: 32275
+    survival_1yr: 0.95
+    survival_2yr: 0.92
+    survival_5yr: 0.86
+    survival_10yr: 0.79
+    provenance:
+      source_file: "data/raw/downloaded_registry/NZJR_26_Year_Report.pdf"
+      extraction_date: "2026-01-14"
+      survival_rates:
+        - timepoint: "1yr"
+          page: 31
+          table: "Figure: Cumulative Incidence of Re-revision"
+          quote: "Value estimated from graph. Cumulative re-revision rate at 1 year is approximately 0.05."
+        - timepoint: "5yr"
+          page: 31
+          table: "Figure: Cumulative Incidence of Re-revision"
+          quote: "Value estimated from graph. Cumulative re-revision rate at 5 years is approximately 0.14."
+        - timepoint: "10yr"
+          page: 31
+          table: "Figure: Cumulative Incidence of Re-revision"
+          quote: "Value estimated from graph. Cumulative re-revision rate at 10 years is approximately 0.21."
+      notes: "Re-revision rate of 2.54 per 100 component-years from Table 1.41. Survival rates estimated from Cumulative Incidence graph."
+
+  dhr:
+    name: "Danish Hip Arthroplasty Register"
+    abbreviation: "DHR"
+    country: "Denmark"
+    report_year: 2024
+    data_period: "1995-2024"
+    population: "revision_tha"
+    n_procedures: 35707
+    survival_1yr: 0.988
+    survival_2yr: 0.975
+    survival_5yr: 0.945
+    survival_10yr: 0.90
+    survival_15yr: 0.85
+    revision_reasons:
+      - reason: "infection"
+        percentage: 0.394
+        description: "Infection"
+      - reason: "aseptic_loosening"
+        percentage: 0.224
+        description: "Aseptic Loosening (all)"
+      - reason: "dislocation"
+        percentage: 0.219
+        description: "Dislocation"
+      - reason: "periprosthetic_fracture"
+        percentage: 0.047
+        description: "Femoral Fracture"
+      - reason: "component_failure"
+        percentage: 0.029
+        description: "Component Failure"
+    provenance:
+      source_file: "data/raw/downloaded_registry/DHR_2024_Annual_Report.pdf"
+      extraction_date: "2026-01-14"
+      survival_rates:
+        - timepoint: "1yr"
+          page: 153
+          table: "Figur 10.3"
+          quote: "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+        - timepoint: "5yr"
+          page: 153
+          table: "Figur 10.3"
+          quote: "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+        - timepoint: "10yr"
+          page: 153
+          table: "Figur 10.3"
+          quote: "Survival Probability of First Hip Revision Arthroplasty with Any Second Revision as End-Point"
+      revision_reasons:
+        page: 143
+        table: "Tabel 10.2"
+      notes: "DHR has highest revision THA survival rates (90% at 10 years). Revision reasons from Table 10.2 page 143."
+
+  eprd:
+    name: "German Arthroplasty Registry"
+    abbreviation: "EPRD"
+    country: "Germany"
+    report_year: 2024
+    data_period: "2012-2023"
+    population: "revision_tha"
+    n_procedures: 51713
+    survival_1yr: 0.90
+    survival_2yr: 0.881
+    survival_5yr: 0.85
+    provenance:
+      source_file: "data/raw/downloaded_registry/EPRD_2024_Annual_Report.pdf"
+      extraction_date: "2026-01-14"
+      survival_rates:
+        - timepoint: "1yr"
+          page: 101
+          table: "Kaplan-Meier survival curve"
+          quote: "Visual estimate from survival curve for revision THA."
+        - timepoint: "5yr"
+          page: 101
+          table: "Kaplan-Meier survival curve"
+          quote: "Visual estimate from survival curve for revision THA."
+      notes: "EPRD is a newer registry (started 2012) with shorter follow-up. Survival rates estimated from figures."
+
 benchmarks:
   revision_tha_2yr_survival:
     value: 0.946
