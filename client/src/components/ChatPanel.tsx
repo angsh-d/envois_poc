@@ -98,7 +98,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 // Cache configuration for response persistence
 // Version 4: Updated to include raw_data for drill-down transparency
 const CACHE_KEY_PREFIX = 'chat_cache_v4_'
-const CACHE_EXPIRY_MS = 48 * 60 * 60 * 1000 // 48 hours
+const CACHE_EXPIRY_MS = 96 * 60 * 60 * 1000 // 96 hours (4 days)
 const ARTIFICIAL_DELAY_MS = 1500 // Show spinner for cached responses
 
 // Generate a hash key for caching
