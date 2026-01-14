@@ -210,6 +210,23 @@ export default function Agents({ params }: AgentsProps) {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
+              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-300">
+                <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-3 font-semibold">Orchestration Layer</p>
+                <div className="bg-white border border-gray-400 rounded-lg p-3 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Bot className="w-4 h-4 text-gray-700" />
+                    <p className="text-sm font-semibold text-gray-800">Orchestrator Agent</p>
+                  </div>
+                  <p className="text-xs text-gray-500">Routes queries to appropriate specialists, coordinates parallel execution</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center w-full">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
+                <div className="flex-1 h-px bg-gray-200"></div>
+              </div>
+
               <div className="w-full border border-gray-400 rounded-xl p-4 bg-gray-200">
                 <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-3 font-semibold">Specialist Agents Layer</p>
                 <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 w-full">
