@@ -514,11 +514,21 @@ class CodeAgent:
             # Parse the response
             code, explanation = self._parse_response(response, language)
             
+            # Validate the generated code against the schema
+            validation = await self.validate_code(code, language)
+            
+            warnings = []
+            if not validation["valid"]:
+                warnings.extend(validation["issues"])
+            if validation["suggestions"]:
+                warnings.extend(validation["suggestions"])
+            
             result = CodeGenerationResult(
                 success=True,
                 language=language.value,
                 code=code,
-                explanation=explanation
+                explanation=explanation,
+                warnings=warnings if warnings else None
             )
             
             # Execute if requested (only for SQL - safer)
@@ -739,30 +749,57 @@ Return your response in this exact format:
             "suggestions": []
         }
         
+        # Valid tables and their columns from the schema
+        schema_tables = {
+            'study_patients': ['id', 'patient_id', 'facility', 'year_of_birth', 'weight', 'height', 'bmi', 'gender', 'race', 'enrollment_date', 'informed_consent_date', 'surgery_date'],
+            'study_surgeries': ['id', 'patient_id', 'surgery_date', 'procedure_type', 'implant_type', 'surgeon_id', 'facility', 'primary_diagnosis', 'laterality', 'bone_defect_classification', 'cup_size', 'liner_type', 'augment_used', 'revision_surgery', 'revision_date', 'revision_reason'],
+            'study_scores': ['id', 'patient_id', 'visit_id', 'assessment_date', 'hhs_total', 'hhs_pain', 'hhs_function', 'hhs_deformity', 'hhs_rom', 'womac_total', 'womac_pain', 'womac_stiffness', 'womac_function', 'eq5d_index', 'eq5d_vas', 'satisfaction_score'],
+            'study_visits': ['id', 'patient_id', 'visit_type', 'scheduled_date', 'actual_date', 'status', 'notes', 'xray_performed', 'xray_findings'],
+            'study_adverse_events': ['id', 'patient_id', 'event_date', 'event_type', 'severity', 'seriousness', 'relatedness', 'description', 'action_taken', 'outcome', 'resolution_date'],
+            'registry_benchmarks': ['id', 'registry_name', 'country', 'revision_rate_5yr', 'revision_rate_10yr', 'sample_size', 'year', 'implant_category'],
+            'literature_publications': ['id', 'title', 'authors', 'journal', 'year', 'doi', 'pmid', 'study_type', 'sample_size', 'followup_years'],
+            'literature_risk_factors': ['id', 'publication_id', 'risk_factor', 'hazard_ratio', 'confidence_interval', 'p_value'],
+            'protocol_rules': ['id', 'rule_type', 'rule_id', 'description', 'threshold', 'operator', 'action'],
+            'protocol_visits': ['id', 'visit_name', 'visit_window_days', 'required_assessments'],
+            'protocol_endpoints': ['id', 'endpoint_type', 'endpoint_name', 'definition', 'timepoint']
+        }
+        
+        valid_tables = list(schema_tables.keys())
+        all_columns = set()
+        for cols in schema_tables.values():
+            all_columns.update(cols)
+        
         # Check for common issues
         if language == CodeLanguage.SQL:
-            # Check table references
-            valid_tables = [
-                'study_patients', 'study_surgeries', 'study_scores', 'study_visits',
-                'study_adverse_events', 'registry_benchmarks', 'literature_publications',
-                'literature_risk_factors', 'protocol_rules', 'protocol_visits', 'protocol_endpoints'
-            ]
-            
             code_lower = code.lower()
-            for table in valid_tables:
-                if table in code_lower:
-                    break
-            else:
-                # Check if any referenced table is invalid
-                table_pattern = r'\bFROM\s+(\w+)|\bJOIN\s+(\w+)'
-                matches = re.findall(table_pattern, code, re.IGNORECASE)
-                for match in matches:
-                    table_name = match[0] or match[1]
-                    if table_name.lower() not in valid_tables:
-                        validation_result["issues"].append(
-                            f"Unknown table '{table_name}'. Valid tables: {', '.join(valid_tables)}"
+            
+            # Check table references
+            table_pattern = r'\bFROM\s+(\w+)|\bJOIN\s+(\w+)'
+            matches = re.findall(table_pattern, code, re.IGNORECASE)
+            referenced_tables = []
+            for match in matches:
+                table_name = (match[0] or match[1]).lower()
+                referenced_tables.append(table_name)
+                if table_name not in valid_tables:
+                    validation_result["issues"].append(
+                        f"Unknown table '{table_name}'. Valid tables: {', '.join(valid_tables)}"
+                    )
+                    validation_result["valid"] = False
+            
+            # Check for common column typos in referenced tables
+            if referenced_tables and validation_result["valid"]:
+                # Get valid columns for referenced tables
+                valid_cols = set()
+                for t in referenced_tables:
+                    if t in schema_tables:
+                        valid_cols.update(schema_tables[t])
+                
+                # Suggest using correct column names
+                if 'patient_id' in code_lower and 'study_patients' in referenced_tables:
+                    if 'id' in code_lower and 'patient_id' not in code_lower:
+                        validation_result["suggestions"].append(
+                            "Note: study_patients uses 'patient_id' (varchar) as the study identifier, not 'id' (serial)"
                         )
-                        validation_result["valid"] = False
         
         elif language == CodeLanguage.PYTHON:
             # Check for required imports
@@ -770,12 +807,22 @@ Return your response in this exact format:
                 validation_result["suggestions"].append(
                     "Consider using pandas for data manipulation"
                 )
+            # Check for database connection
+            if 'DATABASE_URL' not in code and 'psycopg2' not in code and 'sqlalchemy' not in code:
+                validation_result["suggestions"].append(
+                    "Remember to use DATABASE_URL environment variable for database connection"
+                )
         
         elif language == CodeLanguage.R:
             # Check for required packages
             if 'library' not in code.lower():
                 validation_result["suggestions"].append(
                     "Consider explicitly loading required libraries (e.g., library(DBI), library(survival))"
+                )
+            # Check for database connection
+            if 'DATABASE_URL' not in code and 'dbConnect' not in code:
+                validation_result["suggestions"].append(
+                    "Remember to use Sys.getenv('DATABASE_URL') for database connection"
                 )
         
         return validation_result
