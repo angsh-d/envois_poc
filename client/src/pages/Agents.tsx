@@ -265,26 +265,26 @@ export default function Agents({ params }: AgentsProps) {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div className="w-full border border-gray-800 rounded-xl p-4 bg-gray-900">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
+              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-400">
+                <p className="text-[10px] text-gray-700 uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
                 <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">Dashboard</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">Dashboard</p>
                   </div>
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">Readiness</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">Readiness</p>
                   </div>
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">Safety</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">Safety</p>
                   </div>
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">Deviations</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">Deviations</p>
                   </div>
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">Risk</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">Risk</p>
                   </div>
-                  <div className="bg-gray-800 border border-gray-700 rounded-lg p-2 text-center">
-                    <p className="text-[9px] font-medium text-gray-300">AI Chat</p>
+                  <div className="bg-gray-200 border border-gray-300 rounded-lg p-2 text-center">
+                    <p className="text-[9px] font-medium text-gray-700">AI Chat</p>
                   </div>
                 </div>
               </div>
