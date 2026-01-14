@@ -482,7 +482,14 @@ class ReadinessService:
                         "major": "Visit >1.5x window OR missing non-critical assessment",
                         "minor": "Visit within 1.5x allowed window extension",
                     },
+                    "data_sources": {
+                        "visit_dates": "study_scores table (assessment dates by patient)",
+                        "surgery_dates": "study_surgeries table (surgery_date as Day 0 reference)",
+                        "visit_windows": "protocol_visits table (target_day, window_minus, window_plus)",
+                        "classification_rules": "protocol_rules table (deviation_classification)",
+                    },
                     "source": "Protocol deviation detection comparing visit dates to protocol windows",
+                    "methodology": "Each patient visit date compared against expected window (surgery_date + target_day ± window)",
                     "regulatory_reference": "ICH GCP E6(R2) Section 4.5 - Protocol Compliance",
                 }
             })

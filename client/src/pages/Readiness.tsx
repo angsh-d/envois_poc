@@ -518,12 +518,33 @@ export default function Readiness() {
                           </div>
                         )}
 
+                        {/* Data Sources */}
+                        {blocker.provenance.data_sources && (
+                          <div className="mb-2">
+                            <span className="text-xs text-gray-400">Data Sources:</span>
+                            <div className="mt-1 space-y-0.5">
+                              {Object.entries(blocker.provenance.data_sources as Record<string, string>).map(([key, value]) => (
+                                <div key={key} className="text-xs">
+                                  <span className="font-medium text-gray-600 capitalize">{key.replace(/_/g, ' ')}:</span>
+                                  <span className="ml-1 text-blue-600">{value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Source and regulatory reference */}
                         <div className="flex flex-wrap gap-4 mt-2 pt-2 border-t border-gray-100">
                           {blocker.provenance.source && (
                             <div className="text-xs">
                               <span className="text-gray-400">Source:</span>
                               <span className="ml-1 text-gray-600">{blocker.provenance.source}</span>
+                            </div>
+                          )}
+                          {blocker.provenance.methodology && (
+                            <div className="text-xs">
+                              <span className="text-gray-400">Methodology:</span>
+                              <span className="ml-1 text-gray-600">{blocker.provenance.methodology}</span>
                             </div>
                           )}
                           {blocker.provenance.regulatory_reference && (
