@@ -174,17 +174,17 @@ class RegistryBenchmark(BaseModel):
     # Revision reasons
     revision_reasons: Optional[List[Dict[str, Any]]] = None
 
-    # Outcomes by indication (AOANJRR has this)
-    outcomes_by_indication: Optional[Dict[str, Dict[str, float]]] = None
+    # Outcomes by indication and provenance (flexible structure)
+    outcomes_by_indication: Optional[Dict[str, Any]] = None
 
 
 class PooledNorms(BaseModel):
     """Aggregated norms from all registries."""
     total_procedures: int
     total_registries: int
-    survival_rates: Dict[str, Dict[str, Any]]
-    revision_rates: Dict[str, Dict[str, Any]]
-    revision_reasons_pooled: Dict[str, float]
+    survival_rates: Dict[str, Any]
+    revision_rates: Dict[str, Any]
+    revision_reasons_pooled: Dict[str, Any]
 
 
 class PerformanceLevel(BaseModel):

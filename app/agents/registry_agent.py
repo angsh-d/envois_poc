@@ -169,6 +169,8 @@ class RegistryAgent(BaseAgent):
             )
 
         # Add aggregated source summary
+        data_years_list = [r.data_years.split('-')[0] for r in norms.registries if r.data_years and '-' in r.data_years]
+        data_years_range = f"{min(data_years_list)}-2023" if data_years_list else "2003-2023"
         result.add_source(
             SourceType.REGISTRY,
             f"Pooled International Registry Data (n={sum(r.n_procedures or 0 for r in norms.registries):,})",
@@ -176,7 +178,7 @@ class RegistryAgent(BaseAgent):
             details={
                 "n_registries": len(norms.registries),
                 "registries": [r.abbreviation for r in norms.registries],
-                "data_years_range": f"{min(r.data_years.split('-')[0] for r in norms.registries if r.data_years)}-2023",
+                "data_years_range": data_years_range,
                 "query_type": query_type,
             }
         )
