@@ -363,10 +363,14 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
 
       const tooltip = metricInfo?.tooltip || `${metricName} comparison between H-34 study data and published literature benchmarks.`
 
+      const metricLower = c.metric.toLowerCase()
+      const isRateOrSurvival = metricLower.includes('rate') || metricLower.includes('survival') || metricLower.includes('achievement')
+      const isImprovement = metricLower.includes('improvement')
+
       let studyValue: string
-      if (c.metric.includes('rate') || c.metric.includes('survival') || c.metric.includes('achievement')) {
+      if (isRateOrSurvival) {
         studyValue = `${((c.study_value || 0) * 100).toFixed(1)}%`
-      } else if (c.metric.includes('improvement')) {
+      } else if (isImprovement) {
         studyValue = c.study_value && c.study_value > 0 ? `+${c.study_value.toFixed(1)}` : `${c.study_value?.toFixed(1)}`
       } else {
         studyValue = c.study_value?.toFixed(1) || 'N/A'
@@ -374,16 +378,16 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
 
       let benchmarkValue: string
       if (c.benchmark_value !== undefined && c.benchmark_value !== null) {
-        if (c.metric.includes('rate') || c.metric.includes('survival')) {
+        if (isRateOrSurvival) {
           benchmarkValue = `${((c.benchmark_value || 0) * 100).toFixed(1)}%`
-        } else if (c.metric.includes('improvement')) {
+        } else if (isImprovement) {
           benchmarkValue = c.benchmark_value > 0 ? `+${c.benchmark_value.toFixed(1)}` : c.benchmark_value.toFixed(1)
         } else {
           benchmarkValue = c.benchmark_value.toFixed(1)
         }
         if (c.benchmark_range && c.benchmark_range.length === 2) {
           const [min, max] = c.benchmark_range
-          if (c.metric.includes('rate') || c.metric.includes('survival')) {
+          if (isRateOrSurvival) {
             benchmarkValue += ` (${(min * 100).toFixed(0)}-${(max * 100).toFixed(0)}%)`
           } else {
             benchmarkValue += ` (${min.toFixed(0)}-${max.toFixed(0)})`
