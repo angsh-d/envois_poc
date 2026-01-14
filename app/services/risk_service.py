@@ -134,8 +134,8 @@ class RiskModel:
                 logger.warning(f"ML prediction failed: {e}")
                 ml_confidence = 0.0
 
-        # === Literature Hazard Ratio Calculation ===
-        present_factors = []
+        # === Literature Hazard Ratio Calculation (Clinical Factors) ===
+        clinical_factors = []
         combined_hr = 1.0
 
         # Map features to hazard ratio factors
@@ -154,15 +154,58 @@ class RiskModel:
 
         for factor, hr in self.HAZARD_RATIOS.items():
             if hr_mapping.get(factor, False):
-                present_factors.append({
+                clinical_factors.append({
                     "factor": factor,
                     "hazard_ratio": hr,
                     "contribution": hr - 1.0,
+                    "category": "clinical",
                 })
                 combined_hr *= hr
 
         # Convert combined HR to score (0-1 scale)
         hr_score = min(0.95, max(0.05, (combined_hr - 1) / 5))
+
+        # === Demographic Factors (from ML model features) ===
+        demographic_factors = []
+        
+        # Age contribution
+        age = features.get("age")
+        if age is not None and age >= 65:
+            age_impact = "moderate" if age < 75 else "high"
+            demographic_factors.append({
+                "factor": f"age_{int(age)}",
+                "display_name": f"Age {int(age)}",
+                "value": int(age),
+                "impact": age_impact,
+                "category": "demographic",
+            })
+        
+        # BMI contribution
+        bmi = features.get("bmi")
+        if bmi is not None and bmi >= 25:
+            if bmi >= 35:
+                bmi_impact = "high"
+            elif bmi >= 30:
+                bmi_impact = "moderate"
+            else:
+                bmi_impact = "low"
+            demographic_factors.append({
+                "factor": f"bmi_{bmi:.1f}",
+                "display_name": f"BMI {bmi:.1f}",
+                "value": round(bmi, 1),
+                "impact": bmi_impact,
+                "category": "demographic",
+            })
+        
+        # Gender (if female, slight statistical risk difference)
+        if features.get("is_female"):
+            demographic_factors.append({
+                "factor": "female",
+                "display_name": "Female",
+                "value": True,
+                "impact": "low",
+                "category": "demographic",
+            })
 
         # === Ensemble Score ===
         # Weight: 60% ML score, 40% HR score (if ML model loaded)
@@ -179,14 +222,22 @@ class RiskModel:
         else:
             risk_level = "low"
 
+        # Combine all contributing factors for backward compatibility
+        all_factors = clinical_factors.copy()
+
         return {
             "risk_score": round(ensemble_score, 3),
             "risk_level": risk_level,
             "ml_score": round(ml_score, 3) if ml_confidence > 0 else None,
             "hr_score": round(hr_score, 3),
+            "clinical_risk_score": round(hr_score, 3),
+            "demographic_risk_score": round(ml_score, 3) if ml_confidence > 0 else None,
             "combined_hazard_ratio": round(combined_hr, 2),
-            "n_risk_factors": len(present_factors),
-            "contributing_factors": present_factors,
+            "n_risk_factors": len(clinical_factors),
+            "n_demographic_factors": len(demographic_factors),
+            "contributing_factors": all_factors,
+            "clinical_factors": clinical_factors,
+            "demographic_factors": demographic_factors,
             "model_loaded": self._model_loaded,
         }
 
@@ -358,8 +409,13 @@ class RiskService:
             patient_detail = {
                 "patient_id": patient.patient_id,
                 "risk_score": prediction["risk_score"],
+                "clinical_risk_score": prediction.get("clinical_risk_score", prediction["hr_score"]),
+                "demographic_risk_score": prediction.get("demographic_risk_score"),
                 "n_risk_factors": prediction["n_risk_factors"],
+                "n_demographic_factors": prediction.get("n_demographic_factors", 0),
                 "contributing_factors": prediction["contributing_factors"],
+                "clinical_factors": prediction.get("clinical_factors", []),
+                "demographic_factors": prediction.get("demographic_factors", []),
                 "recommendations": self._generate_recommendations(prediction),
             }
 

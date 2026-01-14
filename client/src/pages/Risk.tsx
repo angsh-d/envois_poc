@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
-import { fetchRiskSummary, RiskSummaryResponse, PatientRiskDetail, FactorPrevalence } from '@/lib/api'
+import { fetchRiskSummary, RiskSummaryResponse, PatientRiskDetail, FactorPrevalence, DemographicFactor } from '@/lib/api'
 import { useRoute } from 'wouter'
 import { 
   Sparkles, AlertTriangle, TrendingUp, Activity, Users, 
   ChevronDown, ChevronUp, Download, ClipboardList, 
-  BarChart3, Shield, Clock
+  BarChart3, Shield, Clock, User, Stethoscope, Info
 } from 'lucide-react'
 
 function formatFactorName(factor: string): string {
@@ -31,12 +31,36 @@ function RiskScoreBar({ score }: { score: number }) {
   )
 }
 
+function DualScoreBar({ clinical, demographic }: { clinical?: number, demographic?: number }) {
+  const clinicalPct = clinical !== undefined ? Math.round(clinical * 100) : null
+  const demoPct = demographic !== undefined ? Math.round(demographic * 100) : null
+  
+  return (
+    <div className="flex items-center gap-3">
+      {clinicalPct !== null && (
+        <div className="flex items-center gap-1.5" title="Clinical Risk (from comorbidities)">
+          <Stethoscope className="w-3 h-3 text-gray-500" />
+          <span className="text-xs font-medium text-gray-600">{clinicalPct}%</span>
+        </div>
+      )}
+      {demoPct !== null && (
+        <div className="flex items-center gap-1.5" title="Demographic Risk (from age, BMI)">
+          <User className="w-3 h-3 text-gray-400" />
+          <span className="text-xs font-medium text-gray-500">{demoPct}%</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PatientCard({ patient, isExpanded, onToggle }: { 
   patient: PatientRiskDetail
   isExpanded: boolean
   onToggle: () => void 
 }) {
   const riskLevel = patient.risk_score >= 0.6 ? 'high' : patient.risk_score >= 0.3 ? 'moderate' : 'low'
+  const clinicalFactors = patient.clinical_factors || patient.contributing_factors || []
+  const demographicFactors = patient.demographic_factors || []
   
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden bg-white">
@@ -53,11 +77,15 @@ function PatientCard({ patient, isExpanded, onToggle }: {
           <div className="text-left">
             <p className="font-medium text-gray-900">{patient.patient_id}</p>
             <p className="text-sm text-gray-500">
-              {patient.n_risk_factors} risk factor{patient.n_risk_factors !== 1 ? 's' : ''}
+              {clinicalFactors.length} clinical{demographicFactors.length > 0 ? `, ${demographicFactors.length} demographic` : ''}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <DualScoreBar 
+            clinical={patient.clinical_risk_score} 
+            demographic={patient.demographic_risk_score} 
+          />
           <div className="w-32">
             <RiskScoreBar score={patient.risk_score} />
           </div>
@@ -71,15 +99,15 @@ function PatientCard({ patient, isExpanded, onToggle }: {
       
       {isExpanded && (
         <div className="px-4 pb-4 border-t border-gray-100">
-          <div className="grid grid-cols-2 gap-6 mt-4">
+          <div className="grid grid-cols-3 gap-6 mt-4">
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                Contributing Factors
+                <Stethoscope className="w-4 h-4" />
+                Clinical Factors
               </h4>
-              {patient.contributing_factors.length > 0 ? (
+              {clinicalFactors.length > 0 ? (
                 <div className="space-y-2">
-                  {patient.contributing_factors.map((factor, idx) => (
+                  {clinicalFactors.map((factor, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                       <span className="text-sm text-gray-700">{formatFactorName(factor.factor)}</span>
                       <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
@@ -89,7 +117,31 @@ function PatientCard({ patient, isExpanded, onToggle }: {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 italic">No significant risk factors identified</p>
+                <p className="text-sm text-gray-500 italic">No clinical risk factors</p>
+              )}
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Demographic Factors
+              </h4>
+              {demographicFactors.length > 0 ? (
+                <div className="space-y-2">
+                  {demographicFactors.map((factor: DemographicFactor, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <span className="text-sm text-gray-700">{factor.display_name}</span>
+                      <Badge 
+                        variant={factor.impact === 'high' ? 'danger' : factor.impact === 'moderate' ? 'warning' : 'neutral'}
+                        className="text-xs"
+                      >
+                        {factor.impact}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 italic">No demographic risk factors</p>
               )}
             </div>
             
@@ -188,15 +240,6 @@ function TierSection({
           <Badge variant="neutral" className="ml-2">{patients.length} patients</Badge>
         </div>
         <div className="flex items-center gap-2">
-          {isExpanded && patients.length > 0 && (
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleExport(); }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Export to CSV"
-            >
-              <Download className="w-4 h-4 text-gray-500" />
-            </button>
-          )}
           {isExpanded ? (
             <ChevronUp className="w-5 h-5 text-gray-400" />
           ) : (
@@ -204,6 +247,21 @@ function TierSection({
           )}
         </div>
       </button>
+      {isExpanded && patients.length > 0 && (
+        <div className="flex justify-end mt-2">
+          <div 
+            role="button"
+            tabIndex={0}
+            onClick={handleExport}
+            onKeyDown={(e) => e.key === 'Enter' && handleExport()}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 text-sm text-gray-500"
+            title="Export to CSV"
+          >
+            <Download className="w-4 h-4" />
+            <span>Export</span>
+          </div>
+        </div>
+      )}
       
       {isExpanded && (
         <div className="mt-4 space-y-2">
@@ -318,12 +376,64 @@ export default function Risk() {
     ? `${highRisk} patient${highRisk !== 1 ? 's' : ''} require${highRisk === 1 ? 's' : ''} immediate attention with enhanced monitoring protocols. ${moderateRisk} patient${moderateRisk !== 1 ? 's' : ''} have elevated risk factors warranting proactive management. Population mean risk: ${(data.mean_risk_score * 100).toFixed(0)}%.`
     : `No high-risk patients identified. ${moderateRisk} patient${moderateRisk !== 1 ? 's' : ''} have moderate risk factors to monitor. Population is generally low risk with mean score of ${(data.mean_risk_score * 100).toFixed(0)}%.`
 
+  const [showMethodology, setShowMethodology] = useState(false)
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Patient Risk Stratification</h1>
-        <p className="text-gray-500 mt-1">ML-powered risk assessment with actionable clinical recommendations</p>
+        <p className="text-gray-500 mt-1">
+          Ensemble model combining XGBoost ML predictions (60%) with literature-derived hazard ratios (40%)
+        </p>
+        <button 
+          onClick={() => setShowMethodology(!showMethodology)}
+          className="mt-2 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 transition-colors"
+        >
+          <Info className="w-4 h-4" />
+          {showMethodology ? 'Hide methodology' : 'View methodology'}
+        </button>
       </div>
+
+      {showMethodology && (
+        <Card className="bg-gray-50 border border-gray-200">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Info className="w-5 h-5 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-800 mb-3">Risk Stratification Methodology</h3>
+              <div className="grid grid-cols-2 gap-6 text-sm text-gray-600">
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Stethoscope className="w-4 h-4" />
+                    Clinical Risk Score (40% weight)
+                  </h4>
+                  <p className="leading-relaxed">
+                    Derived from literature-validated <strong>hazard ratios</strong> for comorbidities including 
+                    diabetes, osteoporosis, rheumatoid arthritis, prior revision surgery, severe bone loss, 
+                    and chronic kidney disease. Each present factor multiplies the baseline risk.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Demographic Risk Score (60% weight)
+                  </h4>
+                  <p className="leading-relaxed">
+                    Predicted by an <strong>XGBoost classifier</strong> trained on historical revision outcomes. 
+                    Features include age, BMI, gender, smoking status, and surgery duration. The model captures 
+                    non-linear interactions between demographic variables.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-500">
+                <strong>Ensemble Score</strong> = 0.6 × ML Score + 0.4 × Hazard Ratio Score. 
+                Thresholds: High ≥60%, Moderate ≥30%, Low &lt;30%.
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card className="bg-white border border-gray-100">
         <div className="flex items-start gap-4">
