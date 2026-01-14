@@ -351,7 +351,6 @@ function buildBenchmarkRows(benchmarks: DashboardBenchmarks | undefined): Array<
 
   return benchmarks.comparisons
     .filter(c => c.study_value !== undefined && c.study_value !== null)
-    .slice(0, 6)
     .map(c => {
       const metricInfo = METRIC_INFO[c.metric]
       const metricName = metricInfo?.displayName || c.metric
