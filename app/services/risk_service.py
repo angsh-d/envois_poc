@@ -4,6 +4,7 @@ UC4 Risk Service for Clinical Intelligence Platform.
 Orchestrates agents and ML model for patient risk stratification.
 """
 import logging
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -11,6 +12,9 @@ import uuid
 
 import numpy as np
 import joblib
+
+# Suppress sklearn feature name warnings (non-critical)
+warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 from app.agents.base_agent import AgentContext
 from app.agents.safety_agent import SafetyAgent
