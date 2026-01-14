@@ -397,8 +397,8 @@ class ReadinessService:
         CLINICAL RATIONALE:
         - completed: Patients with 2-year HHS data (primary endpoint)
         - evaluable: enrolled - withdrawn (per protocol definition)
-        - 80% threshold: Derived from protocol dropout_allowance (0.20)
-          Protocol allows 20% dropout → 80% minimum completion expected
+        - Threshold derived from protocol ltfu_assumption:
+          ltfu_assumption=0.40 (40% LTFU) → 60% minimum completion expected
         """
         enrolled = data.get("enrolled", 0)
         completed = data.get("completed", 0)
@@ -407,10 +407,11 @@ class ReadinessService:
         evaluable = enrolled - withdrawn
         completion_rate = (completed / evaluable) * 100 if evaluable > 0 else 0
 
-        # Threshold: 100% - dropout_allowance (20%) = 80%
-        # From protocol_rules.yaml sample_size.dropout_allowance: 0.20
-        # Note: Protocol allows 20% dropout, so 80% completion is minimum
-        MIN_COMPLETION_THRESHOLD = 80.0  # (1.0 - 0.20) * 100
+        # Threshold: 100% - ltfu_assumption
+        # From protocol_rules ltfu_assumption: 0.40 (40% LTFU expected)
+        # This means 60% minimum completion is expected
+        ltfu_assumption = getattr(protocol, 'ltfu_assumption', 0.40)
+        MIN_COMPLETION_THRESHOLD = (1.0 - ltfu_assumption) * 100  # 60% for 40% LTFU
 
         return {
             "enrolled": enrolled,
@@ -550,9 +551,11 @@ class ReadinessService:
             })
 
         if not data.get("is_ready"):
+            ltfu = getattr(protocol_rules, 'ltfu_assumption', 0.40)
+            min_completion = (1 - ltfu) * 100
             blocking_issues.append({
                 "category": "data_completeness",
-                "issue": f"Completion rate: {data['completion_rate']}% (threshold: 80%)",
+                "issue": f"Completion rate: {data['completion_rate']}% (threshold: {min_completion:.0f}%)",
                 "provenance": {
                     "calculation": f"{data['completed']} completed ÷ {data['evaluable']} evaluable × 100 = {data['completion_rate']}%",
                     "values": {
@@ -563,21 +566,21 @@ class ReadinessService:
                         "completion_rate_percent": data['completion_rate'],
                     },
                     "definitions": {
-                        "completed": "Patients with 2-year HHS primary endpoint data",
+                        "completed": "Patients with 2-year HHS primary endpoint data (FU 2 Years visit)",
                         "evaluable": "Enrolled patients minus withdrawn (can contribute to analysis)",
-                        "withdrawn": "Patients who discontinued study participation",
+                        "withdrawn": "Patients with status='Withdrawn' or discontinued participation",
                     },
                     "data_sources": {
                         "enrolled_count": "study_patients table (WHERE enrolled='Yes')",
-                        "completed_count": "study_scores table (WHERE score_type='HHS' AND visit_id='2Y')",
-                        "withdrawn_count": "study_patients table (WHERE status='Withdrawn')",
-                        "completion_threshold": "protocol_rules table (ltfu_assumption → 80% min completion)",
+                        "completed_count": "study_scores table (WHERE score_type='HHS' AND follow_up='FU 2 Years')",
+                        "withdrawn_count": "study_patients table (WHERE status='Withdrawn' OR discontinued)",
+                        "completion_threshold": f"protocol_rules table (ltfu_assumption={ltfu} → {min_completion:.0f}% min completion)",
                     },
-                    "threshold": "80% completion rate (derived from protocol 20% dropout allowance)",
-                    "methodology": "Count patients with 2Y HHS scores from study_scores, divide by evaluable count (enrolled - withdrawn)",
+                    "threshold": f"{min_completion:.0f}% completion rate (derived from protocol {ltfu*100:.0f}% LTFU assumption)",
+                    "methodology": "Count patients with 2-year HHS scores (follow_up='FU 2 Years') from study_scores, divide by evaluable count (enrolled - withdrawn)",
                     "source": "study_scores table (2-year HHS assessments)",
                     "enrollment_source": "study_patients table",
-                    "regulatory_reference": "Protocol H-34 v2.0 Evaluable Population Definition",
+                    "regulatory_reference": "Protocol H-34 v2.0 Evaluable Population Definition (p.11)",
                 }
             })
 
