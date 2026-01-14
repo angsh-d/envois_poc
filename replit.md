@@ -103,6 +103,9 @@ Data loading uses a hybrid approach (database-first with file fallback):
 - All services and agents use database-backed loaders
 
 ## Recent Changes
+- 2026-01-14: PROTOCOL DATA AUDIT - Comprehensive field-by-field validation of protocol_rules against USDM source documents. Fixed: sample_size_target (50→49), age requirement (≥21→≥18), added evaluable_population (29), ltfu_assumption (0.40), updated power calculation (90% power, alpha=0.025, one-sided paired t-test). Full audit report in docs/protocol_rules_audit_report.md
+- 2026-01-14: Updated protocol_rules.yaml with correct USDM values and provenance citations for sample size, eligibility criteria, and safety thresholds
+- 2026-01-14: Fixed Digital Protocol → Protocol Rules tab to display correct values (evaluable population instead of interim analysis, LTFU assumption instead of dropout allowance)
 - 2026-01-13: Enhanced Benchmarking table in Dashboard - fixed metric casing (HHS, OHS, MCID), added tooltips with explanations and examples, clarified data sources (H-34 Study vs Published Literature)
 - 2026-01-13: CRITICAL BUG FIX - Fixed compliance rate calculation showing -54% instead of ~70%. Changed deviation_rate from (total_deviations/total_visits) to (visits_with_timing_deviations/total_visits). Added visits_with_deviations and compliant_visits fields to API response.
 - 2026-01-13: Migrated all structured data from files to PostgreSQL - protocol rules, literature benchmarks, registry norms, study data (patients, AEs, scores, surgeries)

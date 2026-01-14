@@ -60,7 +60,7 @@ class StudyProgressResponse(BaseModel):
     target_enrollment: int = Field(..., description="Target enrollment")
     current_enrollment: int = Field(..., description="Current enrollment")
     enrollment_pct: float = Field(..., description="Enrollment percentage")
-    interim_target: int = Field(..., description="Interim analysis target")
+    evaluable_target: int = Field(..., description="Evaluable population target for statistical power")
     status: str = Field(..., description="Enrollment status")
     evaluable_patients: int = Field(..., description="Evaluable patients")
     completion_rate: float = Field(..., description="Completion rate")
@@ -300,16 +300,16 @@ async def get_upcoming_milestones() -> Dict[str, Any]:
 
     # Build milestones from progress data
     enrolled = progress.get("current_enrollment", 0)
-    interim = progress.get("interim_target", 25)
+    evaluable_target = progress.get("evaluable_target", 29)
 
     milestones = []
 
-    # Interim analysis milestone
-    if enrolled < interim:
+    # Evaluable population milestone (for statistical power)
+    if enrolled < evaluable_target:
         milestones.append({
-            "milestone": f"Interim Analysis (n={interim} at 2yr)",
-            "status": "AT_RISK" if enrolled < interim * 0.8 else "ON_TRACK",
-            "blockers": [f"Need {interim - enrolled} more patients to reach interim"],
+            "milestone": f"Evaluable Population (n={evaluable_target} at 2yr)",
+            "status": "AT_RISK" if enrolled < evaluable_target * 0.8 else "ON_TRACK",
+            "blockers": [f"Need {evaluable_target - enrolled} more patients for evaluable population"],
         })
 
     # Safety review based on action items

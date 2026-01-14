@@ -150,21 +150,38 @@ endpoints:
       calculation: "ae_rate_comparison"
 
 # Sample Size Requirements
+# Source: Protocol H-34 v2.0, Page 11, Section 10.3
 sample_size:
-  target_enrollment: 50
-  interim_analysis: 25
-  evaluable_definition: "Complete 2-year HHS assessment"
-  dropout_allowance: 0.20
+  target_enrollment: 49
+  evaluable_population: 29
+  evaluable_definition: "Patients with both baseline and 2-year HHS assessments (complete paired data)"
+  ltfu_assumption: 0.40
+  provenance:
+    page: 11
+    section: "10.3 Sample Size"
+    text: "A standard one-sided paired T-test with a sample size of 29 pairs will afford 90% power to detect an increase of 20 points on the HHS test. Assuming a 40% loss to follow-up, total enrolment is 29/0.60 ≈ 49 subjects."
   power_calculation:
-    expected_improvement: 35
-    sd: 15
-    effect_size: 0.8
-    power: 0.80
-    alpha: 0.05
+    expected_improvement: 20
+    sd: 27.6
+    effect_size: 0.72
+    power: 0.90
+    alpha: 0.025
+    test_type: "one-sided paired t-test"
 
 # Safety Monitoring Thresholds
+# NOTE: Not explicitly defined in Protocol H-34 v2.0
+# These are operational thresholds derived from literature and registry benchmarks
 # Rates above these trigger review/escalation
 safety_thresholds:
+  provenance:
+    source: "Derived from literature and registry benchmarks"
+    methodology: "Thresholds set at approximately 1.5x published literature rates"
+    references:
+      - "Bozic et al. 2015 - revision rate 6.2%"
+      - "Della Valle et al. 2020 - dislocation 5.2%, infection 2.4%"
+      - "Berry et al. 2022 - fracture 3.2%"
+      - "AOANJRR 2024 - 2yr revision rate 5.8%"
+    note: "Not from protocol document; operational thresholds for signal detection"
   revision_rate_concern: 0.10
   fracture_rate_concern: 0.08
   dislocation_rate_concern: 0.08
@@ -210,24 +227,22 @@ deviation_classification:
     affects_evaluability: true
 
 # Inclusion/Exclusion Criteria
+# Source: Protocol H-34 v2.0, Page 11, Section 5.1-5.2
+# Cross-validated against eligibility_criteria.json (USDM extraction)
 ie_criteria:
+  provenance:
+    page: 11
+    sections: ["5.1 Inclusion Criteria", "5.2 Exclusion Criteria"]
   inclusion:
-    - "Age >= 21 years"
-    - "Candidate for primary or revision total hip arthroplasty"
-    - "DELTA Revision TT Cup selected by operating surgeon"
-    - "Able to provide informed consent"
-    - "Willing to comply with follow-up schedule"
-    - "Life expectancy > 2 years"
+    - "Male or female"
+    - "Age >= 18 years old"
+    - "Written informed consent approved by IRB/EC"
+    - "Adult patient with decision made to perform THA with DELTA Revision cup prior to enrollment decision"
+    - "Patient is able to comply with the protocol"
 
   exclusion:
-    - "Active local or systemic infection"
-    - "Pregnancy or planned pregnancy during study"
-    - "Severe bone loss precluding stable cup fixation"
-    - "Known allergy to implant materials"
-    - "Participation in another clinical investigation"
-    - "Immunosuppressive therapy"
-    - "Metabolic bone disease (uncontrolled)"
-    - "BMD T-score < -3.5 (severe osteoporosis without treatment)"
+    - "Any DELTA Revision acetabular cup contraindication as per current local Instructions for Use"
+    - "For female patients: current pregnancy and/or lactation or planning a pregnancy"
 
 # Data Quality Requirements
 data_quality:

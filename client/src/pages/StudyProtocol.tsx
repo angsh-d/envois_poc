@@ -189,18 +189,24 @@ interface ProtocolRules {
   }
   sample_size: {
     target_enrollment: number
-    interim_analysis: number
+    evaluable_population: number
     evaluable_definition: string
-    dropout_allowance: number
+    ltfu_assumption: number
+    provenance?: {
+      page: number
+      section: string
+      text: string
+    }
     power_calculation: {
       expected_improvement: number
       sd: number
       effect_size: number
       power: number
       alpha: number
+      test_type?: string
     }
   }
-  safety_thresholds: Record<string, number>
+  safety_thresholds: Record<string, unknown>
   adverse_events: {
     sae_narrative_required: boolean
     sae_reporting_window_days: number
@@ -215,6 +221,10 @@ interface ProtocolRules {
     critical: { description: string; action: string; requires_explanation: boolean; requires_pi_notification: boolean }
   }
   ie_criteria: {
+    provenance?: {
+      page: number
+      sections: string[]
+    }
     inclusion: string[]
     exclusion: string[]
   }
@@ -2326,13 +2336,20 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
 
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">Interim Analysis</span>
-                <span className="text-sm font-medium text-gray-900">{protocolRules.sample_size.interim_analysis} patients</span>
+                <span className="text-sm text-gray-600">Evaluable Population</span>
+                <span className="text-sm font-medium text-gray-900">{protocolRules.sample_size.evaluable_population} patients</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">Dropout Allowance</span>
-                <span className="text-sm font-medium text-gray-900">{(protocolRules.sample_size.dropout_allowance * 100).toFixed(0)}%</span>
+                <span className="text-sm text-gray-600">LTFU Assumption</span>
+                <span className="text-sm font-medium text-gray-900">{(protocolRules.sample_size.ltfu_assumption * 100).toFixed(0)}%</span>
               </div>
+              {protocolRules.sample_size.provenance && (
+                <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-xs text-blue-600">
+                    Source: Protocol H-34 v2.0, Page {protocolRules.sample_size.provenance.page}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mt-4 p-4 bg-gray-50 rounded-xl">
@@ -2366,29 +2383,39 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             </div>
             <p className="text-sm text-gray-500 mb-4">Rates above these trigger review</p>
             <div className="space-y-2">
-              {Object.entries(protocolRules.safety_thresholds).map(([key, value]) => {
-                const percentage = (value * 100).toFixed(0)
-                const isCritical = value >= 0.1
-                return (
-                  <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <span className="text-sm text-gray-700">
-                      {key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase()).trim()}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${isCritical ? 'bg-gray-800' : 'bg-gray-400'}`}
-                          style={{ width: `${Math.min(Number(percentage) * 5, 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className={`text-sm font-semibold ${isCritical ? 'text-gray-900' : 'text-gray-600'}`}>
-                        {percentage}%
+              {Object.entries(protocolRules.safety_thresholds)
+                .filter(([key]) => key !== 'provenance' && typeof protocolRules.safety_thresholds[key] === 'number')
+                .map(([key, value]) => {
+                  const numValue = value as number
+                  const percentage = (numValue * 100).toFixed(0)
+                  const isCritical = numValue >= 0.1
+                  return (
+                    <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <span className="text-sm text-gray-700">
+                        {key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase()).trim()}
                       </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full ${isCritical ? 'bg-gray-800' : 'bg-gray-400'}`}
+                            style={{ width: `${Math.min(Number(percentage) * 5, 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className={`text-sm font-semibold ${isCritical ? 'text-gray-900' : 'text-gray-600'}`}>
+                          {percentage}%
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
+            {(protocolRules.safety_thresholds as { provenance?: { note?: string } }).provenance?.note && (
+              <div className="mt-4 p-2 bg-amber-50 rounded-lg border border-amber-100">
+                <p className="text-xs text-amber-700">
+                  Note: {(protocolRules.safety_thresholds as { provenance?: { note?: string } }).provenance?.note}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
