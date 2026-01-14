@@ -11,7 +11,11 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Cpu
 } from 'lucide-react'
 
 interface SimulationStudioProps {
@@ -207,6 +211,9 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
   
   const [additionalRevisions, setAdditionalRevisions] = useState(2)
   const [stressResult, setStressResult] = useState<ReturnType<typeof runStressTestSimulation> | null>(null)
+  
+  const [showMethodology, setShowMethodology] = useState(false)
+  const [simulationProgress, setSimulationProgress] = useState(0)
 
   const scenarios = [
     { id: 'regulatory' as const, label: 'Regulatory Go/No-Go', icon: Shield, question: 'Will we pass regulatory thresholds?' },
@@ -216,6 +223,12 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
 
   const runSimulation = () => {
     setIsRunning(true)
+    setSimulationProgress(0)
+    
+    const progressInterval = setInterval(() => {
+      setSimulationProgress(prev => Math.min(prev + Math.random() * 15 + 5, 95))
+    }, 200)
+    
     setTimeout(() => {
       const threshold = REGULATORY_THRESHOLDS[selectedThreshold].rate
       
@@ -233,8 +246,14 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
         const result = runStressTestSimulation(iterations, additionalRevisions, threshold)
         setStressResult(result)
       }
-      setIsRunning(false)
-    }, 100)
+      
+      clearInterval(progressInterval)
+      setSimulationProgress(100)
+      setTimeout(() => {
+        setIsRunning(false)
+        setSimulationProgress(0)
+      }, 300)
+    }, 1800)
   }
 
   const renderRegulatoryScenario = () => (
@@ -280,14 +299,29 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
           <button
             onClick={runSimulation}
             disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
           >
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Simulating...' : 'Run Simulation'}
+            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Simulation'}
           </button>
         </div>
 
-        {regulatoryResult && (
+        {isRunning && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-gray-600">
+              <Cpu className="w-5 h-5 animate-pulse" />
+              <span>Running {iterations.toLocaleString()} Monte Carlo iterations...</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gray-800 transition-all duration-200"
+                style={{ width: `${simulationProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {!isRunning && regulatoryResult && (
           <div className="space-y-6">
             <div className="flex items-center justify-between p-6 bg-gray-50 rounded-xl">
               <div>
@@ -397,14 +431,29 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
           <button
             onClick={runSimulation}
             disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
           >
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Simulating...' : 'Run Simulation'}
+            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Simulation'}
           </button>
         </div>
 
-        {enrollmentResults && enrollmentBaseline !== null && (
+        {isRunning && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-gray-600">
+              <Cpu className="w-5 h-5 animate-pulse" />
+              <span>Running {iterations.toLocaleString()} Monte Carlo iterations for 4 enrollment scenarios...</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gray-800 transition-all duration-200"
+                style={{ width: `${simulationProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {!isRunning && enrollmentResults && enrollmentBaseline !== null && (
           <div className="space-y-6">
             <div className="p-4 bg-gray-100 rounded-lg mb-4">
               <div className="text-sm text-gray-600">Current baseline (n={H34_CURRENT.enrolled}): <span className="font-bold text-gray-900">{(enrollmentBaseline * 100).toFixed(1)}%</span> probability of success</div>
@@ -524,14 +573,29 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
           <button
             onClick={runSimulation}
             disabled={isRunning}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors min-w-[160px]"
           >
             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {isRunning ? 'Simulating...' : 'Run Stress Test'}
+            {isRunning ? `Running... ${Math.round(simulationProgress)}%` : 'Run Stress Test'}
           </button>
         </div>
 
-        {stressResult && (
+        {isRunning && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-gray-600">
+              <Cpu className="w-5 h-5 animate-pulse" />
+              <span>Running {iterations.toLocaleString()} Monte Carlo iterations for stress scenario...</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gray-800 transition-all duration-200"
+                style={{ width: `${simulationProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {!isRunning && stressResult && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="p-6 bg-gray-50 rounded-xl">
@@ -636,10 +700,93 @@ export default function SimulationStudio({ params }: SimulationStudioProps) {
         {activeScenario === 'enrollment' && renderEnrollmentScenario()}
         {activeScenario === 'stress' && renderStressTestScenario()}
 
-        <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">
-          <strong>Methodology:</strong> Simulations use Bayesian beta-binomial inference with current H-34 data 
-          ({H34_CURRENT.revisions} revisions / {H34_CURRENT.enrolled} patients). Success probabilities represent 
-          posterior estimates of meeting specified thresholds given observed data and sampling uncertainty.
+        <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            onClick={() => setShowMethodology(!showMethodology)}
+            className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Info className="w-5 h-5 text-gray-600" />
+              <span className="font-medium text-gray-900">How This Simulation Works</span>
+            </div>
+            {showMethodology ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          
+          {showMethodology && (
+            <div className="p-6 pt-2 space-y-6 border-t border-gray-200">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Monte Carlo Simulation</h4>
+                <p className="text-gray-600 text-sm">
+                  This tool runs thousands of random simulations to estimate probabilities. Each "iteration" 
+                  generates a possible future scenario based on current data, and we count how often we'd 
+                  pass regulatory thresholds. More iterations = more reliable estimates.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Bayesian Statistics</h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  We use Bayesian inference with a Beta distribution to model uncertainty about the true revision rate. 
+                  With only {H34_CURRENT.revisions} revisions in {H34_CURRENT.enrolled} patients, there's substantial 
+                  uncertainty - the simulation captures this by sampling from a range of plausible rates.
+                </p>
+                <div className="bg-white rounded-lg p-4 font-mono text-xs text-gray-700 border border-gray-200">
+                  <div className="mb-2"><strong>Current Data:</strong></div>
+                  <div className="pl-4 space-y-1">
+                    <div>Observed: {H34_CURRENT.revisions} revisions / {H34_CURRENT.enrolled} patients = {(H34_CURRENT.currentRevisionRate * 100).toFixed(1)}%</div>
+                    <div>Posterior: Beta({H34_CURRENT.revisions + 1}, {H34_CURRENT.enrolled - H34_CURRENT.revisions + 1})</div>
+                    <div>This captures: "The true rate is likely between ~2% and ~15% with 95% confidence"</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">How Each Scenario Works</h4>
+                <div className="space-y-3">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="font-medium text-gray-800 mb-1">Regulatory Go/No-Go</div>
+                    <p className="text-gray-600 text-sm">
+                      Samples possible revision rates from the posterior distribution, then counts what fraction 
+                      are below the regulatory threshold. Example: 74.6% means ~3 out of 4 simulated futures pass.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="font-medium text-gray-800 mb-1">Enrollment Decision</div>
+                    <p className="text-gray-600 text-sm">
+                      Projects what happens if we add more patients. For each iteration: (1) sample a rate from 
+                      current posterior, (2) simulate new revisions for additional patients, (3) update posterior 
+                      with combined data, (4) check if updated rate passes threshold.
+                    </p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <div className="font-medium text-gray-800 mb-1">Stress Test</div>
+                    <p className="text-gray-600 text-sm">
+                      Models worst-case scenarios by deterministically adding revisions to current data, then 
+                      sampling the updated posterior. Shows how much buffer we have before failing thresholds.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Verdict Interpretation</h4>
+                <div className="flex gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-gray-600">≥80%: High Confidence</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <span className="text-gray-600">50-79%: Uncertain</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-gray-600">&lt;50%: At Risk</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </StudyLayout>
