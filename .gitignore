@@ -60,8 +60,8 @@ logs/
 # ChromaDB persistence (large files)
 data/vectorstore/chroma_db/
 
-# ML models (large files - can be regenerated)
-data/ml/*.joblib
+# ML models - KEEP TRACKED (required for risk stratification)
+# data/ml/*.joblib  # Commented out - these are needed at runtime
 
 # Jupyter
 .ipynb_checkpoints/
