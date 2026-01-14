@@ -729,34 +729,32 @@ export default function DataAgents({ params }: DataAgentsProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-gray-600" />
-                  <h3 className="font-semibold text-gray-900">Literature Hazard Ratio Ensemble</h3>
+                  <h3 className="font-semibold text-gray-900">Literature Hazard Ratios (HHS-Based Revision Risk)</h3>
                 </div>
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">Statistical</span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">From Singh 2016</span>
               </div>
             </div>
             <div className="p-4">
-              <p className="text-sm text-gray-600 mb-4">Published hazard ratios extracted from peer-reviewed literature via RAG + LLM, combined statistically for risk scoring.</p>
+              <p className="text-sm text-gray-600 mb-4">Hazard ratios for THA revision risk based on Harris Hip Score thresholds, extracted from Singh et al. 2016 (n=2,667).</p>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 text-gray-500 font-medium">Risk Factor</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">Hazard Ratio</th>
-                    <th className="text-left py-2 text-gray-500 font-medium">Source</th>
+                    <th className="text-left py-2 pr-4 text-gray-500 font-medium">Risk Factor (HHS Threshold)</th>
+                    <th className="text-right py-2 pr-4 text-gray-500 font-medium">HR</th>
+                    <th className="text-left py-2 text-gray-500 font-medium">95% CI</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  <tr><td className="py-1.5 text-gray-800">Age &gt;80</td><td className="py-1.5 text-right font-mono text-gray-800">1.45</td><td className="py-1.5 text-gray-500 text-xs">Bozic 2015</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">BMI &gt;35</td><td className="py-1.5 text-right font-mono text-gray-800">1.38</td><td className="py-1.5 text-gray-500 text-xs">Bozic 2015</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Severe bone loss</td><td className="py-1.5 text-right font-mono text-gray-800">2.15</td><td className="py-1.5 text-gray-500 text-xs">Della Valle 2020</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Osteoporosis</td><td className="py-1.5 text-right font-mono text-gray-800">2.42</td><td className="py-1.5 text-gray-500 text-xs">Della Valle 2020</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Paprosky 3B defect</td><td className="py-1.5 text-right font-mono text-gray-800">2.85</td><td className="py-1.5 text-gray-500 text-xs">Lombardi 2018</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Smoking</td><td className="py-1.5 text-right font-mono text-gray-800">1.52</td><td className="py-1.5 text-gray-500 text-xs">Lombardi 2018</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Rheumatoid arthritis</td><td className="py-1.5 text-right font-mono text-gray-800">1.68</td><td className="py-1.5 text-gray-500 text-xs">Berry 2022</td></tr>
-                  <tr><td className="py-1.5 text-gray-800">Chronic kidney disease</td><td className="py-1.5 text-right font-mono text-gray-800">1.92</td><td className="py-1.5 text-gray-500 text-xs">Berry 2022</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS &lt;55 vs 81-100 (2yr)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">4.34</td><td className="py-1.5 text-gray-500 text-xs">2.14-7.95</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS &lt;55 vs 81-100 (5yr)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">3.08</td><td className="py-1.5 text-gray-500 text-xs">1.45-5.84</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS &lt;70 vs 90-100 (2yr)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">2.32</td><td className="py-1.5 text-gray-500 text-xs">1.32-3.85</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS Improvement ≤0 vs &gt;50 (2yr)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">18.1</td><td className="py-1.5 text-gray-500 text-xs">1.41-234.8</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS ≤55 vs 81-100 (2yr, adj.)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">3.90</td><td className="py-1.5 text-gray-500 text-xs">2.67-5.69</td></tr>
+                  <tr><td className="py-1.5 pr-4 text-gray-800">HHS ≤55 vs 81-100 (5yr, adj.)</td><td className="py-1.5 pr-4 text-right font-mono text-gray-800">2.48</td><td className="py-1.5 text-gray-500 text-xs">1.56-3.95</td></tr>
                 </tbody>
               </table>
               <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
-                <strong>Ensemble Formula:</strong> Final Risk = 60% × ML Score + 40% × HR Score
+                <strong>Source:</strong> Singh et al. BMC Musculoskeletal Disorders 2016, Table 2 & 5 (with full provenance)
               </div>
             </div>
           </div>
