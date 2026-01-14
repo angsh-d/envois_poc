@@ -364,17 +364,33 @@ class DashboardService:
                 "comparison_status": comparison_status,
             })
 
-        # Add registry comparisons with actual survival rate
+        # Add registry comparisons with best available survival rate
         study_survival_2yr = study_metrics.get("survival_2yr")
         for registry in registry_norms.registries:
-            # Use direct attribute access for survival rates
-            benchmark_val = registry.survival_2yr
+            # Find best available survival rate (prefer shorter timepoints for comparison)
+            survival_timepoints = [
+                ("1yr", registry.survival_1yr),
+                ("2yr", registry.survival_2yr),
+                ("5yr", registry.survival_5yr),
+                ("10yr", registry.survival_10yr),
+                ("15yr", registry.survival_15yr),
+            ]
+            # Find shortest available timepoint for most relevant comparison
+            benchmark_val = None
+            timepoint_label = "Survival"
+            for timepoint, value in survival_timepoints:
+                if value is not None:
+                    benchmark_val = value
+                    timepoint_label = f"{timepoint} Survival"
+                    break
+            
             comparison_status = None
+            # For registry comparison, show H-34's 2yr survival vs registry benchmark
             if study_survival_2yr is not None and benchmark_val is not None:
                 comparison_status = "favorable" if study_survival_2yr >= benchmark_val else "concerning"
 
             comparisons.append({
-                "metric": f"{registry.name} 2yr Survival",
+                "metric": f"{registry.name} {timepoint_label}",
                 "study_value": study_survival_2yr,
                 "benchmark_value": benchmark_val,
                 "source": registry.abbreviation or registry.name,
