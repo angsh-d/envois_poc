@@ -215,12 +215,12 @@ export default function DataAgents({ params }: DataAgentsProps) {
             <div className="p-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-gray-900">12</div>
-                  <div className="text-xs text-gray-500">Peer-reviewed PDFs indexed</div>
+                  <div className="text-2xl font-bold text-gray-900">4</div>
+                  <div className="text-xs text-gray-500">Publications with extracted benchmarks</div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-2xl font-bold text-gray-900">15.3 MB</div>
-                  <div className="text-xs text-gray-500">Total literature corpus</div>
+                  <div className="text-2xl font-bold text-gray-900">8.1 MB</div>
+                  <div className="text-xs text-gray-500">Indexed literature corpus</div>
                 </div>
               </div>
               <table className="w-full text-sm">
@@ -232,33 +232,25 @@ export default function DataAgents({ params }: DataAgentsProps) {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr>
-                    <td className="py-2 pr-4 text-gray-800">Dixon et al. 2025</td>
-                    <td className="py-2 text-gray-600 text-xs">Revision THA outcomes, survivorship analysis</td>
+                    <td className="py-2 pr-4 text-gray-800">Singh et al. 2016 (n=2,667)</td>
+                    <td className="py-2 text-gray-600 text-xs">HHS MCID thresholds, effect sizes, revision risk prediction</td>
                   </tr>
                   <tr>
-                    <td className="py-2 pr-4 text-gray-800">Harris et al. 2025</td>
-                    <td className="py-2 text-gray-600 text-xs">Risk factors for revision hip arthroplasty</td>
+                    <td className="py-2 pr-4 text-gray-800">Steckel et al. 2025 (n=117)</td>
+                    <td className="py-2 text-gray-600 text-xs">Short-stem THA outcomes, HHS improvement (45.2→88.4)</td>
                   </tr>
                   <tr>
-                    <td className="py-2 pr-4 text-gray-800">Meding et al. 2025</td>
-                    <td className="py-2 text-gray-600 text-xs">Long-term outcomes post-revision THA</td>
+                    <td className="py-2 pr-4 text-gray-800">Bazan et al. 2025 (n=344)</td>
+                    <td className="py-2 text-gray-600 text-xs">Stem comparison, clinical/radiological outcomes</td>
                   </tr>
                   <tr>
-                    <td className="py-2 pr-4 text-gray-800">Kinoshita et al.</td>
-                    <td className="py-2 text-gray-600 text-xs">Bone defect classification, revision techniques</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 text-gray-800">Zucchet et al. 2025</td>
-                    <td className="py-2 text-gray-600 text-xs">Acetabular revision outcomes</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 text-gray-800">+ 7 more</td>
-                    <td className="py-2 text-gray-600 text-xs">Bazan, Chirico, Hert, Merolla, Steckel, Vasios, Willems et al.</td>
+                    <td className="py-2 pr-4 text-gray-800">Vasios et al. 2025 (n=11)</td>
+                    <td className="py-2 text-gray-600 text-xs">Acetabular revision with bone loss, cup-cage constructs</td>
                   </tr>
                 </tbody>
               </table>
               <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                <strong>Storage:</strong> literature_benchmarks.yaml (curated), PostgreSQL pgvector (semantic search)
+                <strong>Storage:</strong> literature_benchmarks.yaml (curated with full provenance)
               </div>
             </div>
           </div>
