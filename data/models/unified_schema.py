@@ -260,6 +260,23 @@ class HHSScore(BaseModel):
         populate_by_name = True
 
 
+class Explant(BaseModel):
+    """Explant/Revision data."""
+    facility: str
+    patient_id: str = Field(..., alias="Id")
+    explant_date: Optional[date] = Field(None, description="Date of explantation/revision")
+    stem_explanted: Optional[str] = Field(None, description="Stem explanted (Yes/No)")
+    cup_explanted: Optional[str] = Field(None, description="Cup explanted (Yes/No)")
+    cup_liner_explanted: Optional[str] = Field(None, description="Cup liner explanted (Yes/No)")
+    cup_plate_explanted: Optional[str] = Field(None, description="Cup plate explanted (Yes/No)")
+    head_explanted: Optional[str] = Field(None, description="Head explanted (Yes/No)")
+    head_adaptor_explanted: Optional[str] = Field(None, description="Head adaptor explanted (Yes/No)")
+    notes: Optional[str] = Field(None, description="Additional notes")
+
+    class Config:
+        populate_by_name = True
+
+
 class OHSScore(BaseModel):
     """Oxford Hip Score data."""
     facility: str
@@ -305,6 +322,7 @@ class H34StudyData(BaseModel):
     adverse_events: List[AdverseEvent] = Field(default_factory=list)
     hhs_scores: List[HHSScore] = Field(default_factory=list)
     ohs_scores: List[OHSScore] = Field(default_factory=list)
+    explants: List[Explant] = Field(default_factory=list)
 
     # Metadata
     total_patients: int = 0

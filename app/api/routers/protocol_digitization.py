@@ -320,6 +320,47 @@ async def get_protocol_rules() -> Dict[str, Any]:
     return service.get_protocol_rules()
 
 
+class ProtocolRuleUpdateRequest(BaseModel):
+    field_path: str = Field(..., description="Dot-separated path to the field (e.g., 'protocol.version')")
+    value: Any = Field(..., description="The new value to set")
+
+
+class ProtocolRuleBatchUpdateRequest(BaseModel):
+    updates: List[Dict[str, Any]] = Field(..., description="List of updates with 'field_path' and 'value' keys")
+
+
+@router.put(
+    "/rules",
+    summary="Update Protocol Rule",
+    description="Update a specific field in the protocol rules YAML"
+)
+async def update_protocol_rule(request: ProtocolRuleUpdateRequest) -> Dict[str, Any]:
+    """Update a specific protocol rule field."""
+    service = get_protocol_digitization_service()
+    try:
+        return service.update_protocol_rule(request.field_path, request.value)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"Field path not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update protocol rule: {e}")
+
+
+@router.put(
+    "/rules/batch",
+    summary="Batch Update Protocol Rules",
+    description="Update multiple fields in the protocol rules YAML at once"
+)
+async def update_protocol_rules_batch(request: ProtocolRuleBatchUpdateRequest) -> Dict[str, Any]:
+    """Batch update multiple protocol rule fields."""
+    service = get_protocol_digitization_service()
+    try:
+        return service.update_protocol_rules_batch(request.updates)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=f"Field path not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update protocol rules: {e}")
+
+
 PROTOCOL_DATA_DIR = Path("data/raw/protocol")
 
 @router.get(

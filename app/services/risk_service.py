@@ -3,6 +3,8 @@ UC4 Risk Service for Clinical Intelligence Platform.
 
 Orchestrates agents and ML model for patient risk stratification.
 """
+import hashlib
+import json
 import logging
 import warnings
 from datetime import datetime
@@ -80,23 +82,36 @@ class RiskModel:
         return self._hazard_ratios
 
     def _load_trained_model(self):
-        """Load pre-trained XGBoost model and scaler."""
-        model_dir = Path(__file__).parent.parent.parent / "data" / "ml"
-        model_path = model_dir / "risk_model.joblib"
-        scaler_path = model_dir / "risk_scaler.joblib"
+        """Load pre-trained XGBoost model and scaler.
 
-        if model_path.exists() and scaler_path.exists():
-            try:
-                self._model = joblib.load(model_path)
-                self._scaler = joblib.load(scaler_path)
-                self._model_loaded = True
-                logger.info(f"Loaded trained risk model from {model_path}")
-            except Exception as e:
-                logger.warning(f"Failed to load trained model: {e}")
-                self._model_loaded = False
-        else:
-            logger.warning(f"Trained model not found at {model_path}")
-            self._model_loaded = False
+        NOTE: ML model is currently disabled because validation showed
+        ROC-AUC of 0.51 (no better than random). Using clinical hazard
+        ratios only until a properly trained model is available.
+        """
+        # DISABLED: ML model has AUC of 0.51 (random) - see model_metadata.json
+        # This was causing high-risk patients to be misclassified because
+        # random ML scores were diluting validated clinical hazard ratios.
+        self._model_loaded = False
+        logger.info("ML model disabled - using clinical hazard ratios only (AUC was 0.51)")
+        return
+
+        # Original code preserved for when a better model is trained:
+        # model_dir = Path(__file__).parent.parent.parent / "data" / "ml"
+        # model_path = model_dir / "risk_model.joblib"
+        # scaler_path = model_dir / "risk_scaler.joblib"
+        #
+        # if model_path.exists() and scaler_path.exists():
+        #     try:
+        #         self._model = joblib.load(model_path)
+        #         self._scaler = joblib.load(scaler_path)
+        #         self._model_loaded = True
+        #         logger.info(f"Loaded trained risk model from {model_path}")
+        #     except Exception as e:
+        #         logger.warning(f"Failed to load trained model: {e}")
+        #         self._model_loaded = False
+        # else:
+        #     logger.warning(f"Trained model not found at {model_path}")
+        #     self._model_loaded = False
 
     def _extract_ml_features(self, features: Dict[str, Any]) -> np.ndarray:
         """Extract ML features from raw features dict."""
@@ -290,6 +305,115 @@ class RiskService:
         self._literature_agent = LiteratureAgent()
         self._synthesis_agent = SynthesisAgent()
         self._doc_loader = get_hybrid_loader()
+        # Cache for LLM-extracted risk factors (avoids redundant API calls)
+        self._extraction_cache: Dict[str, Dict[str, bool]] = {}
+
+    def _get_cache_key(
+        self,
+        medical_history: Optional[str],
+        smoking_habits: Optional[str],
+        osteoporosis: Optional[str],
+        primary_diagnosis: Optional[str]
+    ) -> str:
+        """Generate cache key from input text fields."""
+        content = f"{medical_history}|{smoking_habits}|{osteoporosis}|{primary_diagnosis}"
+        return hashlib.md5(content.encode()).hexdigest()
+
+    def _fallback_pattern_extraction(
+        self,
+        medical_history: Optional[str],
+        smoking_habits: Optional[str],
+        osteoporosis: Optional[str]
+    ) -> Dict[str, bool]:
+        """Fallback to pattern matching if LLM extraction fails."""
+        history = (medical_history or "").lower()
+        smoking = (smoking_habits or "").lower()
+        osteo = (osteoporosis or "").lower()
+
+        return {
+            "diabetes": "diabet" in history or " dm" in history or history.startswith("dm"),
+            "rheumatoid_arthritis": "rheumatoid" in history or " ra " in history,
+            "chronic_kidney_disease": "kidney" in history or "renal" in history or "ckd" in history,
+            "osteoporosis": osteo == "yes" or "osteoporosis" in osteo,
+            "smoking_current": "current" in smoking or "daily" in smoking or "smoker" in smoking,
+            "smoking_former": "former" in smoking or "ex" in smoking or "previous" in smoking,
+        }
+
+    async def _extract_risk_factors_llm(
+        self,
+        medical_history: Optional[str],
+        smoking_habits: Optional[str],
+        osteoporosis: Optional[str],
+        primary_diagnosis: Optional[str]
+    ) -> Dict[str, bool]:
+        """
+        Extract risk factors from free-text fields using Gemini Flash.
+
+        Uses LLM to semantically extract risk factors from medical history,
+        handling abbreviations and variations (DM, T2DM, diabetes, etc.).
+
+        Returns:
+            Dict with boolean flags for each risk factor.
+        """
+        # Check cache first
+        cache_key = self._get_cache_key(medical_history, smoking_habits, osteoporosis, primary_diagnosis)
+        if cache_key in self._extraction_cache:
+            logger.debug(f"Using cached extraction for key {cache_key[:8]}...")
+            return self._extraction_cache[cache_key]
+
+        # Import services lazily to avoid circular imports
+        from app.services.llm_service import get_llm_service
+        from app.services.prompt_service import get_prompt_service
+
+        try:
+            prompt_service = get_prompt_service()
+            prompt = prompt_service.load(
+                "risk_factor_extraction_patient",
+                {
+                    "medical_history": medical_history or "None",
+                    "smoking_habits": smoking_habits or "None",
+                    "osteoporosis": osteoporosis or "None",
+                    "primary_diagnosis": primary_diagnosis or "None",
+                }
+            )
+
+            llm = get_llm_service()
+            response = await llm.generate(
+                prompt=prompt,
+                model="gemini-2.5-flash",
+                temperature=0.0,  # Deterministic extraction
+                max_tokens=1024  # Generous limit to avoid truncation
+            )
+
+            # Parse JSON response (handle markdown code blocks)
+            response_text = response.strip()
+
+            if "```json" in response_text:
+                # Extract content between ```json and ```
+                start = response_text.find("```json") + 7
+                end = response_text.find("```", start)
+                response_text = response_text[start:end].strip()
+            elif response_text.startswith("```"):
+                # Generic code block
+                lines = response_text.split("\n")
+                # Remove first line (```) and last line if it's ```
+                response_text = "\n".join(
+                    lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
+                ).strip()
+
+            result = json.loads(response_text)
+
+            # Cache the result
+            self._extraction_cache[cache_key] = result
+            logger.debug(f"LLM extracted risk factors: {result}")
+            return result
+
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse LLM response as JSON: {e}")
+            return self._fallback_pattern_extraction(medical_history, smoking_habits, osteoporosis)
+        except Exception as e:
+            logger.warning(f"LLM extraction failed, using fallback: {e}")
+            return self._fallback_pattern_extraction(medical_history, smoking_habits, osteoporosis)
 
     async def get_patient_risk(self, patient_id: str) -> Dict[str, Any]:
         """
@@ -393,8 +517,8 @@ class RiskService:
         factor_counts: Dict[str, int] = {}
 
         for patient in study_data.patients:
-            # Build patient features from demographics and medical history
-            features = self._build_patient_features(patient, study_data)
+            # Build patient features from demographics and medical history (async LLM extraction)
+            features = await self._build_patient_features(patient, study_data)
             patient_features_list.append(features)
 
             # Get individual prediction
@@ -464,9 +588,9 @@ class RiskService:
             "factor_prevalence": factor_prevalence,
         }
 
-    def _build_patient_features(self, patient, study_data) -> Dict[str, Any]:
+    async def _build_patient_features(self, patient, study_data) -> Dict[str, Any]:
         """
-        Build risk model features from patient data.
+        Build risk model features from patient data using LLM extraction.
 
         Args:
             patient: Patient object from study data
@@ -477,7 +601,7 @@ class RiskService:
         """
         features = {}
 
-        # Demographics
+        # Demographics (numeric - no NLP needed)
         current_year = datetime.now().year
         age = current_year - patient.year_of_birth if patient.year_of_birth else None
         features["age"] = age
@@ -490,12 +614,6 @@ class RiskService:
 
         features["is_female"] = patient.gender and patient.gender.lower() in ["female", "f"]
 
-        # Smoking status
-        smoking = (patient.smoking_habits or "").lower()
-        features["is_smoker"] = "current" in smoking or smoking == "yes"
-        features["is_former_smoker"] = "former" in smoking or "ex" in smoking
-        features["smoking"] = features["is_smoker"]
-
         # Get preoperative data for comorbidities
         preop = None
         for p in study_data.preoperatives:
@@ -503,30 +621,32 @@ class RiskService:
                 preop = p
                 break
 
-        if preop:
-            # Osteoporosis
-            osteo = (preop.osteoporosis or "").lower()
-            features["has_osteoporosis"] = osteo == "yes" or "osteoporosis" in osteo
-            features["osteoporosis"] = features["has_osteoporosis"]
+        # LLM-based extraction for text fields (smoking, medical history, etc.)
+        llm_factors = await self._extract_risk_factors_llm(
+            medical_history=preop.medical_history if preop else None,
+            smoking_habits=patient.smoking_habits,
+            osteoporosis=preop.osteoporosis if preop else None,
+            primary_diagnosis=preop.primary_diagnosis if preop else None,
+        )
 
-            # Prior surgery
+        # Map LLM results to feature names
+        features["is_smoker"] = llm_factors.get("smoking_current", False)
+        features["smoking"] = features["is_smoker"]
+        features["is_former_smoker"] = llm_factors.get("smoking_former", False)
+        features["diabetes"] = llm_factors.get("diabetes", False)
+        features["has_osteoporosis"] = llm_factors.get("osteoporosis", False)
+        features["osteoporosis"] = features["has_osteoporosis"]
+        features["rheumatoid_arthritis"] = llm_factors.get("rheumatoid_arthritis", False)
+        features["chronic_kidney_disease"] = llm_factors.get("chronic_kidney_disease", False)
+
+        # Prior surgery (structured field - pattern matching is appropriate)
+        if preop:
             prior = (preop.previous_hip_surgery_affected or "").lower()
             features["has_prior_surgery"] = prior != "" and prior != "no" and prior != "none"
             features["prior_revision"] = features["has_prior_surgery"]
-
-            # Medical history for comorbidities
-            history = (preop.medical_history or "").lower()
-            features["diabetes"] = "diabet" in history
-            features["rheumatoid_arthritis"] = "rheumatoid" in history
-            features["chronic_kidney_disease"] = "kidney" in history or "renal" in history
         else:
-            features["has_osteoporosis"] = False
-            features["osteoporosis"] = False
             features["has_prior_surgery"] = False
             features["prior_revision"] = False
-            features["diabetes"] = False
-            features["rheumatoid_arthritis"] = False
-            features["chronic_kidney_disease"] = False
 
         # Get intraoperative data for bone quality
         intraop = None

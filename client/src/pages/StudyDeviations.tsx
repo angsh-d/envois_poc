@@ -7,7 +7,7 @@ export default function StudyDeviations() {
   const studyId = params?.studyId || 'h34-delta'
   
   return (
-    <StudyLayout studyId={studyId}>
+    <StudyLayout studyId={studyId} chatContext="deviations">
       <Deviations />
     </StudyLayout>
   )

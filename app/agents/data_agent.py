@@ -156,6 +156,9 @@ class DataAgent(BaseAgent):
         elif query_type == "adverse_events":
             result.data = self._get_adverse_events(context.parameters)
 
+        elif query_type == "survival_analysis":
+            result.data = self._get_survival_data(context.parameters)
+
         else:
             raise ValueError(f"Unknown query_type: {query_type}")
 
@@ -464,7 +467,10 @@ class DataAgent(BaseAgent):
             if ae.device_removed and ae.device_removed.lower() == "yes"
         )
 
-        # Classify AEs by type from title
+        # Build patient lookup for demographics
+        patient_lookup = {p.patient_id: p for p in study_data.patients}
+
+        # Classify AEs by type from title and collect affected patients
         ae_types = {
             "infection": 0,
             "dislocation": 0,
@@ -473,20 +479,60 @@ class DataAgent(BaseAgent):
             "pain": 0,
             "other": 0,
         }
+        affected_patients_by_type = {
+            "infection": [],
+            "dislocation": [],
+            "fracture": [],
+            "loosening": [],
+            "revision": [],
+        }
+
         for ae in study_data.adverse_events:
             title = (ae.ae_title or "").lower()
+            patient = patient_lookup.get(ae.patient_id)
+            patient_info = None
+            if patient:
+                age = None
+                if patient.year_of_birth:
+                    age = 2024 - patient.year_of_birth
+                patient_info = {
+                    "patient_id": ae.patient_id,
+                    "event_description": ae.ae_title,
+                    "severity": ae.severity,
+                    "event_date": ae.onset_date.isoformat() if ae.onset_date else None,
+                    "is_sae": ae.is_sae == "Yes" if ae.is_sae else False,
+                    "demographics": {
+                        "gender": patient.gender,
+                        "age": age,
+                        "bmi": round(patient.bmi, 1) if patient.bmi else None,
+                    }
+                }
+
+            # Classify and add to affected patients
             if "infection" in title:
                 ae_types["infection"] += 1
+                if patient_info:
+                    affected_patients_by_type["infection"].append(patient_info)
             elif "dislocation" in title:
                 ae_types["dislocation"] += 1
+                if patient_info:
+                    affected_patients_by_type["dislocation"].append(patient_info)
             elif "fracture" in title:
                 ae_types["fracture"] += 1
+                if patient_info:
+                    affected_patients_by_type["fracture"].append(patient_info)
             elif "loosening" in title:
                 ae_types["loosening"] += 1
+                if patient_info:
+                    affected_patients_by_type["loosening"].append(patient_info)
             elif "pain" in title:
                 ae_types["pain"] += 1
             else:
                 ae_types["other"] += 1
+
+            # Track revisions (device removed)
+            if ae.device_removed and ae.device_removed.lower() == "yes" and patient_info:
+                affected_patients_by_type["revision"].append(patient_info)
 
         # Calculate rates
         rates = {}
@@ -508,6 +554,7 @@ class DataAgent(BaseAgent):
             "ae_by_type": ae_types,
             "ae_by_severity": severity_counts,
             "rates": rates,
+            "affected_patients_by_type": affected_patients_by_type,
         }
 
     def _get_hhs_scores(self, parameters: Dict[str, Any]) -> Dict[str, Any]:
@@ -842,4 +889,167 @@ class DataAgent(BaseAgent):
             "mcid_achieved": achieved,
             "mcid_rate": round(achieved / evaluable, 4) if evaluable > 0 else None,
             "target_rate": 0.50,  # Protocol target: 50% MCID
+        }
+
+    def _get_survival_data(self, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Get Kaplan-Meier survival analysis data for revision-free survival.
+
+        Calculates time-to-event data for each patient:
+        - Event = 1 if patient had a revision (explant)
+        - Event = 0 if patient is censored (no revision, still in follow-up)
+        - Time = days from surgery to event or last follow-up
+
+        Args:
+            parameters: Query parameters (optional filters)
+
+        Returns:
+            Dictionary with:
+            - survival_data: List of patient records with time_to_event, event, etc.
+            - summary: Aggregate statistics (n_events, n_censored, survival_rate)
+            - kaplan_meier_table: Time-based survival probability table
+        """
+        study_data = self._load_data()
+
+        # Build surgery date lookup from intraoperatives
+        surgery_dates = {}
+        for intraop in study_data.intraoperatives:
+            if intraop.surgery_date:
+                surgery_dates[intraop.patient_id] = intraop.surgery_date
+
+        # Build explant date lookup (first explant per patient = revision event)
+        explant_dates = {}
+        for explant in study_data.explants:
+            if explant.explant_date and explant.patient_id not in explant_dates:
+                explant_dates[explant.patient_id] = explant.explant_date
+
+        # Build last follow-up date lookup from HHS/OHS scores
+        last_followup_dates = {}
+        for hhs in study_data.hhs_scores:
+            if hhs.follow_up_date:
+                pid = hhs.patient_id
+                if pid not in last_followup_dates or hhs.follow_up_date > last_followup_dates[pid]:
+                    last_followup_dates[pid] = hhs.follow_up_date
+        for ohs in study_data.ohs_scores:
+            if ohs.follow_up_date:
+                pid = ohs.patient_id
+                if pid not in last_followup_dates or ohs.follow_up_date > last_followup_dates[pid]:
+                    last_followup_dates[pid] = ohs.follow_up_date
+
+        # Calculate survival data for each patient with surgery
+        survival_records = []
+        for patient_id, surgery_date in surgery_dates.items():
+            record = {
+                "patient_id": patient_id,
+                "surgery_date": surgery_date.isoformat(),
+            }
+
+            if patient_id in explant_dates:
+                # Patient had a revision (event)
+                event_date = explant_dates[patient_id]
+                time_to_event = (event_date - surgery_date).days
+                record["event"] = 1
+                record["event_date"] = event_date.isoformat()
+                record["time_to_event_days"] = time_to_event
+                record["time_to_event_months"] = round(time_to_event / 30.44, 1)
+                record["time_to_event_years"] = round(time_to_event / 365.25, 2)
+                record["status"] = "revised"
+            elif patient_id in last_followup_dates:
+                # Patient censored at last follow-up
+                followup_date = last_followup_dates[patient_id]
+                time_to_event = (followup_date - surgery_date).days
+                record["event"] = 0
+                record["event_date"] = None
+                record["last_followup_date"] = followup_date.isoformat()
+                record["time_to_event_days"] = time_to_event
+                record["time_to_event_months"] = round(time_to_event / 30.44, 1)
+                record["time_to_event_years"] = round(time_to_event / 365.25, 2)
+                record["status"] = "censored"
+            else:
+                # No follow-up data available - skip
+                continue
+
+            survival_records.append(record)
+
+        # Sort by time to event
+        survival_records.sort(key=lambda x: x["time_to_event_days"])
+
+        # Calculate summary statistics
+        n_total = len(survival_records)
+        n_events = sum(1 for r in survival_records if r["event"] == 1)
+        n_censored = n_total - n_events
+
+        # Calculate Kaplan-Meier survival estimates at key timepoints
+        # Using standard KM formula: S(t) = S(t-1) * (1 - d/n)
+        km_table = []
+        at_risk = n_total
+        survival_prob = 1.0
+
+        # Process events in chronological order
+        events_by_time = {}
+        for r in survival_records:
+            t = r["time_to_event_days"]
+            if t not in events_by_time:
+                events_by_time[t] = {"events": 0, "censored": 0}
+            if r["event"] == 1:
+                events_by_time[t]["events"] += 1
+            else:
+                events_by_time[t]["censored"] += 1
+
+        for t in sorted(events_by_time.keys()):
+            d = events_by_time[t]["events"]  # events at this time
+            c = events_by_time[t]["censored"]  # censored at this time
+
+            if d > 0 and at_risk > 0:
+                survival_prob = survival_prob * (1 - d / at_risk)
+
+            km_table.append({
+                "time_days": t,
+                "time_months": round(t / 30.44, 1),
+                "time_years": round(t / 365.25, 2),
+                "at_risk": at_risk,
+                "events": d,
+                "censored": c,
+                "survival_probability": round(survival_prob, 4),
+                "survival_percent": round(survival_prob * 100, 1),
+            })
+
+            at_risk -= (d + c)
+
+        # Calculate survival at standard timepoints (1yr, 2yr)
+        survival_at_1yr = None
+        survival_at_2yr = None
+        for entry in km_table:
+            if entry["time_days"] <= 365:
+                survival_at_1yr = entry["survival_percent"]
+            if entry["time_days"] <= 730:
+                survival_at_2yr = entry["survival_percent"]
+
+        # If no events occurred at these timepoints, use last known survival
+        if survival_at_1yr is None and km_table:
+            survival_at_1yr = 100.0 if not km_table else km_table[-1]["survival_percent"]
+        if survival_at_2yr is None and km_table:
+            survival_at_2yr = survival_at_1yr if survival_at_1yr else 100.0
+
+        return {
+            "survival_data": survival_records,
+            "n_patients": n_total,
+            "n_events": n_events,
+            "n_censored": n_censored,
+            "revision_rate": round(n_events / n_total, 4) if n_total > 0 else None,
+            "survival_rate_2yr": survival_at_2yr,
+            "survival_rate_1yr": survival_at_1yr,
+            "kaplan_meier_table": km_table,
+            "summary": {
+                "endpoint": "Revision-free survival",
+                "analysis_method": "Kaplan-Meier",
+                "total_patients_analyzed": n_total,
+                "total_revisions": n_events,
+                "total_censored": n_censored,
+                "median_follow_up_days": round(
+                    sum(r["time_to_event_days"] for r in survival_records) / n_total, 1
+                ) if n_total > 0 else None,
+                "survival_probability_1yr": survival_at_1yr,
+                "survival_probability_2yr": survival_at_2yr,
+            },
         }

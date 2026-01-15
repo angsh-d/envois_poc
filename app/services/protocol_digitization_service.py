@@ -479,6 +479,86 @@ class ProtocolDigitizationService:
             self._rules_data = self._load_yaml(self._rules_path)
         return self._rules_data
 
+    def update_protocol_rule(self, field_path: str, new_value: Any) -> Dict[str, Any]:
+        """
+        Update a specific field in protocol rules.
+
+        Args:
+            field_path: Dot-separated path to the field (e.g., 'protocol.version', 'sample_size.target_enrollment')
+            new_value: The new value to set
+
+        Returns:
+            Updated protocol rules
+        """
+        # Load current rules (fresh from file to avoid cache issues)
+        rules = self._load_yaml(self._rules_path)
+
+        # Navigate to the parent and update the field
+        keys = field_path.split('.')
+        target = rules
+        for key in keys[:-1]:
+            if key.isdigit():
+                target = target[int(key)]
+            else:
+                target = target[key]
+
+        final_key = keys[-1]
+        if final_key.isdigit():
+            target[int(final_key)] = new_value
+        else:
+            target[final_key] = new_value
+
+        # Write back to YAML file
+        with open(self._rules_path, 'w', encoding='utf-8') as f:
+            yaml.dump(rules, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Update cache
+        self._rules_data = rules
+
+        logger.info(f"Updated protocol rule: {field_path} = {new_value}")
+        return rules
+
+    def update_protocol_rules_batch(self, updates: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Update multiple fields in protocol rules at once.
+
+        Args:
+            updates: List of dicts with 'field_path' and 'value' keys
+
+        Returns:
+            Updated protocol rules
+        """
+        # Load current rules
+        rules = self._load_yaml(self._rules_path)
+
+        for update in updates:
+            field_path = update['field_path']
+            new_value = update['value']
+
+            keys = field_path.split('.')
+            target = rules
+            for key in keys[:-1]:
+                if key.isdigit():
+                    target = target[int(key)]
+                else:
+                    target = target[key]
+
+            final_key = keys[-1]
+            if final_key.isdigit():
+                target[int(final_key)] = new_value
+            else:
+                target[final_key] = new_value
+
+        # Write back to YAML file
+        with open(self._rules_path, 'w', encoding='utf-8') as f:
+            yaml.dump(rules, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        # Update cache
+        self._rules_data = rules
+
+        logger.info(f"Batch updated {len(updates)} protocol rules")
+        return rules
+
 
 def get_protocol_digitization_service() -> ProtocolDigitizationService:
     """Get singleton instance of ProtocolDigitizationService."""

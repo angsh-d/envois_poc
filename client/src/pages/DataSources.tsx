@@ -29,7 +29,7 @@ export default function DataSources({ params }: DataSourcesProps) {
   ]
 
   return (
-    <StudyLayout studyId={params.studyId}>
+    <StudyLayout studyId={params.studyId} chatContext="data-sources">
       <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Data Sources</h1>

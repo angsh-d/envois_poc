@@ -8,11 +8,11 @@ import {
   SafetyMetric
 } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { 
-  AlertTriangle, CheckCircle, XCircle, 
-  Activity, ChevronRight, Users, BookOpen, 
+import {
+  AlertTriangle, CheckCircle, XCircle,
+  Activity, ChevronRight, Users, BookOpen,
   Database, Clock, ChevronDown, TrendingUp,
-  User, FileText, Beaker
+  User, FileText, Beaker, HelpCircle
 } from 'lucide-react'
 
 function formatMetricName(metric: string): string {
@@ -47,6 +47,7 @@ export default function Safety() {
   const studyId = params?.studyId || 'h34-delta'
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null)
   const [expandedProvenance, setExpandedProvenance] = useState<string | null>(null)
+  const [showMonitoredMetrics, setShowMonitoredMetrics] = useState(false)
 
   const { data, isLoading, error } = useQuery<SafetyResponse>({
     queryKey: ['safety-signals'],
@@ -191,17 +192,34 @@ export default function Safety() {
                       <td className="py-4 px-4 text-center">
                         <div className="flex flex-col items-center">
                           <span className="text-lg font-semibold text-gray-900">{metric.count}</span>
-                          <span className="text-xs text-gray-500">of {metric.total} patients</span>
+                          <span className="text-xs text-gray-500">events in {metric.total} patients</span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex flex-col items-center gap-1">
                           <div className="flex items-center gap-3">
-                            <span className={`text-lg font-bold ${metric.signal ? 'text-red-600' : 'text-emerald-600'}`}>
-                              {(metric.rate * 100).toFixed(1)}%
-                            </span>
+                            <div className="flex flex-col items-center">
+                              <span className={`text-lg font-bold ${metric.signal ? 'text-red-600' : 'text-emerald-600'}`}>
+                                {(metric.rate * 100).toFixed(1)}%
+                              </span>
+                              {metric.ci_lower !== undefined && metric.ci_upper !== undefined && (
+                                <span className="text-xs text-gray-400">
+                                  95% CI: {(metric.ci_lower * 100).toFixed(1)}-{(metric.ci_upper * 100).toFixed(1)}%
+                                </span>
+                              )}
+                            </div>
                             <span className="text-gray-400">/</span>
-                            <span className="text-sm text-gray-500">{(metric.threshold * 100).toFixed(0)}%</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-gray-500">{(metric.threshold * 100).toFixed(0)}%</span>
+                              {metric.provenance?.threshold_source && (
+                                <span className="group relative cursor-help">
+                                  <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                  <span className="absolute bottom-full right-0 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-72 pointer-events-none z-50 leading-relaxed shadow-lg text-left">
+                                    <span className="font-medium text-gray-900">Source: </span>{metric.provenance.threshold_source}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <RateBar rate={metric.rate} threshold={metric.threshold} isSignal={metric.signal} />
                         </div>
@@ -261,30 +279,7 @@ export default function Safety() {
                             </div>
                             {provenance ? (
                               <div className="space-y-3 text-xs">
-                                <div className="space-y-2">
-                                  <div className="flex items-start gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-blue-25 rounded-lg border border-blue-100">
-                                    <Beaker className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                      <p className="text-blue-800 font-medium">Event Query</p>
-                                      <p className="text-blue-600 font-mono text-xs mt-0.5">{provenance.data_sources?.event_count}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-blue-25 rounded-lg border border-blue-100">
-                                    <Users className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                      <p className="text-blue-800 font-medium">Patient Query</p>
-                                      <p className="text-blue-600 font-mono text-xs mt-0.5">{provenance.data_sources?.patient_count}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-blue-25 rounded-lg border border-blue-100">
-                                    <FileText className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                      <p className="text-blue-800 font-medium">Threshold Source</p>
-                                      <p className="text-blue-600 font-mono text-xs mt-0.5">{provenance.data_sources?.threshold}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="pt-2 border-t border-blue-100">
+                                <div>
                                   <p className="text-gray-700 font-semibold mb-1">Methodology</p>
                                   <p className="text-gray-600 leading-relaxed">{provenance.methodology}</p>
                                 </div>
@@ -292,6 +287,18 @@ export default function Safety() {
                                   <p className="text-gray-700 font-semibold mb-1">Formula</p>
                                   <p className="text-gray-800 font-mono bg-white px-2 py-1 rounded border border-gray-200">{provenance.calculation}</p>
                                 </div>
+                                {provenance.confidence_interval && (
+                                  <div className="bg-emerald-50 rounded-lg p-2.5">
+                                    <p className="text-emerald-700 font-semibold mb-1">Statistical Uncertainty</p>
+                                    <p className="text-emerald-800 font-mono text-xs">{provenance.confidence_interval}</p>
+                                  </div>
+                                )}
+                                {provenance.signal_classification && (
+                                  <div className="bg-amber-50 rounded-lg p-2.5">
+                                    <p className="text-amber-700 font-semibold mb-1">Signal Classification</p>
+                                    <p className="text-amber-800 text-xs">{provenance.signal_classification}</p>
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <p className="text-xs text-gray-400">No provenance data available</p>
@@ -306,7 +313,9 @@ export default function Safety() {
                               </div>
                               <div>
                                 <h4 className="font-semibold text-gray-900 text-sm">Affected Patients</h4>
-                                <p className="text-xs text-rose-600">{affectedPatients.length} patients with events</p>
+                                <p className="text-xs text-rose-600">
+                                  {affectedPatients.length} event{affectedPatients.length !== 1 ? 's' : ''} ({new Set(affectedPatients.map(p => p.patient_id)).size} patient{new Set(affectedPatients.map(p => p.patient_id)).size !== 1 ? 's' : ''})
+                                </p>
                               </div>
                             </div>
                             {affectedPatients.length > 0 ? (
@@ -355,28 +364,78 @@ export default function Safety() {
                               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <BookOpen className="w-4 h-4 text-purple-600" />
                               </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900 text-sm">Literature Context</h4>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-1">
+                                  <h4 className="font-semibold text-gray-900 text-sm">Literature Context</h4>
+                                  <span className="group relative cursor-help">
+                                    <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                    <span className="absolute bottom-full left-0 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-50 leading-relaxed shadow-lg">
+                                      <span className="font-medium text-gray-900">Comparison Method:</span><br/>
+                                      <span className="text-emerald-600">● Green</span>: Study rate ≤ literature rate (at or below benchmark)<br/>
+                                      <span className="text-amber-600">● Amber</span>: Study rate &gt; literature rate (exceeds benchmark)
+                                    </span>
+                                  </span>
+                                </div>
                                 <p className="text-xs text-purple-600">{citations.length} publications</p>
                               </div>
                             </div>
                             {citations.length > 0 ? (
-                              <div className="space-y-2.5 max-h-56 overflow-y-auto">
+                              <div className="space-y-2.5 max-h-64 overflow-y-auto">
                                 {citations.map((citation, idx) => (
                                   <div key={idx} className="p-3 bg-gradient-to-r from-purple-50 to-gray-50 rounded-lg border border-purple-100">
                                     <p className="font-medium text-gray-900 text-sm leading-tight">{citation.title}</p>
                                     <p className="text-purple-600 text-xs mt-1">{citation.journal} ({citation.year})</p>
-                                    <div className="flex items-center gap-3 mt-2">
-                                      <span className="text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200 text-gray-600">
-                                        n={citation.n_patients.toLocaleString()}
-                                      </span>
-                                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                        citation.reported_rate <= metric.threshold 
-                                          ? 'bg-emerald-100 text-emerald-700' 
-                                          : 'bg-amber-100 text-amber-700'
-                                      }`}>
-                                        {(citation.reported_rate * 100).toFixed(1)}% rate
-                                      </span>
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      {citation.n_patients && (
+                                        <span className="text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200 text-gray-600">
+                                          n={citation.n_patients.toLocaleString()}
+                                        </span>
+                                      )}
+                                      {citation.reported_rate != null && citation.reported_rate > 0 ? (
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                          metric.rate <= citation.reported_rate
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-amber-100 text-amber-700'
+                                        }`}>
+                                          {(citation.reported_rate * 100).toFixed(1)}% rate
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                                          Rate N/A
+                                        </span>
+                                      )}
+                                    </div>
+                                    {/* Source provenance and DOI link */}
+                                    <div className="mt-2 pt-2 border-t border-purple-100">
+                                      {citation.local_source && (
+                                        <>
+                                          <p className="text-xs text-gray-500">
+                                            <span className="font-medium text-purple-700">Local:</span>{' '}
+                                            <span className="font-mono text-purple-600">{citation.local_source}</span>
+                                          </p>
+                                          {citation.provenance?.page && (
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                              <span className="font-medium">Page {citation.provenance.page}</span>
+                                              {citation.provenance.table && <span>, {citation.provenance.table}</span>}
+                                            </p>
+                                          )}
+                                        </>
+                                      )}
+                                      {(citation.doi || citation.provenance?.doi) && (
+                                        <p className="text-xs mt-1">
+                                          <a
+                                            href={`https://doi.org/${citation.doi || citation.provenance?.doi}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                                          >
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                            doi.org/{citation.doi || citation.provenance?.doi}
+                                          </a>
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
                                 ))}
@@ -411,6 +470,74 @@ export default function Safety() {
         </table>
         </div>
       </Card>
+
+      {/* Other Monitored Metrics (Below Threshold) */}
+      {data.monitored_metrics && data.monitored_metrics.length > 0 && (
+        <Card className="overflow-hidden">
+          <button
+            onClick={() => setShowMonitoredMetrics(!showMonitoredMetrics)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-800">Other Monitored Metrics</h3>
+                <p className="text-sm text-gray-500">{data.n_monitored} metrics within acceptable thresholds</p>
+              </div>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showMonitoredMetrics ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showMonitoredMetrics && (
+            <div className="border-t border-gray-100">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Metric</th>
+                    <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Events</th>
+                    <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rate vs Threshold</th>
+                    <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {data.monitored_metrics.map((metric, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span className="font-medium text-gray-900">{formatMetricName(metric.metric)}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="text-lg font-semibold text-gray-900">{metric.count}</span>
+                        <span className="text-xs text-gray-500 ml-1">of {metric.total}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="text-right">
+                            <span className="font-semibold text-gray-900">{(metric.rate * 100).toFixed(1)}%</span>
+                            <span className="text-gray-400 mx-1">/</span>
+                            <span className="text-gray-500">{(metric.threshold * 100).toFixed(0)}%</span>
+                          </div>
+                          <RateBar rate={metric.rate} threshold={metric.threshold} isSignal={false} />
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Within Threshold
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Summary Section */}
       <Card>

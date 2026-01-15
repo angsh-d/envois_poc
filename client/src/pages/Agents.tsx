@@ -10,7 +10,11 @@ import {
   ChevronRight,
   Layers,
   Shield,
-  Activity
+  Activity,
+  User,
+  Target,
+  GitBranch,
+  Combine
 } from 'lucide-react'
 
 interface AgentsProps {
@@ -45,15 +49,16 @@ export default function Agents({ params }: AgentsProps) {
 
   const agents = [
     {
-      id: 'orchestrator',
-      name: 'Orchestrator Agent',
-      type: 'orchestrator' as const,
-      description: 'Analyzes incoming requests, identifies required specialist agents, and delegates tasks appropriately. Manages the execution flow and coordinates parallel agent invocations.',
+      id: 'clinical-strategy-analyst',
+      name: 'Clinical Strategy Analyst Agent',
+      type: 'persona' as const,
+      description: 'The highest-level persona-based agent that embodies a Clinical Strategy Analyst role. Coordinates goal-based planning, orchestrates specialist agents, and synthesizes insights into actionable strategic recommendations.',
       capabilities: [
-        'Request classification and intent detection',
-        'Task decomposition and delegation',
-        'Agent selection based on query requirements',
-        'Parallel execution coordination'
+        'Goal-based planning and task decomposition',
+        'Multi-agent orchestration and coordination',
+        'Strategic insight synthesis across all data sources',
+        'Evidence-based recommendation generation',
+        'Executive-level narrative construction'
       ]
     },
     {
@@ -127,23 +132,11 @@ export default function Agents({ params }: AgentsProps) {
         'Cohort risk stratification',
         'Hazard ratio application from literature'
       ]
-    },
-    {
-      id: 'synthesis',
-      name: 'Synthesis Agent',
-      type: 'synthesis' as const,
-      description: 'Combines outputs from all specialist agents into coherent, evidence-based responses. Generates formatted reports with proper citations.',
-      capabilities: [
-        'Multi-source evidence synthesis',
-        'Confidence scoring',
-        'Citation formatting',
-        'Executive summary generation'
-      ]
     }
   ]
 
   return (
-    <StudyLayout studyId={params.studyId}>
+    <StudyLayout studyId={params.studyId} chatContext="agents">
       <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">AI Agents</h1>
@@ -164,52 +157,75 @@ export default function Agents({ params }: AgentsProps) {
           </div>
           <div className="p-6 bg-gray-50">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-full border border-gray-200 rounded-xl p-4 bg-white">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3 font-semibold">Data Layer</p>
-                <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
-                  {dataSources.map((source) => {
-                    const Icon = source.icon
-                    return (
-                      <div key={source.id} className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center">
-                        <div className="w-5 h-5 bg-white border border-gray-200 rounded flex items-center justify-center mx-auto mb-1">
-                          <Icon className="w-3 h-3 text-gray-500" />
-                        </div>
-                        <p className="text-[9px] font-medium text-gray-700 leading-tight">{source.name}</p>
-                        <p className="text-[8px] text-gray-400">{source.format}</p>
-                      </div>
-                    )
-                  })}
+
+              {/* UI & Application Layer - TOP */}
+              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-500">
+                <p className="text-[10px] text-white uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Dashboard</p>
+                  </div>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Readiness</p>
+                  </div>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Safety</p>
+                  </div>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Deviations</p>
+                  </div>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">Risk</p>
+                  </div>
+                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
+                    <p className="text-[9px] font-medium text-gray-800">AI Chat</p>
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-center w-full">
-                <div className="flex-1 h-px bg-gray-200"></div>
-                <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
-                <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="flex-1 h-px bg-gray-400"></div>
+                <ChevronRight className="w-4 h-4 text-gray-500 rotate-90 mx-2" />
+                <div className="flex-1 h-px bg-gray-400"></div>
               </div>
 
-              <div className="w-full border border-gray-300 rounded-xl p-4 bg-gray-100">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-3 font-semibold">LLM & ML Tools Layer</p>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                  {llmTools.map((tool) => (
-                    <div key={tool.id} className="bg-white border border-gray-200 rounded-lg p-2.5 text-center">
-                      <div className="flex items-center justify-center gap-1.5 mb-1">
-                        <Sparkles className="w-3 h-3 text-gray-500" />
-                        <p className="text-[10px] font-semibold text-gray-700">{tool.name}</p>
-                      </div>
-                      <p className="text-[8px] text-gray-400">{tool.type}</p>
-                      <p className="text-[8px] text-gray-500 mt-0.5">{tool.desc}</p>
+              {/* Persona-based Agent Layer */}
+              <div className="w-full border-2 border-blue-400 rounded-xl p-4 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm">
+                <p className="text-[10px] text-blue-700 uppercase tracking-wide mb-3 font-semibold">Persona-based Agent Layer</p>
+                <div className="bg-white border-2 border-blue-300 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
-                  ))}
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-gray-900">Clinical Strategy Analyst Agent</p>
+                      <p className="text-[10px] text-blue-600 font-medium">Highest-level Persona Agent</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                      <Target className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                      <p className="text-[9px] font-medium text-gray-700">Goal-based Planning</p>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                      <GitBranch className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                      <p className="text-[9px] font-medium text-gray-700">Agent Orchestration</p>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                      <Combine className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                      <p className="text-[9px] font-medium text-gray-700">Insight Synthesis</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-center w-full">
-                <div className="flex-1 h-px bg-gray-200"></div>
-                <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
-                <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="flex-1 h-px bg-blue-200"></div>
+                <ChevronRight className="w-4 h-4 text-blue-400 rotate-90 mx-2" />
+                <div className="flex-1 h-px bg-blue-200"></div>
               </div>
 
+              {/* Specialist Agents Layer */}
               <div className="w-full border border-gray-400 rounded-xl p-4 bg-gray-200">
                 <p className="text-[10px] text-gray-600 uppercase tracking-wide mb-3 font-semibold">Specialist Agents Layer</p>
                 <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 w-full">
@@ -239,53 +255,45 @@ export default function Agents({ params }: AgentsProps) {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div className="w-full border border-gray-400 rounded-xl p-4 bg-gray-300">
-                <p className="text-[10px] text-gray-700 uppercase tracking-wide mb-3 font-semibold">Orchestration & Synthesis Layer</p>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div className="bg-white border border-gray-400 rounded-lg p-3 text-center shadow-sm">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Bot className="w-4 h-4 text-gray-700" />
-                      <p className="text-sm font-semibold text-gray-900">Orchestrator Agent</p>
+              {/* LLM & ML Tools Layer */}
+              <div className="w-full border border-gray-300 rounded-xl p-4 bg-gray-100">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-3 font-semibold">LLM & ML Tools Layer</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {llmTools.map((tool) => (
+                    <div key={tool.id} className="bg-white border border-gray-200 rounded-lg p-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5 mb-1">
+                        <Sparkles className="w-3 h-3 text-gray-500" />
+                        <p className="text-[10px] font-semibold text-gray-700">{tool.name}</p>
+                      </div>
+                      <p className="text-[8px] text-gray-400">{tool.type}</p>
+                      <p className="text-[8px] text-gray-500 mt-0.5">{tool.desc}</p>
                     </div>
-                    <p className="text-xs text-gray-600">Routes queries to specialists, coordinates parallel execution</p>
-                  </div>
-                  <div className="bg-white border border-gray-400 rounded-lg p-3 text-center shadow-sm">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Sparkles className="w-4 h-4 text-gray-700" />
-                      <p className="text-sm font-semibold text-gray-900">Synthesis Agent</p>
-                    </div>
-                    <p className="text-xs text-gray-600">Combines specialist outputs into coherent responses</p>
-                  </div>
+                  ))}
                 </div>
               </div>
 
               <div className="flex items-center justify-center w-full">
-                <div className="flex-1 h-px bg-gray-300"></div>
-                <ChevronRight className="w-4 h-4 text-gray-400 rotate-90 mx-2" />
-                <div className="flex-1 h-px bg-gray-300"></div>
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <ChevronRight className="w-4 h-4 text-gray-300 rotate-90 mx-2" />
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <div className="w-full border border-gray-500 rounded-xl p-4 bg-gray-500">
-                <p className="text-[10px] text-white uppercase tracking-wide mb-3 font-semibold">UI & Application Layer</p>
-                <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">Dashboard</p>
-                  </div>
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">Readiness</p>
-                  </div>
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">Safety</p>
-                  </div>
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">Deviations</p>
-                  </div>
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">Risk</p>
-                  </div>
-                  <div className="bg-white border border-gray-300 rounded-lg p-2 text-center shadow-sm">
-                    <p className="text-[9px] font-medium text-gray-800">AI Chat</p>
-                  </div>
+              {/* Data Layer */}
+              <div className="w-full border border-gray-200 rounded-xl p-4 bg-white">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-3 font-semibold">Data Layer</p>
+                <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 w-full">
+                  {dataSources.map((source) => {
+                    const Icon = source.icon
+                    return (
+                      <div key={source.id} className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-center">
+                        <div className="w-5 h-5 bg-white border border-gray-200 rounded flex items-center justify-center mx-auto mb-1">
+                          <Icon className="w-3 h-3 text-gray-500" />
+                        </div>
+                        <p className="text-[9px] font-medium text-gray-700 leading-tight">{source.name}</p>
+                        <p className="text-[8px] text-gray-400">{source.format}</p>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -294,20 +302,24 @@ export default function Agents({ params }: AgentsProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {agents.map((agent) => (
-            <div key={agent.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
+            <div key={agent.id} className={`bg-white rounded-xl border overflow-hidden hover:shadow-sm transition-shadow ${
+              agent.type === 'persona' ? 'border-blue-300 md:col-span-2' : 'border-gray-200'
+            }`}>
               <div className={`px-4 py-3 border-b ${
-                agent.type === 'orchestrator' ? 'bg-gray-200 border-gray-300' :
-                agent.type === 'synthesis' ? 'bg-gray-100 border-gray-200' :
+                agent.type === 'persona' ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200' :
                 'bg-gray-50 border-gray-200'
               }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Bot className="w-4 h-4 text-gray-600" />
+                    {agent.type === 'persona' ? (
+                      <User className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <Bot className="w-4 h-4 text-gray-600" />
+                    )}
                     <h3 className="font-semibold text-gray-900 text-sm">{agent.name}</h3>
                   </div>
                   <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
-                    agent.type === 'orchestrator' ? 'bg-gray-600 text-white' :
-                    agent.type === 'synthesis' ? 'bg-gray-500 text-white' :
+                    agent.type === 'persona' ? 'bg-blue-600 text-white' :
                     'bg-gray-100 text-gray-700'
                   }`}>
                     {agent.type.toUpperCase()}
@@ -332,11 +344,11 @@ export default function Agents({ params }: AgentsProps) {
           ))}
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-4 flex items-start gap-3 border border-gray-200">
-          <Info className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+        <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3 border border-blue-200">
+          <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
           <div className="text-xs text-gray-600">
-            <p className="font-medium text-gray-700 mb-1">Agent Communication</p>
-            <p>Agents communicate through a message-passing architecture. The Orchestrator routes requests to appropriate specialists, collects their outputs, and the Synthesis Agent generates coherent responses using the Gemini LLM.</p>
+            <p className="font-medium text-blue-700 mb-1">Persona-based Multi-Agent Architecture</p>
+            <p>Users interact with the platform through the UI & Application Layer, which routes requests to the Clinical Strategy Analyst Agent—a persona-based agent embodying domain expertise and strategic thinking. This agent coordinates goal-based planning, orchestrates specialist agents for data retrieval and analysis, and synthesizes insights into actionable recommendations. The layered architecture enables intuitive user interaction while leveraging specialized AI tools for precise clinical intelligence.</p>
           </div>
         </div>
       </div>

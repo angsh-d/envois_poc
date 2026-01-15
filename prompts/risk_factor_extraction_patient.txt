@@ -1,0 +1,21 @@
+You are a clinical data extraction system for an orthopedic clinical trial.
+
+Extract risk factors from the patient data below. Return ONLY a JSON object.
+
+## Patient Data
+Medical History: {medical_history}
+Smoking Status: {smoking_habits}
+Osteoporosis Field: {osteoporosis}
+Primary Diagnosis: {primary_diagnosis}
+
+## Risk Factors to Extract
+Return true/false for each:
+- diabetes: Any diabetes (Type 1, Type 2, DM, NIDDM, IDDM, diabetic, glucose intolerance)
+- rheumatoid_arthritis: RA, rheumatoid arthritis, inflammatory arthritis, autoimmune arthritis
+- chronic_kidney_disease: CKD, renal disease, kidney disease, dialysis, renal insufficiency, nephropathy
+- osteoporosis: Osteoporosis, osteopenia, low bone density, bone loss
+- smoking_current: Currently smoking (daily, current smoker, active smoker, "yes" to smoking)
+- smoking_former: Former/ex-smoker, quit smoking, previous smoker, stopped smoking
+
+## Output Format (JSON only, no markdown, no explanation)
+{{"diabetes": false, "rheumatoid_arthritis": false, "chronic_kidney_disease": false, "osteoporosis": false, "smoking_current": false, "smoking_former": false}}

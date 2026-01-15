@@ -1,0 +1,42 @@
+You are an intent classification system for a clinical trial intelligence platform. Analyze the user's question and determine which data sources are needed to answer it.
+
+User Question: {question}
+Current Page Context: {page_context}
+
+Based on the question, classify the intent by determining:
+1. needs_registry - Does the question need registry benchmark data (e.g., AOANJRR, NJR, AJRR, SHAR, NARA)?
+2. needs_literature - Does the question need published literature/study data?
+3. needs_clinical_data - Does the question need study-specific clinical/patient data?
+4. needs_multi_registry - Does the question require comparing ALL 5 registries?
+5. needs_multi_source_synthesis - Does the question require synthesizing multiple source types?
+6. query_type - Specific query type for specialized handling:
+   - "revision_reasons" - Questions about why revisions occur
+   - "threshold_proximity" - Questions about proximity to regulatory thresholds
+   - "outcomes_by_indication" - Questions about outcomes by patient indication
+   - "registry_metadata" - Questions about registry methodology/coverage
+   - "closest_registry" - Questions about which registry best matches our study
+   - "product_specific" - Questions about specific products/implants
+   - "risk_factors" - Questions about risk factors affecting outcomes
+   - "safety_signals" - Questions about safety signals or adverse events
+   - "survival_analysis" - Questions about Kaplan-Meier, survival curves, revision-free survival, time-to-event analysis
+   - "general" - General questions
+
+Examples:
+- "What is the revision rate in AOANJRR?" -> needs_registry=true, query_type="general"
+- "How do our results compare to published studies?" -> needs_literature=true, needs_clinical_data=true, needs_multi_source_synthesis=true
+- "What are the main reasons for revision across all registries?" -> needs_registry=true, needs_multi_registry=true, query_type="revision_reasons"
+- "What risk factors affect revision outcomes?" -> needs_literature=true, query_type="risk_factors"
+- "How many patients have experienced adverse events?" -> needs_clinical_data=true, query_type="safety_signals"
+- "Show me the Kaplan-Meier survival curve for our study" -> needs_clinical_data=true, query_type="survival_analysis"
+- "What is the revision-free survival rate in our study?" -> needs_clinical_data=true, query_type="survival_analysis"
+
+Respond with a JSON object only, no other text:
+{{
+  "needs_registry": true or false,
+  "needs_literature": true or false,
+  "needs_clinical_data": true or false,
+  "needs_multi_registry": true or false,
+  "needs_multi_source_synthesis": true or false,
+  "query_type": "one of the query types above",
+  "confidence": 0.0 to 1.0
+}}

@@ -380,8 +380,18 @@ export interface LiteratureCitation {
   year: number
   journal: string
   n_patients: number
-  reported_rate: number
+  reported_rate: number | null
   reference: string
+  doi?: string
+  local_source?: string
+  provenance?: {
+    page?: number
+    table?: string
+    quote?: string
+    context?: string
+    local_source?: string
+    doi?: string
+  }
 }
 
 export interface MetricProvenance {
@@ -392,9 +402,11 @@ export interface MetricProvenance {
   }
   methodology: string
   calculation: string
+  confidence_interval?: string
   threshold_source: string
   threshold_rationale: string
   regulatory_reference: string
+  signal_classification?: string
 }
 
 export interface SafetyMetric {
@@ -405,6 +417,8 @@ export interface SafetyMetric {
   threshold: number
   signal: boolean
   threshold_exceeded_by: number
+  ci_lower?: number
+  ci_upper?: number
   provenance?: MetricProvenance
   affected_patients?: AffectedPatient[]
   literature_citations?: LiteratureCitation[]
@@ -440,6 +454,8 @@ export interface SafetyResponse {
   detection_date: string
   signals: SafetyMetric[]
   n_signals: number
+  monitored_metrics: SafetyMetric[]
+  n_monitored: number
   high_priority: SafetyMetric[]
   medium_priority: SafetyMetric[]
   requires_dsmb_review: boolean
@@ -563,6 +579,188 @@ export async function fetchRiskSummary(): Promise<RiskSummaryResponse> {
   const response = await fetch(`${API_BASE}/uc4/risk/population`)
   if (!response.ok) {
     throw new Error(`Failed to fetch risk summary: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// Protocol Rules Update API
+export interface ProtocolRuleUpdate {
+  field_path: string
+  value: string | number | boolean | string[]
+}
+
+export async function updateProtocolRule(fieldPath: string, value: string | number | boolean | string[]): Promise<Record<string, unknown>> {
+  const response = await fetch(`${API_BASE}/protocol/rules`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ field_path: fieldPath, value }),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to update protocol rule: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function updateProtocolRulesBatch(updates: ProtocolRuleUpdate[]): Promise<Record<string, unknown>> {
+  const response = await fetch(`${API_BASE}/protocol/rules/batch`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ updates }),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to batch update protocol rules: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// Monte Carlo Simulation API Types
+export interface MonteCarloRiskDistribution {
+  age_over_80?: number
+  bmi_over_35?: number
+  diabetes?: number
+  osteoporosis?: number
+  rheumatoid_arthritis?: number
+  chronic_kidney_disease?: number
+  smoking?: number
+  prior_revision?: number
+  severe_bone_loss?: number
+  paprosky_3b?: number
+}
+
+export interface MonteCarloRequest {
+  n_patients: number
+  threshold: string
+  n_iterations: number
+  risk_distribution?: MonteCarloRiskDistribution
+  seed?: number
+}
+
+export interface MonteCarloResponse {
+  success: boolean
+  n_iterations: number
+  n_patients: number
+  threshold: number
+  threshold_name: string
+  mean_revision_rate: number
+  median_revision_rate: number
+  p5_revision_rate: number
+  p95_revision_rate: number
+  std_revision_rate: number
+  probability_pass: number
+  probability_pass_pct: number
+  verdict: 'high_confidence' | 'uncertain' | 'at_risk'
+  verdict_label: string
+  variance_contributions: Record<string, number>
+  execution_time_ms: number
+  generated_at: string
+}
+
+export interface HazardRatioSpec {
+  factor: string
+  point_estimate: number
+  ci_lower: number
+  ci_upper: number
+  source: string
+}
+
+export interface HazardRatiosResponse {
+  success: boolean
+  n_factors: number
+  factors: HazardRatioSpec[]
+  sources: string[]
+}
+
+export interface ScenarioSpec {
+  name: string
+  description?: string
+  risk_distribution?: MonteCarloRiskDistribution
+  exclusions?: string[]
+}
+
+export interface ScenarioResult {
+  name: string
+  description: string
+  probability_pass: number
+  probability_pass_pct: number
+  mean_revision_rate: number
+  mean_revision_rate_pct: number
+  p5_revision_rate: number
+  p95_revision_rate: number
+  ci_90: string
+  verdict: string
+  delta_probability?: number
+  delta_probability_pct?: number
+  delta_mean_rate?: number
+}
+
+export interface ScenarioComparisonResponse {
+  success: boolean
+  n_scenarios: number
+  threshold: string
+  threshold_name: string
+  scenarios: ScenarioResult[]
+  generated_at: string
+}
+
+export async function runMonteCarloSimulation(request: MonteCarloRequest): Promise<MonteCarloResponse> {
+  const response = await fetch(`${API_BASE}/simulation/monte-carlo/run`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  if (!response.ok) {
+    throw new Error(`Monte Carlo simulation failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function compareMonteCarloScenarios(
+  scenarios: ScenarioSpec[],
+  nPatients: number = 549,
+  threshold: string = 'fda_510k',
+  nIterations: number = 10000,
+  seed: number = 42
+): Promise<ScenarioComparisonResponse> {
+  const response = await fetch(`${API_BASE}/simulation/monte-carlo/compare`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      scenarios,
+      n_patients: nPatients,
+      threshold,
+      n_iterations: nIterations,
+      seed,
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(`Scenario comparison failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchHazardRatios(): Promise<HazardRatiosResponse> {
+  const response = await fetch(`${API_BASE}/simulation/monte-carlo/hazard-ratios`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch hazard ratios: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function quickMonteCarloSimulation(
+  nPatients: number = 549,
+  threshold: string = 'fda_510k'
+): Promise<MonteCarloResponse> {
+  const response = await fetch(`${API_BASE}/simulation/monte-carlo/quick?n_patients=${nPatients}&threshold=${threshold}`)
+  if (!response.ok) {
+    throw new Error(`Quick simulation failed: ${response.statusText}`)
   }
   return response.json()
 }

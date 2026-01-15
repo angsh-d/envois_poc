@@ -10,6 +10,7 @@ from app.api.routers import (
     uc4_risk,
     uc5_dashboard,
     protocol_digitization,
+    simulation,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "uc4_risk",
     "uc5_dashboard",
     "protocol_digitization",
+    "simulation",
 ]

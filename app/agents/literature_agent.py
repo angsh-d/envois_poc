@@ -130,6 +130,7 @@ class LiteratureAgent(BaseAgent):
                 for pub in benchmarks.publications
             ],
             "aggregate_benchmarks": benchmarks.aggregate_benchmarks,
+            "outcome_benchmarks": benchmarks.outcome_benchmarks,
             "n_risk_factors": len(benchmarks.all_risk_factors),
         }
 

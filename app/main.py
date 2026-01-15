@@ -14,7 +14,7 @@ import websockets
 import asyncio
 
 from app.config import settings
-from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization
+from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization, simulation
 from app.services.cache_service import warmup_cache, start_background_refresh, get_cache_service
 
 # Detect production mode
@@ -50,6 +50,7 @@ app.include_router(uc4_risk.router, prefix="/api/v1/uc4", tags=["UC4: Risk Strat
 app.include_router(uc5_dashboard.router, prefix="/api/v1/uc5", tags=["UC5: Executive Dashboard"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(protocol_digitization.router, prefix="/api/v1/protocol", tags=["Protocol Digitization"])
+app.include_router(simulation.router, prefix="/api/v1/simulation", tags=["Monte Carlo Simulation"])
 
 # Vite dev server URL for proxying frontend requests (development only)
 VITE_DEV_URL = os.getenv("VITE_DEV_URL", "http://127.0.0.1:5173")

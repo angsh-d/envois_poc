@@ -93,6 +93,8 @@ class SignalDetectionResponse(BaseModel):
     detection_date: str = Field(..., description="Detection timestamp")
     signals: List[Dict[str, Any]] = Field(default_factory=list)
     n_signals: int = Field(default=0)
+    monitored_metrics: List[Dict[str, Any]] = Field(default_factory=list, description="Metrics below threshold")
+    n_monitored: int = Field(default=0, description="Number of monitored metrics below threshold")
     high_priority: List[Dict[str, Any]] = Field(default_factory=list)
     medium_priority: List[Dict[str, Any]] = Field(default_factory=list)
     requires_dsmb_review: bool = Field(default=False)

@@ -131,26 +131,40 @@ class DeviationsService:
                     "n_deviations": 0,
                 })
 
-        # Calculate total visits (from visit timing detector)
+        # Calculate total visits - use maximum visits checked across all visit-level detectors
+        # This ensures the denominator captures all visits that were assessed
         total_visits = 0
         for result in detector_results:
-            if result.get("deviation_type") == "visit_timing":
-                total_visits = result.get("visits_checked", 0)
-                break
+            dev_type = result.get("deviation_type", "")
+            # Only consider visit-level detectors (not patient-level like IE violations)
+            if dev_type in ("visit_timing", "missing_assessment"):
+                visits_checked = result.get("visits_checked", 0)
+                total_visits = max(total_visits, visits_checked)
 
-        # Calculate visits with deviations (only from visit_timing deviations to match total_visits)
-        # This ensures deviation_rate = (visits with timing issues) / (total visits checked)
+        # Calculate visits with ANY deviations (not just timing)
+        # This provides a true picture of protocol compliance across all deviation types
         visits_with_deviations = set()
+        patients_with_deviations = set()  # For patient-level deviations (IE, consent)
+
         for dev in all_deviations:
-            if dev.get("deviation_type") == "visit_timing":
-                patient_id = dev.get("patient_id", "unknown")
-                visit = dev.get("visit", dev.get("visit_id", "unknown"))
+            patient_id = dev.get("patient_id", "unknown")
+            dev_type = dev.get("deviation_type", "")
+
+            # Visit-level deviations have a visit field
+            visit = dev.get("visit") or dev.get("visit_id")
+            if visit and visit != "unknown":
                 visits_with_deviations.add((patient_id, visit))
-        
+
+            # Patient-level deviations (IE violations, consent timing) affect the patient overall
+            if dev_type in ("ie_violation", "consent_timing"):
+                patients_with_deviations.add(patient_id)
+
         n_visits_with_deviations = len(visits_with_deviations)
-        
-        # Deviation rate = percentage of visits that have at least one timing deviation
-        deviation_rate = n_visits_with_deviations / total_visits if total_visits > 0 else 0
+        n_patients_with_patient_level_deviations = len(patients_with_deviations)
+
+        # Deviation rate = percentage of visits that have at least one deviation
+        # Cap at 1.0 since we cannot have more than 100% deviation rate
+        deviation_rate = min(1.0, n_visits_with_deviations / total_visits) if total_visits > 0 else 0
 
         return {
             "success": True,
@@ -158,6 +172,7 @@ class DeviationsService:
             "total_deviations": len(all_deviations),
             "total_visits": total_visits,
             "visits_with_deviations": n_visits_with_deviations,
+            "patients_with_patient_level_deviations": n_patients_with_patient_level_deviations,
             "compliant_visits": total_visits - n_visits_with_deviations,
             "deviation_rate": deviation_rate,
             "by_type": by_type,
@@ -204,6 +219,7 @@ class DeviationsService:
             "total_visits": detector_results.get("total_visits", 0),
             "total_deviations": detector_results.get("total_deviations", 0),
             "visits_with_deviations": detector_results.get("visits_with_deviations", 0),
+            "patients_with_patient_level_deviations": detector_results.get("patients_with_patient_level_deviations", 0),
             "compliant_visits": detector_results.get("compliant_visits", 0),
             "deviation_rate": detector_results.get("deviation_rate", 0),
             "by_severity": detector_results.get("by_severity", {}),

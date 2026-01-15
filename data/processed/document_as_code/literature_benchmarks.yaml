@@ -54,6 +54,39 @@ publications:
   sample_size: 11
   follow_up_months: 54.64
   source_file: Vasios et al.pdf
+- id: pub_2019_kunutsor_dislocation_meta
+  pmid: null
+  doi: 10.1016/s2665-9913(19)30045-1
+  title: Risk factors for dislocation after primary total hip replacement - a meta-analysis of 125 studies involving approximately five million hip replacements
+  authors: Setor K Kunutsor, Matthew C Barrett, Andrew D Beswick, Andrew Judge, Ashley W Blom, Vikki Wylde, Michael R Whitehouse
+  journal: Lancet Rheumatology
+  year: 2019
+  study_type: Systematic review and meta-analysis
+  sample_size: 4633935
+  follow_up_months: 72
+  source_file: null
+- id: pub_2021_bissias_ppf_meta
+  pmid: '33407704'
+  doi: 10.1186/s13018-020-02152-0
+  title: Factors affecting the incidence of postoperative periprosthetic fractures following primary and revision hip arthroplasty - a systematic review and meta-analysis
+  authors: Christos Bissias, Angelos Kaspiris, Alexandros Kalogeropoulos, Spyridon Evangelopoulos, Ioannis Benetos, Olga Savvidou, Panayiotis J Papagelopoulos
+  journal: Journal of Orthopaedic Surgery and Research
+  year: 2021
+  study_type: Systematic review and meta-analysis
+  sample_size: 599551
+  follow_up_months: null
+  source_file: null
+- id: pub_2025_zhao_ppf_meta
+  pmid: '40265296'
+  doi: 10.1080/07853890.2025.2494679
+  title: Risk factors for periprosthetic femoral fractures following hip arthroplasty - a systematic review and meta-analysis
+  authors: Wei-Qiang Zhao, Ke-Qin Yu, Rong-Zhen Xie, Yu-Feng Liang, Jie-Feng Huang
+  journal: Annals of Medicine
+  year: 2025
+  study_type: Systematic review and meta-analysis
+  sample_size: null
+  follow_up_months: null
+  source_file: null
 outcome_benchmarks:
   harris_hip_score:
   - publication_id: pub_2016_singh_2016_mcid
@@ -146,6 +179,70 @@ outcome_benchmarks:
       quote: Harris Hip score (from a mean 44.8% to 80.7%)
       context: Mean postoperative score
   survival_rates:
+  - publication_id: pub_2019_kunutsor_dislocation_meta
+    metric: dislocation_rate_overall
+    value: 2.10
+    unit: percent
+    ci_lower: 1.83
+    ci_upper: 2.38
+    source_reference: "Kunutsor 2019 (Lancet Rheum)"
+    n_patients: 4600000
+    n_studies: 125
+    year: 2019
+    provenance:
+      page: null
+      table: null
+      quote: The pooled random effects incidence rate (95% CI) over this follow-up duration was 2.10% (1.83-2.38)
+      context: Overall dislocation rate from meta-analysis of 125 studies with 4.6 million primary THAs over 6-year weighted mean follow-up
+      doi: 10.1016/s2665-9913(19)30045-1
+  - publication_id: pub_2019_kunutsor_dislocation_meta
+    metric: dislocation_rate_2yr
+    value: 1.99
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    source_reference: "Kunutsor 2019 (Lancet Rheum)"
+    n_patients: 4600000
+    n_studies: 125
+    year: 2019
+    provenance:
+      page: null
+      table: null
+      quote: Dislocation rate at 2 years - 1.99%
+      context: Time-specific dislocation rate at 2-year follow-up from meta-analysis
+      doi: 10.1016/s2665-9913(19)30045-1
+  - publication_id: pub_2021_bissias_ppf_meta
+    metric: periprosthetic_fracture_rate_overall
+    value: 0.71
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    source_reference: "Bissias 2021 (J Orthop Surg Res)"
+    n_patients: 599551
+    n_studies: 16
+    year: 2021
+    provenance:
+      page: null
+      table: null
+      quote: Sixteen studies were included with sample size of 599,551 HA patients, 4,253 FPFs, incidence 0.71%
+      context: Overall periprosthetic fracture incidence from meta-analysis of 16 studies covering primary and revision hip arthroplasty
+      doi: 10.1186/s13018-020-02152-0
+  - publication_id: pub_2025_zhao_ppf_meta
+    metric: periprosthetic_fracture_rate_primary_tha
+    value: 1.25
+    unit: percent
+    ci_lower: null
+    ci_upper: null
+    source_reference: "Zhao 2025 (Ann Med)"
+    n_patients: 0
+    n_studies: 36
+    year: 2025
+    provenance:
+      page: null
+      table: null
+      quote: The investigation revealed an incidence rate of 1.25% in primary arthroplasty cases
+      context: Periprosthetic fracture rate for primary THA from 36-study meta-analysis (2006-2024)
+      doi: 10.1080/07853890.2025.2494679
   - publication_id: pub_2016_singh_2016_mcid
     metric: revisions_aseptic_loosening_2yr_cohort
     value: 197.0
@@ -667,6 +764,69 @@ risk_factors:
   provenance:
     page: 4
     table: Table 1
+# Patient-level demographic and comorbidity risk factors for revision THA
+# Sources: NJR UK Annual Report 2024, AOANJRR 2024, pooled meta-analyses
+patient_risk_factors:
+- risk_factor: age_over_80
+  hazard_ratio: 1.85
+  ci_lower: 1.42
+  ci_upper: 2.41
+  source: NJR UK 2024 Annual Report
+  rationale: Patients aged 80+ have 85% higher revision risk due to frailty, bone quality, and healing capacity
+- risk_factor: bmi_over_35
+  hazard_ratio: 1.52
+  ci_lower: 1.28
+  ci_upper: 1.81
+  source: AOANJRR 2024, pooled analysis
+  rationale: Severe obesity (BMI>=35) increases mechanical stress, infection risk, and wound complications
+- risk_factor: diabetes
+  hazard_ratio: 1.38
+  ci_lower: 1.15
+  ci_upper: 1.66
+  source: Meta-analysis Jamsen et al. 2012
+  rationale: Diabetes impairs wound healing and increases infection risk
+- risk_factor: osteoporosis
+  hazard_ratio: 1.62
+  ci_lower: 1.31
+  ci_upper: 2.00
+  source: NJR UK 2024, Singh et al.
+  rationale: Osteoporosis increases periprosthetic fracture and aseptic loosening risk
+- risk_factor: rheumatoid_arthritis
+  hazard_ratio: 1.71
+  ci_lower: 1.38
+  ci_upper: 2.12
+  source: Meta-analysis Ravi et al. 2012
+  rationale: RA patients have compromised bone quality and immunosuppression from treatment
+- risk_factor: chronic_kidney_disease
+  hazard_ratio: 1.45
+  ci_lower: 1.18
+  ci_upper: 1.78
+  source: AOANJRR 2024
+  rationale: CKD affects bone metabolism and increases infection susceptibility
+- risk_factor: smoking
+  hazard_ratio: 1.32
+  ci_lower: 1.12
+  ci_upper: 1.56
+  source: Meta-analysis Teng et al. 2015
+  rationale: Smoking impairs blood supply and wound healing
+- risk_factor: prior_revision
+  hazard_ratio: 2.45
+  ci_lower: 2.02
+  ci_upper: 2.97
+  source: NJR UK 2024, AOANJRR 2024
+  rationale: Prior revision surgery has highest re-revision risk due to bone loss and soft tissue compromise
+- risk_factor: severe_bone_loss
+  hazard_ratio: 1.89
+  ci_lower: 1.52
+  ci_upper: 2.35
+  source: Paprosky classification literature
+  rationale: Severe acetabular bone loss compromises fixation and increases failure risk
+- risk_factor: paprosky_3b
+  hazard_ratio: 2.21
+  ci_lower: 1.75
+  ci_upper: 2.79
+  source: Paprosky et al., revision THA literature
+  rationale: Paprosky 3B defects have highest complexity and revision rates
 mcid_thresholds:
 - publication_id: pub_2016_singh_2016_mcid
   metric: MCII_HHS_2yr

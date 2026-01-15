@@ -8,7 +8,7 @@ Per ICH GCP E6(R2) 3.1.1, subjects must meet all inclusion criteria and have
 no exclusion criteria to be eligible for enrollment.
 
 H-34 DELTA Study Key IE Criteria:
-- INCLUSION: Age >= 21 years at time of surgery
+- INCLUSION: Age >= 18 years at time of surgery
 - EXCLUSION: Severe osteoporosis (BMD T-score < -3.5 without treatment)
 - EXCLUSION: Uncontrolled metabolic bone disease
 
@@ -36,7 +36,7 @@ class IEViolationDetector(BaseDetector):
     Detector for inclusion/exclusion criteria violations.
 
     Checks:
-    - Age requirement (>= 21 years)
+    - Age requirement (>= 18 years)
     - Severe osteoporosis status
     - BMI extremes (if relevant to protocol)
     - Other checkable criteria from patient data
@@ -81,19 +81,19 @@ class IEViolationDetector(BaseDetector):
             patients_checked += 1
             patient_id = patient.patient_id
 
-            # Check 1: Age requirement (>= 21 years)
+            # Check 1: Age requirement (>= 18 years per protocol)
             if patient.year_of_birth:
                 age = self.REFERENCE_YEAR - patient.year_of_birth
-                if age < 21:
+                if age < 18:
                     deviations.append(Deviation(
                         patient_id=patient_id,
                         deviation_type=DeviationType.IE_VIOLATION,
                         severity=DeviationSeverity.CRITICAL,
-                        description=f"Patient age ({age} years) below minimum requirement of 21 years",
-                        violated_criterion="Age >= 21 years",
+                        description=f"Patient age ({age} years) below minimum requirement of 18 years",
+                        violated_criterion="Age >= 18 years",
                         criterion_type="inclusion",
                         actual_value=age,
-                        required_value=">= 21 years",
+                        required_value=">= 18 years",
                         action="Review enrollment eligibility - PI notification required",
                         requires_explanation=True,
                         affects_evaluability=True,

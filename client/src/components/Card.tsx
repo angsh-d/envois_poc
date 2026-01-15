@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { HelpCircle } from 'lucide-react'
 
 interface CardProps {
   children: ReactNode
@@ -64,9 +65,10 @@ interface StatCardProps {
   status?: 'success' | 'warning' | 'danger' | 'neutral'
   icon?: ReactNode
   subtitle?: string
+  tooltip?: string
 }
 
-export function StatCard({ label, value, status = 'neutral', icon, subtitle }: StatCardProps) {
+export function StatCard({ label, value, status = 'neutral', icon, subtitle, tooltip }: StatCardProps) {
   const statusColors = {
     success: 'text-gray-900',
     warning: 'text-gray-900',
@@ -82,11 +84,21 @@ export function StatCard({ label, value, status = 'neutral', icon, subtitle }: S
   }
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className={`absolute top-0 left-0 w-1 h-full ${statusIndicator[status]}`} />
+    <Card className="relative">
+      <div className={`absolute top-0 left-0 w-1 h-full rounded-l-xl ${statusIndicator[status]}`} />
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center gap-1">
+            {label}
+            {tooltip && (
+              <span className="group relative cursor-help">
+                <HelpCircle className="w-3 h-3 text-gray-400" />
+                <span className="absolute top-full left-0 mt-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-50 leading-relaxed text-left normal-case font-normal tracking-normal shadow-lg">
+                  {tooltip}
+                </span>
+              </span>
+            )}
+          </p>
           <p className={`text-2xl font-semibold mt-1 tracking-tight ${statusColors[status]}`}>
             {value}
           </p>

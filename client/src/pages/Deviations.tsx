@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader } from '@/components/Card'
 import { Badge } from '@/components/Badge'
 import { fetchDeviations } from '@/lib/api'
 import { useRoute } from 'wouter'
-import { Sparkles, FileWarning, CheckCircle, XCircle, AlertTriangle, Clock, UserX, ClipboardList, FileText, Shield } from 'lucide-react'
+import { Sparkles, FileWarning, CheckCircle, XCircle, AlertTriangle, Clock, UserX, ClipboardList, FileText, Shield, ChevronDown, ChevronUp } from 'lucide-react'
 
 // Type definitions for real API response
 interface DeviationRecord {
@@ -62,6 +63,170 @@ interface DeviationsResponse {
   execution_time_ms: number
 }
 
+function DeviationDetailsGrouped({ deviations }: { deviations: DeviationRecord[] }) {
+  // Group deviations by type
+  const groupedDeviations = deviations.reduce((acc, dev) => {
+    const type = dev.deviation_type || 'unknown'
+    if (!acc[type]) {
+      acc[type] = []
+    }
+    acc[type].push(dev)
+    return acc
+  }, {} as Record<string, DeviationRecord[]>)
+
+  // Sort types by count (descending)
+  const sortedTypes = Object.entries(groupedDeviations)
+    .sort(([, a], [, b]) => b.length - a.length)
+
+  // Track expanded state for each type - first type expanded by default
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(
+    new Set(sortedTypes.length > 0 ? [sortedTypes[0][0]] : [])
+  )
+
+  const toggleType = (type: string) => {
+    setExpandedTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(type)) {
+        next.delete(type)
+      } else {
+        next.add(type)
+      }
+      return next
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Deviation Details"
+        subtitle="Individual deviation records grouped by type"
+        action={<Badge variant="neutral">{deviations.length} records</Badge>}
+      />
+      <div className="mt-2 flex items-center gap-4 text-xs text-gray-500 px-1">
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-gray-400" />
+          <span>Requires PI Explanation</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-red-900" />
+          <span>Affects Evaluability</span>
+        </div>
+      </div>
+      <div className="mt-3 space-y-3">
+        {sortedTypes.map(([type, typeDeviations]) => {
+          const isExpanded = expandedTypes.has(type)
+          const typeConfig = DEVIATION_TYPES[type as keyof typeof DEVIATION_TYPES] || {
+            label: type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            icon: FileWarning,
+            color: 'text-gray-600',
+            bgColor: 'bg-gray-100'
+          }
+          const TypeIcon = typeConfig.icon
+
+          // Count severities within this type
+          const criticalCount = typeDeviations.filter(d => d.severity?.toLowerCase() === 'critical').length
+          const majorCount = typeDeviations.filter(d => d.severity?.toLowerCase() === 'major').length
+          const minorCount = typeDeviations.filter(d => d.severity?.toLowerCase() === 'minor').length
+
+          return (
+            <div key={type} className="border border-gray-200 rounded-xl overflow-hidden">
+              {/* Type Header */}
+              <button
+                onClick={() => toggleType(type)}
+                className="w-full p-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl ${typeConfig.bgColor} flex items-center justify-center`}>
+                    <TypeIcon className={`w-5 h-5 ${typeConfig.color}`} />
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-gray-800">{typeConfig.label}</h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {criticalCount > 0 && (
+                        <span className="text-xs text-gray-600">{criticalCount} critical</span>
+                      )}
+                      {majorCount > 0 && (
+                        <span className="text-xs text-gray-500">{majorCount} major</span>
+                      )}
+                      {minorCount > 0 && (
+                        <span className="text-xs text-gray-400">{minorCount} minor</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="neutral">{typeDeviations.length} deviation{typeDeviations.length !== 1 ? 's' : ''}</Badge>
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+              </button>
+
+              {/* Deviation Table for this type */}
+              {isExpanded && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-white">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Patient</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Description</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">Severity</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Action</th>
+                        <th className="text-center py-3 px-4 font-medium text-gray-600">Flags</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {typeDeviations.map((dev, i) => (
+                        <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 font-mono text-gray-800">{dev.patient_id}</td>
+                          <td className="py-3 px-4 text-gray-600 max-w-xs">
+                            <p className="truncate" title={dev.description}>{dev.description}</p>
+                            {dev.visit && (
+                              <p className="text-xs text-gray-400 mt-0.5">Visit: {dev.visit}</p>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <Badge
+                              variant={
+                                dev.severity?.toLowerCase() === 'critical' ? 'danger' :
+                                dev.severity?.toLowerCase() === 'major' ? 'warning' : 'neutral'
+                              }
+                            >
+                              {dev.severity || dev.classification}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 text-gray-500 text-xs max-w-xs">
+                            <p className="truncate" title={dev.action}>{dev.action}</p>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {dev.requires_explanation && (
+                                <span className="w-2 h-2 rounded-full bg-gray-400" title="Requires PI explanation" />
+                              )}
+                              {dev.affects_evaluability && (
+                                <span className="w-2 h-2 rounded-full bg-red-900" title="Affects evaluability" />
+                              )}
+                              {!dev.requires_explanation && !dev.affects_evaluability && (
+                                <span className="text-xs text-gray-400">—</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 export default function Deviations() {
   const [, params] = useRoute('/study/:studyId/deviations')
   const studyId = params?.studyId || 'h34-delta'
@@ -105,38 +270,30 @@ export default function Deviations() {
   const majorCount = data.by_severity['major'] || 0
   const criticalCount = data.by_severity['critical'] || 0
 
+  // Get deviation categories grouped by severity
+  const getCategoriesBySeverity = (severity: string) => {
+    const severityDeviations = data.deviations.filter(
+      d => d.severity?.toLowerCase() === severity.toLowerCase()
+    )
+    // Group by deviation type
+    const byType: Record<string, number> = {}
+    severityDeviations.forEach(d => {
+      const type = d.deviation_type || 'unknown'
+      byType[type] = (byType[type] || 0) + 1
+    })
+    // Sort by count descending
+    return Object.entries(byType).sort(([, a], [, b]) => b - a)
+  }
+
+  const minorCategories = getCategoriesBySeverity('minor')
+  const majorCategories = getCategoriesBySeverity('major')
+  const criticalCategories = getCategoriesBySeverity('critical')
+
   // Get visit breakdown for display
   const visitBreakdown = Object.entries(data.by_visit).map(([visit, count]) => ({
     visit,
     count,
   }))
-
-  // Determine primary deviation type for dynamic descriptions
-  const primaryDeviationType = Object.entries(data.by_type || {})
-    .sort(([, a], [, b]) => b - a)[0]?.[0] || 'visit_timing'
-
-  // Dynamic severity descriptions based on actual deviation types
-  const getSeverityDescription = (severity: 'minor' | 'major' | 'critical') => {
-    if (primaryDeviationType === 'ae_reporting') {
-      switch (severity) {
-        case 'minor': return 'SAE reported 2-3 days late'
-        case 'major': return 'SAE reported 4-8 days late'
-        case 'critical': return 'SAE reported >8 days late'
-      }
-    } else if (primaryDeviationType === 'missing_assessment') {
-      switch (severity) {
-        case 'minor': return 'Missing non-primary assessment'
-        case 'major': return 'Missing required assessment'
-        case 'critical': return 'Missing primary endpoint data'
-      }
-    }
-    // Default visit timing descriptions
-    switch (severity) {
-      case 'minor': return 'Within 1.5x window extension'
-      case 'major': return 'Beyond window or missing assessment'
-      case 'critical': return 'Affects endpoint evaluability'
-    }
-  }
 
   // Generate AI summary based on real data
   const generateSummary = () => {
@@ -193,8 +350,8 @@ export default function Deviations() {
           <p className="text-3xl font-semibold text-gray-700 mt-2">{compliantVisits}</p>
         </Card>
         <Card className="text-center">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Deviations</p>
-          <p className="text-3xl font-semibold text-gray-700 mt-2">{data.total_deviations}</p>
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">With Deviations</p>
+          <p className="text-3xl font-semibold text-gray-700 mt-2">{data.visits_with_deviations}</p>
         </Card>
         <Card className="text-center">
           <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Rate</p>
@@ -204,28 +361,73 @@ export default function Deviations() {
 
       <div className="grid grid-cols-3 gap-6">
         <Card>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-3 h-3 rounded-full bg-gray-400" />
             <span className="font-medium text-gray-800">Minor</span>
             <span className="ml-auto text-2xl font-semibold text-gray-600">{minorCount}</span>
           </div>
-          <p className="text-sm text-gray-500">{getSeverityDescription('minor')}</p>
+          {minorCategories.length > 0 ? (
+            <div className="space-y-1.5">
+              {minorCategories.map(([type, count]) => {
+                const config = DEVIATION_TYPES[type as keyof typeof DEVIATION_TYPES]
+                const label = config?.label || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                return (
+                  <div key={type} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">{label}</span>
+                    <span className="text-gray-600 font-medium">{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No minor deviations</p>
+          )}
         </Card>
         <Card>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-3 h-3 rounded-full bg-gray-500" />
             <span className="font-medium text-gray-800">Major</span>
             <span className="ml-auto text-2xl font-semibold text-gray-600">{majorCount}</span>
           </div>
-          <p className="text-sm text-gray-500">{getSeverityDescription('major')}</p>
+          {majorCategories.length > 0 ? (
+            <div className="space-y-1.5">
+              {majorCategories.map(([type, count]) => {
+                const config = DEVIATION_TYPES[type as keyof typeof DEVIATION_TYPES]
+                const label = config?.label || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                return (
+                  <div key={type} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">{label}</span>
+                    <span className="text-gray-600 font-medium">{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No major deviations</p>
+          )}
         </Card>
         <Card>
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-3 h-3 rounded-full bg-gray-700" />
             <span className="font-medium text-gray-800">Critical</span>
             <span className="ml-auto text-2xl font-semibold text-gray-700">{criticalCount}</span>
           </div>
-          <p className="text-sm text-gray-500">{getSeverityDescription('critical')}</p>
+          {criticalCategories.length > 0 ? (
+            <div className="space-y-1.5">
+              {criticalCategories.map(([type, count]) => {
+                const config = DEVIATION_TYPES[type as keyof typeof DEVIATION_TYPES]
+                const label = config?.label || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                return (
+                  <div key={type} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">{label}</span>
+                    <span className="text-gray-600 font-medium">{count}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No critical deviations</p>
+          )}
         </Card>
       </div>
 
@@ -305,93 +507,9 @@ export default function Deviations() {
         </Card>
       )}
 
-      {/* Individual Deviations Table */}
+      {/* Individual Deviations Grouped by Type */}
       {data.deviations && data.deviations.length > 0 && (
-        <Card>
-          <CardHeader
-            title="Deviation Details"
-            subtitle="Individual deviation records with analysis"
-            action={<Badge variant="neutral">{data.deviations.length} records</Badge>}
-          />
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Patient</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Description</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Severity</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Action</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Flags</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.deviations.map((dev, i) => {
-                  const typeConfig = DEVIATION_TYPES[dev.deviation_type as keyof typeof DEVIATION_TYPES] || {
-                    label: dev.deviation_type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Unknown',
-                    icon: FileWarning,
-                    color: 'text-gray-600',
-                    bgColor: 'bg-gray-100'
-                  }
-                  const TypeIcon = typeConfig.icon
-                  return (
-                    <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-mono text-gray-800">{dev.patient_id}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <TypeIcon className={`w-4 h-4 ${typeConfig.color}`} />
-                          <span className="text-gray-700 text-xs">{typeConfig.label}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600 max-w-xs">
-                        <p className="truncate" title={dev.description}>{dev.description}</p>
-                        {dev.visit && (
-                          <p className="text-xs text-gray-400 mt-0.5">Visit: {dev.visit}</p>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <Badge
-                          variant={
-                            dev.severity?.toLowerCase() === 'critical' ? 'danger' :
-                            dev.severity?.toLowerCase() === 'major' ? 'warning' : 'neutral'
-                          }
-                        >
-                          {dev.severity || dev.classification}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-gray-500 text-xs max-w-xs">
-                        <p className="truncate" title={dev.action}>{dev.action}</p>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {dev.requires_explanation && (
-                            <span className="w-2 h-2 rounded-full bg-gray-500" title="Requires explanation" />
-                          )}
-                          {dev.affects_evaluability && (
-                            <span className="w-2 h-2 rounded-full bg-gray-700" title="Affects evaluability" />
-                          )}
-                          {!dev.requires_explanation && !dev.affects_evaluability && (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 px-4">
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-gray-500" />
-              <span>Requires PI Explanation</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-gray-700" />
-              <span>Affects Evaluability</span>
-            </div>
-          </div>
-        </Card>
+        <DeviationDetailsGrouped deviations={data.deviations} />
       )}
 
       {/* Data Sources */}

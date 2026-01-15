@@ -3,11 +3,15 @@ Chat API endpoint with multi-agent orchestration for natural language queries.
 
 This endpoint dynamically queries specialized agents (Data, Literature, Registry)
 based on the user's question to provide comprehensive, evidence-based responses.
+
+Updated: Added intent_classification.txt prompt and fixed null handling in literature agent.
 """
+import asyncio
 import json
 import logging
 import re
 import uuid
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import List, Optional, Dict, Any, Set
 from pydantic import BaseModel, Field
@@ -155,6 +159,7 @@ class ChatResponse(BaseModel):
     sources: List[Source]
     evidence: Optional[Evidence] = None  # Detailed evidence supporting the response
     suggested_followups: Optional[List[str]] = None
+    cached: bool = False  # Whether response came from cache
 
 
 # Keywords for detecting question intent and required agents
@@ -244,6 +249,13 @@ INTENT_KEYWORDS = {
         "kaplan-meier code", "survival code", "calculate", "compute",
         "write python", "write r", "write sql", "in python", "in r", "using r",
         "query for", "query to", "code to", "script to"
+    ],
+    "survival_analysis": [
+        # Keywords for Kaplan-Meier and survival analysis queries
+        "kaplan-meier", "kaplan meier", "survival curve", "survival analysis",
+        "revision-free survival", "revision free survival", "time-to-event",
+        "time to event", "implant survival", "survival rate", "survival data",
+        "km analysis", "km curve", "censored", "event-free", "survivorship"
     ]
 }
 
@@ -253,8 +265,49 @@ _intent_cache: Dict[str, Set[str]] = {}
 _prompt_service: Optional[PromptService] = None
 _llm_service: Optional[LLMService] = None
 
+# Chat response cache with 96-hour TTL (for common questions)
+# Structure: {cache_key: {"response": ChatResponse, "timestamp": datetime}}
+_chat_response_cache: Dict[str, Dict[str, Any]] = {}
+CHAT_CACHE_TTL_HOURS = 96  # 4 days
+
 # Confidence threshold - below this, fall back to keywords
 INTENT_CONFIDENCE_THRESHOLD = 0.7
+
+
+def _get_chat_cache_key(message: str, context: str, study_id: str) -> str:
+    """Generate a cache key for chat responses."""
+    # Normalize the message for better cache hits
+    normalized = message.lower().strip()
+    return f"chat:{normalized}|{context}|{study_id}"
+
+
+def _get_cached_response(message: str, context: str, study_id: str) -> Optional[Dict[str, Any]]:
+    """Get cached chat response if valid."""
+    cache_key = _get_chat_cache_key(message, context, study_id)
+    cached = _chat_response_cache.get(cache_key)
+
+    if cached:
+        # Check if cache is still valid
+        age = datetime.utcnow() - cached["timestamp"]
+        if age < timedelta(hours=CHAT_CACHE_TTL_HOURS):
+            logger.info(f"Chat cache hit for: {message[:50]}... (age: {age.total_seconds()/3600:.1f}h)")
+            return cached["response"]
+        else:
+            # Remove stale entry
+            del _chat_response_cache[cache_key]
+            logger.debug(f"Chat cache expired for: {message[:50]}...")
+
+    return None
+
+
+def _cache_response(message: str, context: str, study_id: str, response: "ChatResponse") -> None:
+    """Cache a chat response."""
+    cache_key = _get_chat_cache_key(message, context, study_id)
+    _chat_response_cache[cache_key] = {
+        "response": response,
+        "timestamp": datetime.utcnow()
+    }
+    logger.info(f"Chat response cached for: {message[:50]}...")
 
 
 def _get_prompt_service() -> PromptService:
@@ -381,6 +434,7 @@ async def detect_question_intent_llm(question: str, page_context: str) -> Set[st
             "product_specific": ["registry", "multi_registry", "literature", "data"],  # Product queries need all context
             "risk_factors": [],      # Sources already set by needs_* flags
             "safety_signals": [],    # Sources already set by needs_* flags
+            "survival_analysis": ["survival_analysis", "data"],  # Kaplan-Meier needs study data
         }
 
         if intent_obj.query_type in query_type_intents:
@@ -495,6 +549,13 @@ def detect_question_intent_keywords(question: str) -> Set[str]:
             intents.add("data")
             break
 
+    # Check for survival analysis keywords (Kaplan-Meier, revision-free survival)
+    for keyword in INTENT_KEYWORDS["survival_analysis"]:
+        if keyword in question_lower:
+            intents.add("data")
+            intents.add("survival_analysis")
+            break
+
     # Check for comparison keywords (needs multiple sources)
     for keyword in INTENT_KEYWORDS["comparison"]:
         if keyword in question_lower:
@@ -536,10 +597,12 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
     if "data" in intents:
         try:
             data_agent = DataAgent()
+            # Select query type based on intent
+            data_query_type = "survival_analysis" if "survival_analysis" in intents else "safety"
             context = AgentContext(
                 request_id=f"{request_id}-data",
                 protocol_id=study_id,
-                parameters={"query_type": "safety"}
+                parameters={"query_type": data_query_type}
             )
             result = await data_agent.run(context)
             if result.success:
@@ -573,16 +636,17 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                         if isinstance(rate_value, (int, float)) and rate_value > 0:
                             formatted_name = rate_name.replace("_", " ").title()
                             study_data_points.append({
-                                "source": "H-34 Study",
+                                "source": f"H-34 Study: {formatted_name}",
                                 "source_type": "study_data",
                                 "value": rate_value if rate_value <= 1 else rate_value / 100,
                                 "value_formatted": f"{rate_value*100:.1f}%" if rate_value <= 1 else f"{rate_value:.1f}%",
                                 "sample_size": n_patients,
                                 "year": "2024",
-                                "context": f"from {n_patients} enrolled patients",
+                                "context": f"{formatted_name} from {n_patients} enrolled patients",
                                 "raw_data": {
                                     "full_name": "H-34 DELTA Revision Cup Study",
                                     "abbreviation": "H-34",
+                                    "metric_name": formatted_name,
                                     "n_procedures": n_patients,
                                     "population": "Revision THA patients"
                                 }
@@ -629,7 +693,7 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                     "confidence_level": "high",
                     "lineage": DataLineage.AGGREGATED.value,
                     "metadata": {
-                        "n_patients": sum(p.get('n_patients', 0) for p in pub_list) or None,
+                        "n_patients": sum((p.get('n_patients') or 0) for p in pub_list) or None,
                         "data_years": year_range,
                         "data_completeness": 0.88,
                         "strengths": ["Peer-reviewed publications", "Multi-center data"],
@@ -643,7 +707,7 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                     total_lit_patients = 0
                     
                     for pub in pub_list[:5]:  # Top 5 publications
-                        pub_n = pub.get('n_patients', 0)
+                        pub_n = pub.get('n_patients') or 0
                         total_lit_patients += pub_n
                         
                         # Get the primary outcome/rate from publication
@@ -676,6 +740,56 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                         })
                         results["evidence"]["total_sources"] += n_pubs
                         results["evidence"]["total_sample_size"] += total_lit_patients
+
+                # === BUILD EVIDENCE FROM OUTCOME BENCHMARKS (Meta-analyses like Kunutsor 2019) ===
+                outcome_benchmarks = result.data.get("outcome_benchmarks", {})
+                if outcome_benchmarks:
+                    survival_rates = outcome_benchmarks.get("survival_rates", [])
+                    if survival_rates:
+                        outcome_data_points = []
+                        total_outcome_n = 0
+
+                        for bench in survival_rates:
+                            metric = bench.get("metric", "unknown")
+                            value = bench.get("value")
+                            n_patients_bench = bench.get("n_patients", 0)
+                            total_outcome_n += n_patients_bench
+
+                            if value is not None:
+                                # Format metric name for display
+                                metric_display = metric.replace("_", " ").title()
+                                source_ref = bench.get("source_reference", "Meta-analysis")
+                                pub_id = bench.get("publication_id", "")
+
+                                outcome_data_points.append({
+                                    "source": source_ref,
+                                    "source_type": "literature_meta",
+                                    "value": value / 100 if value > 1 else value,
+                                    "value_formatted": f"{value:.2f}%",
+                                    "sample_size": n_patients_bench,
+                                    "year": str(bench.get("year", "")),
+                                    "context": f"{metric_display} from meta-analysis of {n_patients_bench:,} patients" if n_patients_bench else metric_display,
+                                    "raw_data": {
+                                        "full_name": source_ref,
+                                        "publication_id": pub_id,
+                                        "metric": metric,
+                                        "ci_lower": bench.get("ci_lower"),
+                                        "ci_upper": bench.get("ci_upper"),
+                                        "n_studies": bench.get("n_studies"),
+                                        "population": bench.get("population", "THA patients")
+                                    }
+                                })
+
+                        if outcome_data_points:
+                            results["evidence"]["metrics"].append({
+                                "metric_name": "Literature Outcome Benchmarks (Meta-analyses)",
+                                "claim": f"Meta-analyses report outcome rates from {total_outcome_n:,} patients across multiple studies",
+                                "aggregated_value": f"{len(outcome_data_points)} benchmarks",
+                                "calculation_method": f"Systematic review and meta-analysis with combined n={total_outcome_n:,}",
+                                "data_points": outcome_data_points,
+                                "confidence_level": "high"
+                            })
+                            results["evidence"]["total_sample_size"] += total_outcome_n
 
             # Also get risk factors with hazard ratios
             risk_context = AgentContext(
@@ -790,11 +904,22 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                         pooled_mean = sum(values) / len(values)
                         pooled_range = f"[{min(values)*100:.1f}%, {max(values)*100:.1f}%]"
 
+                        n_regs_5yr = len(survival_5yr_points)
+                        calc_method_5yr = (
+                            f"Direct measurement from {survival_5yr_points[0]['source']}"
+                            if n_regs_5yr == 1
+                            else f"Simple mean of {n_regs_5yr} registries, range {pooled_range}"
+                        )
+                        claim_5yr = (
+                            f"5-year survival rate is {pooled_mean*100:.1f}% from {survival_5yr_points[0]['source']}"
+                            if n_regs_5yr == 1
+                            else f"Pooled 5-year survival rate is {pooled_mean*100:.1f}% across {n_regs_5yr} registries"
+                        )
                         results["evidence"]["metrics"].append({
                             "metric_name": "5-Year Survival Rate",
-                            "claim": f"Pooled 5-year survival rate is {pooled_mean*100:.1f}% across {len(survival_5yr_points)} registries",
+                            "claim": claim_5yr,
                             "aggregated_value": f"{pooled_mean*100:.1f}%",
-                            "calculation_method": f"Simple mean of {len(survival_5yr_points)} registries, range {pooled_range}",
+                            "calculation_method": calc_method_5yr,
                             "data_points": survival_5yr_points,
                             "confidence_level": "high"
                         })
@@ -818,11 +943,22 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                     if survival_2yr_points:
                         values = [p["value"] for p in survival_2yr_points]
                         pooled_mean = sum(values) / len(values)
+                        n_regs_2yr = len(survival_2yr_points)
+                        calc_method_2yr = (
+                            f"Direct measurement from {survival_2yr_points[0]['source']}"
+                            if n_regs_2yr == 1
+                            else f"Simple mean of {n_regs_2yr} registries"
+                        )
+                        claim_2yr = (
+                            f"2-year survival rate is {pooled_mean*100:.1f}% from {survival_2yr_points[0]['source']}"
+                            if n_regs_2yr == 1
+                            else f"Pooled 2-year survival rate is {pooled_mean*100:.1f}%"
+                        )
                         results["evidence"]["metrics"].append({
                             "metric_name": "2-Year Survival Rate",
-                            "claim": f"Pooled 2-year survival rate is {pooled_mean*100:.1f}%",
+                            "claim": claim_2yr,
                             "aggregated_value": f"{pooled_mean*100:.1f}%",
-                            "calculation_method": f"Simple mean of {len(survival_2yr_points)} registries",
+                            "calculation_method": calc_method_2yr,
                             "data_points": survival_2yr_points,
                             "confidence_level": "high"
                         })
@@ -846,11 +982,22 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
                     if revision_2yr_points:
                         values = [p["value"] for p in revision_2yr_points]
                         pooled_mean = sum(values) / len(values)
+                        n_regs_rev = len(revision_2yr_points)
+                        calc_method_rev = (
+                            f"Direct measurement from {revision_2yr_points[0]['source']}"
+                            if n_regs_rev == 1
+                            else f"Simple mean of {n_regs_rev} registries"
+                        )
+                        claim_rev = (
+                            f"2-year revision rate is {pooled_mean*100:.1f}% from {revision_2yr_points[0]['source']}"
+                            if n_regs_rev == 1
+                            else f"Pooled 2-year revision rate is {pooled_mean*100:.1f}%"
+                        )
                         results["evidence"]["metrics"].append({
                             "metric_name": "2-Year Revision Rate",
-                            "claim": f"Pooled 2-year revision rate is {pooled_mean*100:.1f}%",
+                            "claim": claim_rev,
                             "aggregated_value": f"{pooled_mean*100:.1f}%",
-                            "calculation_method": f"Simple mean of {len(revision_2yr_points)} registries",
+                            "calculation_method": calc_method_rev,
                             "data_points": revision_2yr_points,
                             "confidence_level": "high"
                         })
@@ -1077,15 +1224,46 @@ def build_agent_context(agent_results: Dict[str, Any], page_context: str) -> str
         data = agent_results["data"]
         context_parts.append("=== STUDY DATA ===")
         context_parts.append(f"Total patients: {data.get('n_patients', 'N/A')}")
-        context_parts.append(f"Total adverse events: {data.get('n_adverse_events', 'N/A')}")
-        context_parts.append(f"SAEs: {data.get('n_sae', 'N/A')}")
 
-        rates = data.get("rates", {})
-        if rates:
-            context_parts.append(f"Revision rate: {rates.get('revision_rate', 'N/A')}")
-            context_parts.append(f"Fracture rate: {rates.get('fracture_rate', 'N/A')}")
-            context_parts.append(f"Dislocation rate: {rates.get('dislocation_rate', 'N/A')}")
-            context_parts.append(f"Infection rate: {rates.get('infection_rate', 'N/A')}")
+        # Check if this is survival analysis data
+        if data.get("survival_data") or data.get("kaplan_meier_table"):
+            # Survival analysis format
+            context_parts.append("")
+            context_parts.append("KAPLAN-MEIER SURVIVAL ANALYSIS RESULTS:")
+            summary = data.get("summary", {})
+            context_parts.append(f"  Analysis method: {summary.get('analysis_method', 'Kaplan-Meier')}")
+            context_parts.append(f"  Endpoint: {summary.get('endpoint', 'Revision-free survival')}")
+            context_parts.append(f"  Total patients analyzed: {data.get('n_patients', 'N/A')}")
+            context_parts.append(f"  Total revisions (events): {data.get('n_events', 'N/A')}")
+            context_parts.append(f"  Censored patients: {data.get('n_censored', 'N/A')}")
+            context_parts.append(f"  Revision rate: {data.get('revision_rate', 'N/A')}")
+            context_parts.append(f"  1-Year survival probability: {data.get('survival_rate_1yr', 'N/A')}%")
+            context_parts.append(f"  2-Year survival probability: {data.get('survival_rate_2yr', 'N/A')}%")
+            context_parts.append(f"  Median follow-up: {summary.get('median_follow_up_days', 'N/A')} days")
+
+            # Add KM table highlights
+            km_table = data.get("kaplan_meier_table", [])
+            if km_table:
+                context_parts.append("")
+                context_parts.append("  Survival probability at key timepoints:")
+                for entry in km_table:
+                    if entry.get("events", 0) > 0:  # Only show entries with events
+                        context_parts.append(
+                            f"    - Day {entry.get('time_days', 'N/A')}: "
+                            f"{entry.get('survival_percent', 'N/A')}% survival "
+                            f"({entry.get('events', 0)} events, {entry.get('at_risk', 'N/A')} at risk)"
+                        )
+        else:
+            # Safety data format (original)
+            context_parts.append(f"Total adverse events: {data.get('n_adverse_events', 'N/A')}")
+            context_parts.append(f"SAEs: {data.get('n_sae', 'N/A')}")
+
+            rates = data.get("rates", {})
+            if rates:
+                context_parts.append(f"Revision rate: {rates.get('revision_rate', 'N/A')}")
+                context_parts.append(f"Fracture rate: {rates.get('fracture_rate', 'N/A')}")
+                context_parts.append(f"Dislocation rate: {rates.get('dislocation_rate', 'N/A')}")
+                context_parts.append(f"Infection rate: {rates.get('infection_rate', 'N/A')}")
         context_parts.append("")
 
     # Add literature benchmarks context
@@ -1093,8 +1271,25 @@ def build_agent_context(agent_results: Dict[str, Any], page_context: str) -> str
         lit = agent_results["literature"]
         context_parts.append("=== LITERATURE BENCHMARKS ===")
 
+        # Add publication count and list
+        n_pubs = lit.get("n_publications", 0)
+        context_parts.append(f"Total publications: {n_pubs}")
+
+        publications = lit.get("publications", [])
+        if publications:
+            context_parts.append("")
+            context_parts.append("Available Publications:")
+            for pub in publications[:10]:  # Show up to 10 publications
+                title = pub.get("title", "Unknown")[:60]
+                year = pub.get("year", "N/A")
+                n_patients = pub.get("n_patients", "N/A")
+                follow_up = pub.get("follow_up_years", "N/A")
+                context_parts.append(f"  - {pub.get('id', 'Unknown')}: {title}... ({year}, n={n_patients}, {follow_up}yr follow-up)")
+            context_parts.append("")
+
         benchmarks = lit.get("aggregate_benchmarks", {})
         if benchmarks:
+            # Handle both old format (with mean/range) and new format (with category/provenance)
             if "revision_rate_2yr" in benchmarks:
                 rev = benchmarks["revision_rate_2yr"]
                 context_parts.append(f"Literature revision rate (2yr): mean {rev.get('mean', 'N/A')}, range {rev.get('range', 'N/A')}")
@@ -1104,6 +1299,39 @@ def build_agent_context(agent_results: Dict[str, Any], page_context: str) -> str
             if "hhs_improvement" in benchmarks:
                 hhs = benchmarks["hhs_improvement"]
                 context_parts.append(f"HHS improvement: mean {hhs.get('mean', 'N/A')} points, range {hhs.get('range', 'N/A')}")
+
+            # Also extract MCID thresholds from new format
+            mcid_keys = [k for k in benchmarks.keys() if "MCII" in k or "MCID" in k or "mcid" in k.lower()]
+            if mcid_keys:
+                context_parts.append("")
+                context_parts.append("MCID Thresholds from Literature:")
+                for key in mcid_keys[:5]:
+                    bench = benchmarks[key]
+                    prov = bench.get("provenance", {})
+                    context_parts.append(f"  - {key}: {prov.get('quote', 'N/A')[:80]}... (Source: {bench.get('publication_id', 'N/A')})")
+
+        # Add outcome benchmarks (dislocation rates, periprosthetic fracture rates, etc.)
+        outcome_benchmarks = lit.get("outcome_benchmarks", {})
+        if outcome_benchmarks:
+            survival_rates = outcome_benchmarks.get("survival_rates", [])
+            if survival_rates:
+                context_parts.append("")
+                context_parts.append("Literature Outcome Benchmarks (Meta-analyses):")
+                for bench in survival_rates:
+                    metric = bench.get("metric", "unknown")
+                    value = bench.get("value")
+                    unit = bench.get("unit", "")
+                    ci_lower = bench.get("ci_lower")
+                    ci_upper = bench.get("ci_upper")
+                    pub_id = bench.get("publication_id", "")
+                    prov = bench.get("provenance", {})
+                    context_str = prov.get("context", "")
+
+                    if value is not None:
+                        ci_str = f" (95% CI: {ci_lower}-{ci_upper})" if ci_lower and ci_upper else ""
+                        context_parts.append(f"  - {metric}: {value}{unit}{ci_str}")
+                        if context_str:
+                            context_parts.append(f"    Source: {pub_id} - {context_str[:100]}")
 
         # Add risk factors with hazard ratios
         risk_factors = lit.get("risk_factors", {})
@@ -1335,6 +1563,14 @@ async def chat(request: ChatRequest) -> ChatResponse:
     4. Generates response with full source provenance
     """
     try:
+        # Check cache first (96-hour TTL)
+        cached = _get_cached_response(request.message, request.context, request.study_id)
+        if cached:
+            # Mark as cached and add delay for natural UX
+            cached.cached = True
+            await asyncio.sleep(3)  # 3-second delay for demo purposes
+            return cached
+
         llm = LLMService()
 
         # Step 1: Detect what agents to query based on question (LLM-based with keyword fallback)
@@ -1486,12 +1722,18 @@ Respond in a professional tone suitable for clinical and regulatory stakeholders
                 total_sample_size=evidence_data.get("total_sample_size")
             )
 
-        return ChatResponse(
+        # Build the response
+        chat_response = ChatResponse(
             response=response_text,
             sources=sources if sources else [Source(type="study_data", reference="H-34 Study Data")],
             evidence=evidence,
             suggested_followups=followups
         )
+
+        # Cache the response (96-hour TTL)
+        _cache_response(request.message, request.context, request.study_id, chat_response)
+
+        return chat_response
 
     except Exception as e:
         logger.error(f"Chat error: {e}", exc_info=True)
@@ -1599,22 +1841,64 @@ def is_code_generation_request(message: str) -> bool:
     return False
 
 
+_code_gen_cache: Dict[str, Dict[str, Any]] = {}
+CODE_GEN_CACHE_TTL_HOURS = 96  # 4 days
+
+
+def _get_code_gen_cache_key(request_text: str, language: str, study_id: str) -> str:
+    """Generate cache key for code generation request."""
+    normalized = request_text.lower().strip()
+    return f"codegen:{normalized}|{language or 'auto'}|{study_id}"
+
+
+def _get_cached_code_response(request_text: str, language: str, study_id: str) -> Optional[CodeGenerationResponse]:
+    """Get cached code generation response if valid."""
+    cache_key = _get_code_gen_cache_key(request_text, language, study_id)
+    cached = _code_gen_cache.get(cache_key)
+
+    if cached:
+        age = datetime.utcnow() - cached["timestamp"]
+        if age < timedelta(hours=CODE_GEN_CACHE_TTL_HOURS):
+            logger.info(f"Code gen cache hit for: {request_text[:50]}...")
+            return cached["response"]
+        else:
+            del _code_gen_cache[cache_key]
+
+    return None
+
+
+def _cache_code_response(request_text: str, language: str, study_id: str, response: CodeGenerationResponse) -> None:
+    """Cache a code generation response."""
+    cache_key = _get_code_gen_cache_key(request_text, language, study_id)
+    _code_gen_cache[cache_key] = {
+        "response": response,
+        "timestamp": datetime.utcnow()
+    }
+    logger.info(f"Code gen response cached for: {request_text[:50]}...")
+
+
 @router.post("/generate-code", response_model=CodeGenerationResponse)
 async def generate_code(request: CodeGenerationRequest):
     """
     Generate R, Python, SQL, or C code for clinical research ad-hoc queries.
-    
+
     The code agent understands:
     - Clinical domain language (Kaplan-Meier, HHS, revision rates, etc.)
     - H-34 DELTA study data model and database schema
     - Statistical methodologies for clinical research
-    
+
     Examples:
     - "Write R code for a Kaplan-Meier curve comparing our cohort to the 94% registry benchmark"
     - "Show me Python code to calculate mean HHS improvement from baseline to 2-year follow-up"
     - "SQL query to find all patients with revision surgery"
     """
     try:
+        # Check cache first
+        cached = _get_cached_code_response(request.request, request.language, request.study_id)
+        if cached:
+            await asyncio.sleep(3)  # 3-second delay for demo purposes
+            return cached
+
         code_agent = get_code_agent()
         
         # Parse language if provided
@@ -1656,7 +1940,7 @@ async def generate_code(request: CodeGenerationRequest):
                 "Write code to analyze HHS improvement from baseline"
             ])
         
-        return CodeGenerationResponse(
+        response = CodeGenerationResponse(
             success=result.success,
             language=result.language,
             code=result.code,
@@ -1668,7 +1952,13 @@ async def generate_code(request: CodeGenerationRequest):
             warnings=result.get_warnings(),
             suggested_followups=followups[:3]
         )
-        
+
+        # Cache successful responses
+        if result.success:
+            _cache_code_response(request.request, request.language, request.study_id, response)
+
+        return response
+
     except Exception as e:
         logger.error(f"Code generation failed: {e}")
         return CodeGenerationResponse(

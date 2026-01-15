@@ -7,7 +7,7 @@ export default function StudyRisk() {
   const studyId = params?.studyId || 'h34-delta'
   
   return (
-    <StudyLayout studyId={studyId}>
+    <StudyLayout studyId={studyId} chatContext="risk">
       <Risk />
     </StudyLayout>
   )

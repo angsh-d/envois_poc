@@ -131,6 +131,7 @@ class LiteratureBenchmarks(BaseModel):
     publications: List[PublicationBenchmark]
     aggregate_benchmarks: Dict[str, Any]
     all_risk_factors: List[RiskFactor] = Field(default_factory=list)
+    outcome_benchmarks: Dict[str, Any] = Field(default_factory=dict)
 
     def get_benchmark(self, metric: str) -> Optional[Dict[str, Any]]:
         """Get aggregate benchmark for a metric."""
@@ -513,24 +514,77 @@ class DocumentAsCodeLoader:
         publications = []
         all_risk_factors = []
 
-        for pub_id, pub_data in data.get("publications", {}).items():
-            risk_factors = [RiskFactor(**rf) for rf in pub_data.get("risk_factors", [])]
-            all_risk_factors.extend(risk_factors)
+        pubs_data = data.get("publications", {})
 
-            publications.append(PublicationBenchmark(
-                id=pub_id,
-                title=pub_data.get("title", ""),
-                year=pub_data.get("year", 0),
-                n_patients=pub_data.get("n_patients"),
-                follow_up_years=pub_data.get("follow_up_years"),
-                benchmarks=pub_data.get("benchmarks", {}),
-                risk_factors=risk_factors,
-            ))
+        # Handle both list format (new) and dict format (legacy)
+        if isinstance(pubs_data, list):
+            # New format: list of publications with 'id' field
+            for pub_data in pubs_data:
+                pub_id = pub_data.get("id", "unknown")
+                risk_factors = [RiskFactor(**rf) for rf in pub_data.get("risk_factors", [])]
+                all_risk_factors.extend(risk_factors)
+
+                publications.append(PublicationBenchmark(
+                    id=pub_id,
+                    title=pub_data.get("title", ""),
+                    year=pub_data.get("year", 0),
+                    n_patients=pub_data.get("sample_size") or pub_data.get("n_patients"),
+                    follow_up_years=pub_data.get("follow_up_months", 0) / 12 if pub_data.get("follow_up_months") else pub_data.get("follow_up_years"),
+                    benchmarks=pub_data.get("benchmarks", {}),
+                    risk_factors=risk_factors,
+                ))
+        else:
+            # Legacy format: dict with pub_id as keys
+            for pub_id, pub_data in pubs_data.items():
+                risk_factors = [RiskFactor(**rf) for rf in pub_data.get("risk_factors", [])]
+                all_risk_factors.extend(risk_factors)
+
+                publications.append(PublicationBenchmark(
+                    id=pub_id,
+                    title=pub_data.get("title", ""),
+                    year=pub_data.get("year", 0),
+                    n_patients=pub_data.get("n_patients"),
+                    follow_up_years=pub_data.get("follow_up_years"),
+                    benchmarks=pub_data.get("benchmarks", {}),
+                    risk_factors=risk_factors,
+                ))
+
+        # Also load top-level risk_factors if present (new format)
+        top_level_risk_factors = data.get("risk_factors", [])
+        if isinstance(top_level_risk_factors, list):
+            for rf_data in top_level_risk_factors:
+                # Handle both 'factor' and 'risk_factor' field names
+                factor_name = rf_data.get("factor") or rf_data.get("risk_factor", "unknown")
+                hazard_ratio = rf_data.get("hazard_ratio")
+                if hazard_ratio is not None:
+                    all_risk_factors.append(RiskFactor(
+                        factor=factor_name,
+                        hazard_ratio=hazard_ratio,
+                        confidence_interval=rf_data.get("confidence_interval") or [rf_data.get("ci_lower"), rf_data.get("ci_upper")],
+                        outcome=rf_data.get("outcome", "revision"),
+                        source=rf_data.get("publication_id") or rf_data.get("source", "literature"),
+                    ))
+
+        # Load patient_risk_factors (demographic/comorbidity factors for risk model)
+        patient_risk_factors = data.get("patient_risk_factors", [])
+        if isinstance(patient_risk_factors, list):
+            for rf_data in patient_risk_factors:
+                factor_name = rf_data.get("risk_factor", "unknown")
+                hazard_ratio = rf_data.get("hazard_ratio")
+                if hazard_ratio is not None:
+                    all_risk_factors.append(RiskFactor(
+                        factor=factor_name,
+                        hazard_ratio=hazard_ratio,
+                        confidence_interval=[rf_data.get("ci_lower"), rf_data.get("ci_upper")],
+                        outcome="revision",
+                        source=rf_data.get("source", "literature"),
+                    ))
 
         return LiteratureBenchmarks(
             publications=publications,
             aggregate_benchmarks=data.get("aggregate_benchmarks", {}),
             all_risk_factors=all_risk_factors,
+            outcome_benchmarks=data.get("outcome_benchmarks", {}),
         )
 
     def load_registry_norms(self) -> RegistryNorms:
@@ -669,12 +723,38 @@ class HybridLoader:
         return self._file_loader.load_protocol_rules()
 
     def load_literature_benchmarks(self) -> LiteratureBenchmarks:
-        """Load literature benchmarks from DB or files."""
+        """Load literature benchmarks from DB or files.
+
+        Always merges patient_risk_factors and outcome_benchmarks from YAML
+        since they may not be in DB.
+        """
         db_loader = self._get_db_loader()
         if db_loader and db_loader.is_available():
             result = db_loader.load_literature_benchmarks()
             if result:
                 logger.debug("Loaded literature benchmarks from database")
+                # Always merge from YAML (not stored in DB)
+                yaml_data = self._file_loader.load_literature_benchmarks()
+
+                # Merge patient_risk_factors
+                patient_risk_factors = [
+                    rf for rf in yaml_data.all_risk_factors
+                    if rf.factor in ['age_over_80', 'bmi_over_35', 'diabetes', 'osteoporosis',
+                                    'rheumatoid_arthritis', 'chronic_kidney_disease', 'smoking',
+                                    'prior_revision', 'severe_bone_loss', 'paprosky_3b']
+                ]
+                if patient_risk_factors:
+                    existing_factors = {rf.factor for rf in result.all_risk_factors}
+                    for rf in patient_risk_factors:
+                        if rf.factor not in existing_factors:
+                            result.all_risk_factors.append(rf)
+                    logger.debug(f"Merged {len(patient_risk_factors)} patient risk factors from YAML")
+
+                # Merge outcome_benchmarks (meta-analysis data like Kunutsor 2019)
+                if yaml_data.outcome_benchmarks:
+                    result.outcome_benchmarks = yaml_data.outcome_benchmarks
+                    logger.debug(f"Merged outcome_benchmarks from YAML: {list(yaml_data.outcome_benchmarks.keys())}")
+
                 return result
         logger.debug("Loading literature benchmarks from files (fallback)")
         return self._file_loader.load_literature_benchmarks()

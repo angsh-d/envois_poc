@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check, Zap } from 'lucide-react'
 import { ChatMessage, sendChatMessage, Source, Evidence, generateCode, isCodeGenerationRequest, CodeGenerationResponse } from '@/lib/api'
 import { ResponseDisplay } from './ResponseDisplay'
 import { ProvenanceCard } from './ProvenanceCard'
 import { EvidencePanel } from './EvidencePanel'
+import { getSeedQuestions, SeedQuestion } from '@/lib/seedQuestions'
 
 interface ChatPanelProps {
   studyId: string
@@ -303,18 +304,19 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
     }
   }, [input, isLoading, context, studyId, messages])
 
-  // Initial suggested questions showcasing new capabilities
-  const initialSuggestedQuestions = [
-    'How do our outcomes compare to all 5 international registries?',
-    'Write R code for a Kaplan-Meier survival curve',
-    'Show me Python code to calculate mean HHS improvement',
-    'SQL query to find patients with revision surgery',
-  ]
+  // Get context-specific seed questions
+  const contextSeedQuestions: SeedQuestion[] = useMemo(
+    () => getSeedQuestions(context),
+    [context]
+  )
 
-  // Use dynamic followups if available, otherwise initial questions
-  const displayedQuestions = suggestedFollowups.length > 0
-    ? suggestedFollowups.slice(0, 4)
-    : initialSuggestedQuestions
+  // Use dynamic followups if available, otherwise context-specific seed questions
+  const displayedQuestions = useMemo(() => {
+    if (suggestedFollowups.length > 0) {
+      return suggestedFollowups.slice(0, 4).map(text => ({ text, isAgentic: false }))
+    }
+    return contextSeedQuestions
+  }, [suggestedFollowups, contextSeedQuestions])
 
   // Floating action button when closed
   if (!isOpen) {
@@ -410,11 +412,18 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
               {displayedQuestions.map((q, i) => (
                 <button
                   key={i}
-                  onClick={() => setInput(q)}
-                  className="w-full text-left px-4 py-3 text-[13px] text-gray-700 bg-gray-50/80 rounded-xl hover:bg-gray-100 transition-all duration-200 border border-gray-100 hover:border-gray-200 group"
+                  onClick={() => setInput(q.text)}
+                  className="w-full text-left px-4 py-3 text-[13px] text-gray-700 bg-gray-50/80 rounded-xl hover:bg-gray-100 transition-all duration-200 border border-gray-100 hover:border-gray-200 group relative"
                   style={{ animationDelay: `${i * 100}ms` }}
+                  title={q.isAgentic ? 'Uses multiple AI agents to gather and synthesize information' : undefined}
                 >
-                  <span className="opacity-80 group-hover:opacity-100 transition-opacity">{q}</span>
+                  <span className="opacity-80 group-hover:opacity-100 transition-opacity">{q.text}</span>
+                  {q.isAgentic && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-gray-400 opacity-60 group-hover:opacity-100">
+                      <Zap className="w-3 h-3" />
+                      <span className="hidden sm:inline">Agentic</span>
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

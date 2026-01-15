@@ -15,6 +15,7 @@ from app.agents.compliance_agent import ComplianceAgent
 from app.agents.safety_agent import SafetyAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.synthesis_agent import SynthesisAgent
+from app.services.deviations_service import get_deviations_service
 from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
@@ -50,24 +51,23 @@ class ReadinessService:
         """
         request_id = str(uuid.uuid4())
 
-        # Gather data from multiple agents in parallel
+        # Gather data from multiple agents/services
         data_context = AgentContext(
             request_id=request_id,
             parameters={"query_type": "summary"}
-        )
-        compliance_context = AgentContext(
-            request_id=request_id,
-            parameters={"query_type": "study"}
         )
         safety_context = AgentContext(
             request_id=request_id,
             parameters={"query_type": "study"}
         )
 
-        # Run agents
+        # Run agents and services
         data_result = await self._data_agent.run(data_context)
-        compliance_result = await self._compliance_agent.run(compliance_context)
         safety_result = await self._safety_agent.run(safety_context)
+
+        # Use DeviationsService for compliance data (consistent with UC3 Deviations page)
+        deviations_service = get_deviations_service()
+        compliance_data = deviations_service.run_all_detectors()
 
         # Get protocol requirements
         protocol_rules = self._doc_loader.load_protocol_rules()
@@ -78,7 +78,7 @@ class ReadinessService:
             protocol_rules
         )
         compliance_status = self._assess_compliance(
-            compliance_result.data if compliance_result.success else {}
+            compliance_data if compliance_data.get("success") else {}
         )
         safety_status = self._assess_safety(
             safety_result.data if safety_result.success else {}
@@ -104,7 +104,7 @@ class ReadinessService:
             parameters={"synthesis_type": "uc1_readiness"},
             shared_data={
                 "data": data_result.to_dict() if data_result.success else {},
-                "compliance": compliance_result.to_dict() if compliance_result.success else {},
+                "compliance": compliance_data if compliance_data.get("success") else {},
                 "safety": safety_result.to_dict() if safety_result.success else {},
                 # Pass calculated readiness for narrative generation
                 "readiness_status": {
@@ -183,7 +183,7 @@ class ReadinessService:
             "sources": sources,
             "execution_time_ms": sum([
                 data_result.execution_time_ms,
-                compliance_result.execution_time_ms,
+                compliance_data.get("execution_time_ms", 0),
                 safety_result.execution_time_ms,
             ]),
         }

@@ -1,13 +1,15 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import StudyLayout from './StudyLayout'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Check, X, ChevronDown, ChevronRight, Database, GitBranch,
   Target, AlertTriangle, Shield, Pill, TestTube, FlaskConical,
   FileSignature, ClipboardList, Building, CheckCircle, LogOut,
   Scan, Activity, Users, Beaker, FileText, Heart, Stethoscope,
-  Clock, Leaf, Syringe, Download
+  Clock, Leaf, Syringe, Download, HelpCircle, Save
 } from 'lucide-react'
+import { EditableField, EditableList, EditableSlider } from '@/components/EditableField'
+import { updateProtocolRule } from '@/lib/api'
 
 interface StudyProtocolProps {
   params: { studyId: string }
@@ -379,6 +381,26 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
     refetchOnWindowFocus: false,
     retry: 2,
   })
+
+  // Mutation for updating protocol rules
+  const queryClient = useQueryClient()
+  const updateRuleMutation = useMutation({
+    mutationFn: async ({ fieldPath, value }: { fieldPath: string; value: string | number | boolean | string[] }) => {
+      return updateProtocolRule(fieldPath, value)
+    },
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['protocol-rules'] })
+    },
+  })
+
+  const handleSaveField = useCallback(async (fieldPath: string, newValue: string | number) => {
+    await updateRuleMutation.mutateAsync({ fieldPath, value: newValue })
+  }, [updateRuleMutation])
+
+  const handleSaveList = useCallback(async (fieldPath: string, newValue: string[]) => {
+    await updateRuleMutation.mutateAsync({ fieldPath, value: newValue })
+  }, [updateRuleMutation])
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -2130,31 +2152,68 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                   <FileText className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{protocolRules.protocol.title}</h2>
-                  <p className="text-sm text-gray-500 mt-0.5">Protocol Rules Engine</p>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    <EditableField
+                      value={protocolRules.protocol.title}
+                      fieldPath="protocol.title"
+                      onSave={handleSaveField}
+                      displayClassName="text-xl font-semibold text-gray-900"
+                    />
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5">Protocol Rules Engine · Double-click to edit fields</p>
                 </div>
               </div>
               <span className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
-                v{protocolRules.protocol.version}
+                v<EditableField
+                  value={protocolRules.protocol.version}
+                  fieldPath="protocol.version"
+                  onSave={handleSaveField}
+                  displayClassName="text-xs font-medium"
+                />
               </span>
             </div>
           </div>
           <div className="grid grid-cols-4 divide-x divide-gray-100">
             <div className="p-4 text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Protocol ID</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.id}</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">
+                <EditableField
+                  value={protocolRules.protocol.id}
+                  fieldPath="protocol.id"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Phase</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.phase}</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">
+                <EditableField
+                  value={protocolRules.protocol.phase}
+                  fieldPath="protocol.phase"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Sponsor</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.sponsor}</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">
+                <EditableField
+                  value={protocolRules.protocol.sponsor}
+                  fieldPath="protocol.sponsor"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Effective</p>
-              <p className="text-sm font-semibold text-gray-900 mt-1">{protocolRules.protocol.effective_date}</p>
+              <p className="text-sm font-semibold text-gray-900 mt-1">
+                <EditableField
+                  value={protocolRules.protocol.effective_date}
+                  fieldPath="protocol.effective_date"
+                  type="date"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
           </div>
         </div>
@@ -2165,7 +2224,12 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Visit Schedule</h3>
               <p className="text-sm text-gray-500 mt-0.5">
-                Reference: {protocolRules.schedule_of_assessments.reference_point.replace(/_/g, ' ')}
+                Reference: <EditableField
+                  value={protocolRules.schedule_of_assessments.reference_point}
+                  fieldPath="schedule_of_assessments.reference_point"
+                  onSave={handleSaveField}
+                  formatter={(v) => String(v).replace(/_/g, ' ')}
+                />
               </p>
             </div>
             <div className="flex items-center gap-3 text-xs">
@@ -2218,8 +2282,21 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                     {idx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 text-sm truncate">{visit.name}</h4>
-                    <p className="text-xs text-gray-500">{formatDayLong(visit.target_day)}</p>
+                    <h4 className="font-medium text-gray-900 text-sm truncate">
+                      <EditableField
+                        value={visit.name}
+                        fieldPath={`schedule_of_assessments.visits.${idx}.name`}
+                        onSave={handleSaveField}
+                      />
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Day <EditableField
+                        value={visit.target_day}
+                        fieldPath={`schedule_of_assessments.visits.${idx}.target_day`}
+                        type="number"
+                        onSave={handleSaveField}
+                      />
+                    </p>
                   </div>
                   {visit.is_primary_endpoint && (
                     <span className="px-2 py-0.5 bg-gray-900 text-white text-[10px] font-medium rounded-full whitespace-nowrap">
@@ -2229,7 +2306,17 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
                   <Clock className="w-3.5 h-3.5 text-gray-400" />
-                  <span>Window: -{visit.window_minus} / +{visit.window_plus} days</span>
+                  <span>Window: -<EditableField
+                    value={visit.window_minus}
+                    fieldPath={`schedule_of_assessments.visits.${idx}.window_minus`}
+                    type="number"
+                    onSave={handleSaveField}
+                  /> / +<EditableField
+                    value={visit.window_plus}
+                    fieldPath={`schedule_of_assessments.visits.${idx}.window_plus`}
+                    type="number"
+                    onSave={handleSaveField}
+                  /> days</span>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {visit.required_assessments.slice(0, 4).map(assessment => (
@@ -2262,34 +2349,71 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <span className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Primary Endpoint</span>
             </div>
             <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
-              <h4 className="font-semibold text-gray-900 text-base">{protocolRules.endpoints.primary.name}</h4>
+              <h4 className="font-semibold text-gray-900 text-base">
+                <EditableField
+                  value={protocolRules.endpoints.primary.name}
+                  fieldPath="endpoints.primary.name"
+                  onSave={handleSaveField}
+                />
+              </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Timepoint</p>
-                  <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.timepoint}</p>
+                  <p className="text-sm font-medium text-gray-900 mt-1">
+                    <EditableField
+                      value={protocolRules.endpoints.primary.timepoint}
+                      fieldPath="endpoints.primary.timepoint"
+                      onSave={handleSaveField}
+                    />
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Calculation</p>
                   <p className="text-sm font-mono text-gray-700 mt-1 bg-white px-2 py-1 rounded border border-gray-200 inline-block">
-                    {protocolRules.endpoints.primary.calculation}
+                    <EditableField
+                      value={protocolRules.endpoints.primary.calculation}
+                      fieldPath="endpoints.primary.calculation"
+                      onSave={handleSaveField}
+                    />
                   </p>
                 </div>
                 {protocolRules.endpoints.primary.mcid_threshold && (
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">MCID</p>
-                    <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.mcid_threshold} pts</p>
+                    <p className="text-sm font-medium text-gray-900 mt-1">
+                      <EditableField
+                        value={protocolRules.endpoints.primary.mcid_threshold}
+                        fieldPath="endpoints.primary.mcid_threshold"
+                        type="number"
+                        onSave={handleSaveField}
+                      /> pts
+                    </p>
                   </div>
                 )}
                 {protocolRules.endpoints.primary.success_threshold && (
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Success</p>
-                    <p className="text-sm font-medium text-gray-900 mt-1">{protocolRules.endpoints.primary.success_threshold} pts</p>
+                    <p className="text-sm font-medium text-gray-900 mt-1">
+                      <EditableField
+                        value={protocolRules.endpoints.primary.success_threshold}
+                        fieldPath="endpoints.primary.success_threshold"
+                        type="number"
+                        onSave={handleSaveField}
+                      /> pts
+                    </p>
                   </div>
                 )}
               </div>
               {protocolRules.endpoints.primary.success_criterion && (
                 <div className="mt-4 p-3 bg-white border border-gray-200 rounded-lg">
-                  <p className="text-sm text-gray-700">{protocolRules.endpoints.primary.success_criterion}</p>
+                  <p className="text-sm text-gray-700">
+                    <EditableField
+                      value={protocolRules.endpoints.primary.success_criterion}
+                      fieldPath="endpoints.primary.success_criterion"
+                      type="textarea"
+                      onSave={handleSaveField}
+                    />
+                  </p>
                 </div>
               )}
             </div>
@@ -2301,17 +2425,41 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Secondary Endpoints</span>
           </div>
           <div className="grid md:grid-cols-2 gap-3">
-            {protocolRules.endpoints.secondary.map((endpoint) => (
+            {protocolRules.endpoints.secondary.map((endpoint, index) => (
               <div key={endpoint.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
-                <h4 className="font-medium text-gray-900 text-sm">{endpoint.name}</h4>
+                <h4 className="font-medium text-gray-900 text-sm">
+                  <EditableField
+                    value={endpoint.name}
+                    fieldPath={`endpoints.secondary.${index}.name`}
+                    type="text"
+                    onSave={handleSaveField}
+                  />
+                </h4>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-600">
-                  <span>{endpoint.timepoint}</span>
+                  <EditableField
+                    value={endpoint.timepoint}
+                    fieldPath={`endpoints.secondary.${index}.timepoint`}
+                    type="text"
+                    onSave={handleSaveField}
+                  />
                   <span className="text-gray-300">|</span>
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded">{endpoint.calculation}</code>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded">
+                    <EditableField
+                      value={endpoint.calculation}
+                      fieldPath={`endpoints.secondary.${index}.calculation`}
+                      type="text"
+                      onSave={handleSaveField}
+                    />
+                  </code>
                   {endpoint.success_threshold && (
                     <>
                       <span className="text-gray-300">|</span>
-                      <span>Threshold: {endpoint.success_threshold}</span>
+                      <span>Threshold: <EditableField
+                        value={endpoint.success_threshold}
+                        fieldPath={`endpoints.secondary.${index}.success_threshold`}
+                        type="text"
+                        onSave={handleSaveField}
+                      /></span>
                     </>
                   )}
                 </div>
@@ -2328,20 +2476,43 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <Users className="w-5 h-5 text-gray-700" />
               <h3 className="text-lg font-semibold text-gray-900">Sample Size</h3>
             </div>
-            
+
             <div className="text-center py-4 mb-4 bg-gray-50 rounded-xl">
-              <p className="text-4xl font-bold text-gray-900">{protocolRules.sample_size.target_enrollment}</p>
+              <p className="text-4xl font-bold text-gray-900">
+                <EditableField
+                  value={protocolRules.sample_size.target_enrollment}
+                  fieldPath="sample_size.target_enrollment"
+                  type="number"
+                  onSave={handleSaveField}
+                  displayClassName="text-4xl font-bold"
+                />
+              </p>
               <p className="text-sm text-gray-500 mt-1">Target Enrollment</p>
             </div>
 
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-sm text-gray-600">Evaluable Population</span>
-                <span className="text-sm font-medium text-gray-900">{protocolRules.sample_size.evaluable_population} patients</span>
+                <span className="text-sm font-medium text-gray-900">
+                  <EditableField
+                    value={protocolRules.sample_size.evaluable_population}
+                    fieldPath="sample_size.evaluable_population"
+                    type="number"
+                    onSave={handleSaveField}
+                  /> patients
+                </span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-sm text-gray-600">LTFU Assumption</span>
-                <span className="text-sm font-medium text-gray-900">{(protocolRules.sample_size.ltfu_assumption * 100).toFixed(0)}%</span>
+                <span className="text-sm font-medium text-gray-900">
+                  <EditableField
+                    value={protocolRules.sample_size.ltfu_assumption}
+                    fieldPath="sample_size.ltfu_assumption"
+                    type="percentage"
+                    onSave={handleSaveField}
+                    formatter={(v) => `${((v as number) * 100).toFixed(0)}%`}
+                  />
+                </span>
               </div>
               {protocolRules.sample_size.provenance && (
                 <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
@@ -2357,19 +2528,48 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Power</span>
-                  <span className="font-medium text-gray-900">{(protocolRules.sample_size.power_calculation.power * 100)}%</span>
+                  <span className="font-medium text-gray-900">
+                    <EditableField
+                      value={protocolRules.sample_size.power_calculation.power}
+                      fieldPath="sample_size.power_calculation.power"
+                      type="percentage"
+                      onSave={handleSaveField}
+                      formatter={(v) => `${((v as number) * 100)}%`}
+                    />
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Alpha</span>
-                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.alpha}</span>
+                  <span className="font-medium text-gray-900">
+                    <EditableField
+                      value={protocolRules.sample_size.power_calculation.alpha}
+                      fieldPath="sample_size.power_calculation.alpha"
+                      type="number"
+                      onSave={handleSaveField}
+                    />
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Effect Size</span>
-                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.effect_size}</span>
+                  <span className="font-medium text-gray-900">
+                    <EditableField
+                      value={protocolRules.sample_size.power_calculation.effect_size}
+                      fieldPath="sample_size.power_calculation.effect_size"
+                      type="number"
+                      onSave={handleSaveField}
+                    />
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Expected Δ</span>
-                  <span className="font-medium text-gray-900">{protocolRules.sample_size.power_calculation.expected_improvement}</span>
+                  <span className="font-medium text-gray-900">
+                    <EditableField
+                      value={protocolRules.sample_size.power_calculation.expected_improvement}
+                      fieldPath="sample_size.power_calculation.expected_improvement"
+                      type="number"
+                      onSave={handleSaveField}
+                    />
+                  </span>
                 </div>
               </div>
             </div>
@@ -2381,31 +2581,31 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
               <Shield className="w-5 h-5 text-gray-700" />
               <h3 className="text-lg font-semibold text-gray-900">Safety Thresholds</h3>
             </div>
-            <p className="text-sm text-gray-500 mb-4">Rates above these trigger review</p>
-            <div className="space-y-2">
+            <p className="text-sm text-gray-500 mb-4">Drag sliders to adjust signal detection thresholds</p>
+            <div className="space-y-3">
               {Object.entries(protocolRules.safety_thresholds)
                 .filter(([key]) => key !== 'provenance' && typeof protocolRules.safety_thresholds[key] === 'number')
                 .map(([key, value]) => {
                   const numValue = value as number
-                  const percentage = (numValue * 100).toFixed(0)
-                  const isCritical = numValue >= 0.1
+                  // Get the source citation for this threshold
+                  const sourceKey = key.replace('_concern', '_source')
+                  const sourceText = (protocolRules.safety_thresholds as Record<string, unknown>)[sourceKey] as string | undefined
+                  // Determine appropriate max for each threshold type
+                  const isAeOrSae = key.includes('ae_rate') || key.includes('sae_rate')
+                  const maxValue = isAeOrSae ? 60 : 25
+                  const label = key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase()).trim()
                   return (
-                    <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <span className="text-sm text-gray-700">
-                        {key.replace(/_/g, ' ').replace('rate concern', '').replace(/\b\w/g, l => l.toUpperCase()).trim()}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${isCritical ? 'bg-gray-800' : 'bg-gray-400'}`}
-                            style={{ width: `${Math.min(Number(percentage) * 5, 100)}%` }}
-                          ></div>
-                        </div>
-                        <span className={`text-sm font-semibold ${isCritical ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {percentage}%
-                        </span>
-                      </div>
-                    </div>
+                    <EditableSlider
+                      key={key}
+                      value={numValue}
+                      fieldPath={`safety_thresholds.${key}`}
+                      onSave={handleSaveField}
+                      min={1}
+                      max={maxValue}
+                      step={1}
+                      label={label}
+                      sourceText={sourceText}
+                    />
                   )
                 })}
             </div>
@@ -2431,24 +2631,63 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Minor</span>
               </div>
-              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.minor.description}</p>
-              <p className="text-xs text-gray-500 border-t border-gray-100 pt-3">{protocolRules.deviation_classification.minor.action}</p>
+              <p className="text-sm text-gray-700 mb-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.minor.description}
+                  fieldPath="deviation_classification.minor.description"
+                  type="textarea"
+                  onSave={handleSaveField}
+                />
+              </p>
+              <p className="text-xs text-gray-500 border-t border-gray-100 pt-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.minor.action}
+                  fieldPath="deviation_classification.minor.action"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
             <div className="p-5 rounded-xl border-2 border-gray-300 bg-gray-50">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-gray-600"></div>
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Major</span>
               </div>
-              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.major.description}</p>
-              <p className="text-xs text-gray-500 border-t border-gray-200 pt-3">{protocolRules.deviation_classification.major.action}</p>
+              <p className="text-sm text-gray-700 mb-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.major.description}
+                  fieldPath="deviation_classification.major.description"
+                  type="textarea"
+                  onSave={handleSaveField}
+                />
+              </p>
+              <p className="text-xs text-gray-500 border-t border-gray-200 pt-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.major.action}
+                  fieldPath="deviation_classification.major.action"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
             <div className="p-5 rounded-xl border-2 border-gray-400 bg-gray-100">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-2 h-2 rounded-full bg-gray-900"></div>
                 <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Critical</span>
               </div>
-              <p className="text-sm text-gray-700 mb-3">{protocolRules.deviation_classification.critical.description}</p>
-              <p className="text-xs text-gray-600 border-t border-gray-300 pt-3">{protocolRules.deviation_classification.critical.action}</p>
+              <p className="text-sm text-gray-700 mb-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.critical.description}
+                  fieldPath="deviation_classification.critical.description"
+                  type="textarea"
+                  onSave={handleSaveField}
+                />
+              </p>
+              <p className="text-xs text-gray-600 border-t border-gray-300 pt-3">
+                <EditableField
+                  value={protocolRules.deviation_classification.critical.action}
+                  fieldPath="deviation_classification.critical.action"
+                  onSave={handleSaveField}
+                />
+              </p>
             </div>
           </div>
         </div>
@@ -2488,7 +2727,15 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 <Clock className="w-5 h-5 text-gray-700" />
                 <div>
                   <p className="text-xs text-gray-500 uppercase">SAE Reporting Window</p>
-                  <p className="text-lg font-semibold text-gray-900">{protocolRules.adverse_events.sae_reporting_window_days * 24} hours</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    <EditableField
+                      value={protocolRules.adverse_events.sae_reporting_window_days}
+                      fieldPath="adverse_events.sae_reporting_window_days"
+                      type="number"
+                      onSave={handleSaveField}
+                      formatter={(v) => `${(v as number) * 24} hours`}
+                    />
+                  </p>
                 </div>
               </div>
             </div>
@@ -2496,27 +2743,22 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
             <div>
               <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Classifications</h4>
               <div className="flex flex-wrap gap-2 mb-6">
-                {protocolRules.adverse_events.classifications.map((c) => (
-                  <span key={c} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg">
-                    {c}
-                  </span>
-                ))}
+                <EditableList
+                  items={protocolRules.adverse_events.classifications}
+                  fieldPath="adverse_events.classifications"
+                  onSave={handleSaveList}
+                  itemClassName="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg"
+                />
               </div>
-              
+
               <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Severity Grades</h4>
               <div className="flex gap-2">
-                {protocolRules.adverse_events.severity_grades.map((grade, idx) => (
-                  <span
-                    key={grade}
-                    className="px-4 py-2 text-sm rounded-lg font-medium"
-                    style={{
-                      backgroundColor: `rgb(${240 - idx * 30}, ${240 - idx * 30}, ${240 - idx * 30})`,
-                      color: idx === 2 ? '#1f2937' : '#374151'
-                    }}
-                  >
-                    {grade}
-                  </span>
-                ))}
+                <EditableList
+                  items={protocolRules.adverse_events.severity_grades}
+                  fieldPath="adverse_events.severity_grades"
+                  onSave={handleSaveList}
+                  itemClassName="px-4 py-2 text-sm rounded-lg font-medium bg-gray-200"
+                />
               </div>
             </div>
           </div>
@@ -2542,7 +2784,13 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 {protocolRules.ie_criteria.inclusion.map((criterion, idx) => (
                   <li key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                     <span className="text-xs text-gray-400 font-mono mt-0.5">{idx + 1}</span>
-                    <span className="text-sm text-gray-700 flex-1">{criterion}</span>
+                    <span className="text-sm text-gray-700 flex-1">
+                      <EditableField
+                        value={criterion}
+                        fieldPath={`ie_criteria.inclusion.${idx}`}
+                        onSave={handleSaveField}
+                      />
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -2561,7 +2809,13 @@ export default function StudyProtocol({ params }: StudyProtocolProps) {
                 {protocolRules.ie_criteria.exclusion.map((criterion, idx) => (
                   <li key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                     <span className="text-xs text-gray-400 font-mono mt-0.5">{idx + 1}</span>
-                    <span className="text-sm text-gray-700 flex-1">{criterion}</span>
+                    <span className="text-sm text-gray-700 flex-1">
+                      <EditableField
+                        value={criterion}
+                        fieldPath={`ie_criteria.exclusion.${idx}`}
+                        onSave={handleSaveField}
+                      />
+                    </span>
                   </li>
                 ))}
               </ul>

@@ -305,7 +305,7 @@ class RegistryAgent(BaseAgent):
             {
                 "reason": r.get("reason", "unknown"),
                 "percentage": r.get("percentage"),
-                "percentage_formatted": f"{r.get('percentage', 0)*100:.1f}%",
+                "percentage_formatted": f"{(r.get('percentage') or 0)*100:.1f}%",
                 "description": r.get("description"),
             }
             for r in reasons
@@ -870,7 +870,7 @@ class RegistryAgent(BaseAgent):
                     reg_reasons["reasons"].append({
                         "reason": reason.get("reason", "unknown"),
                         "percentage": reason.get("percentage"),
-                        "percentage_formatted": f"{reason.get('percentage', 0)*100:.1f}%",
+                        "percentage_formatted": f"{(reason.get('percentage') or 0)*100:.1f}%",
                         "description": reason.get("description"),
                     })
 
@@ -916,7 +916,7 @@ class RegistryAgent(BaseAgent):
 
                 reasons_by_type[reason_name]["by_registry"][reg.abbreviation] = {
                     "percentage": reason.get("percentage"),
-                    "percentage_formatted": f"{reason.get('percentage', 0)*100:.1f}%",
+                    "percentage_formatted": f"{(reason.get('percentage') or 0)*100:.1f}%",
                 }
 
         # Calculate statistics for each reason

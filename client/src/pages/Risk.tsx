@@ -31,22 +31,19 @@ function RiskScoreBar({ score }: { score: number }) {
   )
 }
 
-function DualScoreBar({ clinical, demographic }: { clinical?: number, demographic?: number }) {
-  const clinicalPct = clinical !== undefined ? Math.round(clinical * 100) : null
-  const demoPct = demographic !== undefined ? Math.round(demographic * 100) : null
-  
+function RiskFactorCount({ clinical, demographic }: { clinical?: number, demographic?: number }) {
+  const clinicalCount = clinical || 0
+  const demoCount = demographic || 0
+
   return (
     <div className="flex items-center gap-3">
-      {clinicalPct !== null && (
-        <div className="flex items-center gap-1.5" title="Clinical Risk (from comorbidities)">
-          <Stethoscope className="w-3 h-3 text-gray-500" />
-          <span className="text-xs font-medium text-gray-600">{clinicalPct}%</span>
-        </div>
-      )}
-      {demoPct !== null && (
-        <div className="flex items-center gap-1.5" title="Demographic Risk (from age, BMI)">
-          <User className="w-3 h-3 text-gray-400" />
-          <span className="text-xs font-medium text-gray-500">{demoPct}%</span>
+      {clinicalCount > 0 && (
+        <div
+          className="flex items-center gap-1.5 bg-amber-50 px-2 py-1 rounded-md border border-amber-100"
+          title="Number of clinical risk factors with hazard ratios"
+        >
+          <Stethoscope className="w-3 h-3 text-amber-600" />
+          <span className="text-xs text-amber-700 font-medium">{clinicalCount} risk factor{clinicalCount !== 1 ? 's' : ''}</span>
         </div>
       )}
     </div>
@@ -82,11 +79,11 @@ function PatientCard({ patient, isExpanded, onToggle }: {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <DualScoreBar 
-            clinical={patient.clinical_risk_score} 
-            demographic={patient.demographic_risk_score} 
+          <RiskFactorCount
+            clinical={patient.n_risk_factors}
+            demographic={patient.n_demographic_factors}
           />
-          <div className="w-32">
+          <div className="w-32" title={`Risk Score: ${Math.round(patient.risk_score * 100)}% (from combined hazard ratios)`}>
             <RiskScoreBar score={patient.risk_score} />
           </div>
           {isExpanded ? (
@@ -99,49 +96,69 @@ function PatientCard({ patient, isExpanded, onToggle }: {
       
       {isExpanded && (
         <div className="px-4 pb-4 border-t border-gray-100">
-          <div className="grid grid-cols-3 gap-6 mt-4">
+          {/* Score Calculation Breakdown */}
+          <div className="mt-4 mb-4 p-3 bg-amber-50/50 rounded-lg border border-amber-100">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600 font-medium">Risk Score Calculation:</span>
+              <div className="flex items-center gap-2 font-mono text-xs">
+                {clinicalFactors.length > 0 ? (() => {
+                  const combinedHR = clinicalFactors.reduce((acc, f) => acc * f.hazard_ratio, 1)
+                  const rawScore = (combinedHR - 1) / 5
+                  const isCapped = rawScore >= 0.95
+                  return (
+                    <>
+                      {clinicalFactors.map((f, i) => (
+                        <span key={i} className="bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                          {f.hazard_ratio.toFixed(2)}×
+                        </span>
+                      )).reduce((prev, curr, i) => (
+                        <>{prev}{i > 0 && <span className="text-gray-400">×</span>}{curr}</>
+                      ), <></>)}
+                      <span className="text-gray-400">=</span>
+                      <span className="bg-amber-200 text-amber-900 px-2 py-1 rounded font-medium">
+                        {combinedHR.toFixed(2)}× HR
+                      </span>
+                      <span className="text-gray-400">→</span>
+                      <span className="bg-gray-700 text-white px-2 py-1 rounded font-semibold">
+                        {Math.round(patient.risk_score * 100)}%
+                      </span>
+                      {isCapped && (
+                        <span className="text-gray-500 text-[10px]">(max)</span>
+                      )}
+                    </>
+                  )
+                })() : (
+                  <span className="text-gray-500">No risk factors → Baseline risk</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Stethoscope className="w-4 h-4" />
                 Clinical Factors
               </h4>
+              <p className="text-xs text-gray-500 mb-3">
+                Hazard Ratios (HR) from literature - risk multipliers vs baseline
+              </p>
               {clinicalFactors.length > 0 ? (
                 <div className="space-y-2">
                   {clinicalFactors.map((factor, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <div key={idx} className="flex items-center justify-between p-2 bg-amber-50/50 rounded-lg border border-amber-100">
                       <span className="text-sm text-gray-700">{formatFactorName(factor.factor)}</span>
-                      <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
-                        HR: {factor.hazard_ratio.toFixed(1)}x
+                      <span
+                        className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded"
+                        title={`${factor.hazard_ratio.toFixed(2)}x increased risk compared to baseline population (from literature)`}
+                      >
+                        {factor.hazard_ratio.toFixed(1)}x risk
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 italic">No clinical risk factors</p>
-              )}
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Demographic Factors
-              </h4>
-              {demographicFactors.length > 0 ? (
-                <div className="space-y-2">
-                  {demographicFactors.map((factor: DemographicFactor, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                      <span className="text-sm text-gray-700">{factor.display_name}</span>
-                      <Badge 
-                        variant={factor.impact === 'high' ? 'danger' : factor.impact === 'moderate' ? 'warning' : 'neutral'}
-                        className="text-xs"
-                      >
-                        {factor.impact}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 italic">No demographic risk factors</p>
               )}
             </div>
             
@@ -324,6 +341,7 @@ function FactorPrevalenceCard({ factors }: { factors: FactorPrevalence[] }) {
 export default function Risk() {
   const [, params] = useRoute('/study/:studyId/risk')
   const studyId = params?.studyId || 'h34-delta'
+  const [showMethodology, setShowMethodology] = useState(false)
 
   const { data, isLoading, error } = useQuery<RiskSummaryResponse>({
     queryKey: ['risk', studyId],
@@ -376,64 +394,118 @@ export default function Risk() {
     ? `${highRisk} patient${highRisk !== 1 ? 's' : ''} require${highRisk === 1 ? 's' : ''} immediate attention with enhanced monitoring protocols. ${moderateRisk} patient${moderateRisk !== 1 ? 's' : ''} have elevated risk factors warranting proactive management. Population mean risk: ${(data.mean_risk_score * 100).toFixed(0)}%.`
     : `No high-risk patients identified. ${moderateRisk} patient${moderateRisk !== 1 ? 's' : ''} have moderate risk factors to monitor. Population is generally low risk with mean score of ${(data.mean_risk_score * 100).toFixed(0)}%.`
 
-  const [showMethodology, setShowMethodology] = useState(false)
-
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Patient Risk Stratification</h1>
         <p className="text-gray-500 mt-1">
-          Ensemble model combining XGBoost ML predictions (60%) with literature-derived hazard ratios (40%)
+          Risk scores derived from literature-validated hazard ratios for revision surgery outcomes
         </p>
-        <button 
-          onClick={() => setShowMethodology(!showMethodology)}
-          className="mt-2 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 transition-colors"
-        >
-          <Info className="w-4 h-4" />
-          {showMethodology ? 'Hide methodology' : 'View methodology'}
-        </button>
       </div>
 
-      {showMethodology && (
-        <Card className="bg-gray-50 border border-gray-200">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Info className="w-5 h-5 text-gray-600" />
+      {/* How Risk Scores Are Calculated - Collapsible */}
+      <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-200">
+        <button
+          onClick={() => setShowMethodology(!showMethodology)}
+          className="w-full flex items-center gap-4"
+        >
+          <div className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Info className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+            <h3 className="font-semibold text-gray-800">How Risk Scores Are Calculated</h3>
+            {!showMethodology && (
+              <p className="text-sm text-gray-500 mt-0.5">Click to view methodology, formula, and thresholds</p>
+            )}
+          </div>
+          {showMethodology ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {showMethodology && (
+          <div className="mt-4 pl-14">
+            {/* Clinical HR Formula */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-center gap-2 text-lg font-mono text-gray-700">
+                <span className="bg-gray-100 px-3 py-1.5 rounded-lg">Risk Score</span>
+                <span>=</span>
+                <span className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg">Combined Hazard Ratio</span>
+                <span className="text-gray-500">→</span>
+                <span className="bg-gray-100 px-3 py-1.5 rounded-lg">0-100%</span>
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-3">
+                Each risk factor's hazard ratio is multiplied together, then converted to a 0-100% scale
+              </p>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-800 mb-3">Risk Stratification Methodology</h3>
-              <div className="grid grid-cols-2 gap-6 text-sm text-gray-600">
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4" />
-                    Clinical Risk Score (40% weight)
-                  </h4>
-                  <p className="leading-relaxed">
-                    Derived from literature-validated <strong>hazard ratios</strong> for comorbidities including 
-                    diabetes, osteoporosis, rheumatoid arthritis, prior revision surgery, severe bone loss, 
-                    and chronic kidney disease. Each present factor multiplies the baseline risk.
+
+            {/* Single Column Explanation */}
+            <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Stethoscope className="w-4 h-4 text-amber-600" />
+                <h4 className="font-medium text-gray-700">Literature-Derived Hazard Ratios</h4>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Risk scores are calculated using <strong>peer-reviewed hazard ratios</strong> from major joint registries
+                (NJR UK, AOANJRR) and meta-analyses. Each patient's risk factors are identified, their hazard ratios
+                are multiplied together, and the combined HR is converted to a percentage.
+              </p>
+              <div className="mt-3 p-2 bg-white rounded-lg border border-amber-200">
+                <p className="text-xs font-mono text-gray-700 text-center">
+                  Score = (Combined HR − 1) ÷ 5 &nbsp;&nbsp; <span className="text-gray-500">[capped at 5-95%]</span>
+                </p>
+              </div>
+              <p className="text-sm text-gray-600 mt-3">
+                <strong>Example:</strong> Age ≥80 (1.85×) × Prior Revision (2.45×) = <strong>4.53× HR</strong>
+                <br />
+                <span className="text-xs text-gray-500 ml-4">→ (4.53 − 1) ÷ 5 = 0.706 → <strong>70.7%</strong></span>
+              </p>
+            </div>
+
+            {/* Threshold Explanation */}
+            <div className="bg-gray-100 rounded-xl p-4">
+              <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Risk Stratification Thresholds
+              </h4>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 border-l-4 border-gray-700">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-800">High Risk</span>
+                    <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">≥60%</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Combined HR ≥4x baseline. Requires enhanced monitoring and proactive intervention.
                   </p>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Demographic Risk Score (60% weight)
-                  </h4>
-                  <p className="leading-relaxed">
-                    Predicted by an <strong>XGBoost classifier</strong> trained on historical revision outcomes. 
-                    Features include age, BMI, gender, smoking status, and surgery duration. The model captures 
-                    non-linear interactions between demographic variables.
+                <div className="bg-white rounded-lg p-3 border-l-4 border-gray-500">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-700">Moderate</span>
+                    <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">30-59%</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Combined HR 2.5-4x baseline. Warrants closer follow-up.
+                  </p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border-l-4 border-gray-300">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-600">Low Risk</span>
+                    <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">&lt;30%</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Combined HR &lt;2.5x baseline. Standard follow-up appropriate.
                   </p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-500">
-                <strong>Ensemble Score</strong> = 0.6 × ML Score + 0.4 × Hazard Ratio Score. 
-                Thresholds: High ≥60%, Moderate ≥30%, Low &lt;30%.
-              </div>
+              <p className="text-xs text-gray-500 mt-3 italic">
+                Thresholds aligned with clinical evidence from NJR UK, AOANJRR, and pooled meta-analyses of THA revision outcomes.
+              </p>
             </div>
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
 
       <Card className="bg-white border border-gray-100">
         <div className="flex items-start gap-4">
@@ -539,7 +611,7 @@ export default function Risk() {
 
       <div className="grid grid-cols-2 gap-6">
         <FactorPrevalenceCard factors={data.factor_prevalence || []} />
-        
+
         <Card>
           <CardHeader title="Population Metrics" subtitle="Statistical overview of risk distribution" />
           <div className="mt-4 space-y-4">
@@ -571,6 +643,65 @@ export default function Risk() {
           </div>
         </Card>
       </div>
+
+      {/* Literature Evidence Base */}
+      <Card className="border border-gray-200">
+        <CardHeader
+          title="Literature Evidence Base"
+          subtitle="Hazard ratios used in clinical risk scoring derived from peer-reviewed sources"
+        />
+        <div className="mt-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Patient-Level Risk Factors</h4>
+              <div className="space-y-2">
+                {[
+                  { factor: 'Prior Revision Surgery', hr: 2.45, source: 'NJR UK 2024, AOANJRR 2024' },
+                  { factor: 'Paprosky 3B Defect', hr: 2.21, source: 'Bone defect literature' },
+                  { factor: 'Severe Bone Loss', hr: 1.89, source: 'Revision surgery meta-analysis' },
+                  { factor: 'Age Over 80', hr: 1.85, source: 'NJR UK 2024 Annual Report' },
+                  { factor: 'Rheumatoid Arthritis', hr: 1.71, source: 'Inflammatory arthritis studies' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-700">{item.factor}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200">
+                        HR: {item.hr}x
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Additional Risk Factors</h4>
+              <div className="space-y-2">
+                {[
+                  { factor: 'Osteoporosis', hr: 1.62, source: 'Bone quality meta-analysis' },
+                  { factor: 'BMI Over 35', hr: 1.52, source: 'AOANJRR 2024, pooled analysis' },
+                  { factor: 'Chronic Kidney Disease', hr: 1.45, source: 'CKD outcome studies' },
+                  { factor: 'Diabetes', hr: 1.38, source: 'Metabolic comorbidity studies' },
+                  { factor: 'Current Smoking', hr: 1.32, source: 'Lifestyle factor meta-analysis' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-700">{item.factor}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200">
+                        HR: {item.hr}x
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+            <strong>Key Sources:</strong> National Joint Registry (NJR) UK 2024 Annual Report, Australian Orthopaedic Association
+            National Joint Replacement Registry (AOANJRR) 2024, pooled meta-analyses of THA revision outcomes.
+            HR = Hazard Ratio (risk multiplier compared to baseline population).
+          </div>
+        </div>
+      </Card>
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Patient Cohorts</h2>

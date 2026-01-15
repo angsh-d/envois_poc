@@ -6,14 +6,17 @@ interface SideNavProps {
   studyName: string
 }
 
-const navItems = [
+const mainNavItems = [
   { path: '', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/readiness', label: 'Readiness', icon: ClipboardCheck },
   { path: '/safety', label: 'Safety Signals', icon: AlertTriangle },
   { path: '/deviations', label: 'Deviations', icon: FileWarning },
   { path: '/risk', label: 'Patient Risk', icon: Users },
-  { path: '/protocol', label: 'Digital Protocol', icon: FileText },
   { path: '/simulation', label: 'Simulation Studio', icon: Dices },
+]
+
+const secondaryNavItems = [
+  { path: '/protocol', label: 'Digital Protocol', icon: FileText },
   { path: '/data', label: 'Data Sources', icon: Database },
   { path: '/agents', label: 'AI Agents', icon: Bot },
 ]
@@ -34,9 +37,34 @@ export function SideNav({ studyId, studyName }: SideNavProps) {
       </div>
       
       <div className="flex-1 py-4">
-        {navItems.map((item) => {
+        {mainNavItems.map((item) => {
           const fullPath = `${basePath}${item.path}`
           const isActive = location === fullPath || (item.path === '' && location === basePath)
+          const Icon = item.icon
+
+          return (
+            <Link
+              key={item.path}
+              href={fullPath}
+              className={`
+                flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all duration-150
+                ${isActive
+                  ? 'bg-gray-100 text-gray-900 border-r-2 border-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+                }
+              `}
+            >
+              <Icon className="w-5 h-5" />
+              {item.label}
+            </Link>
+          )
+        })}
+
+        <div className="my-4 mx-6 border-t border-gray-200" />
+
+        {secondaryNavItems.map((item) => {
+          const fullPath = `${basePath}${item.path}`
+          const isActive = location === fullPath
           const Icon = item.icon
 
           return (

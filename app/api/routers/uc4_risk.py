@@ -54,8 +54,13 @@ class PatientRiskDetail(BaseModel):
     """Detailed risk information for a patient."""
     patient_id: str = Field(..., description="Patient identifier")
     risk_score: float = Field(..., description="Risk score 0-1")
-    n_risk_factors: int = Field(..., description="Number of risk factors")
+    clinical_risk_score: Optional[float] = Field(None, description="Clinical (HR-based) risk score")
+    demographic_risk_score: Optional[float] = Field(None, description="ML demographic risk score")
+    n_risk_factors: int = Field(..., description="Number of clinical risk factors")
+    n_demographic_factors: Optional[int] = Field(None, description="Number of demographic factors")
     contributing_factors: List[Dict[str, Any]] = Field(default_factory=list)
+    clinical_factors: List[Dict[str, Any]] = Field(default_factory=list, description="Clinical risk factors with hazard ratios")
+    demographic_factors: List[Dict[str, Any]] = Field(default_factory=list, description="Demographic factors (age, BMI, gender)")
     recommendations: List[Dict[str, Any]] = Field(default_factory=list)
 
 

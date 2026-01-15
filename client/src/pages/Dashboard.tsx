@@ -6,10 +6,14 @@ import {
   fetchDashboardExecutiveSummary,
   fetchDashboardStudyProgress,
   fetchDashboardBenchmarks,
+  fetchReadiness,
+  fetchRiskSummary,
   type DashboardExecutiveSummary,
   type DashboardStudyProgress,
   type DashboardBenchmarks,
-  type LiteratureCitation
+  type LiteratureCitation,
+  type ReadinessResponse,
+  type RiskSummaryResponse
 } from '@/lib/api'
 import { useRoute } from 'wouter'
 import {
@@ -81,6 +85,45 @@ function getComparisonStatus(status: string | undefined): 'success' | 'warning' 
   }
 }
 
+function calculateReadinessScore(data: ReadinessResponse): number {
+  let score = 0
+  let total = 0
+
+  // Enrollment contribution (40% weight)
+  total += 40
+  if (data.enrollment.is_ready) {
+    score += 40
+  } else {
+    score += Math.min(40, (data.enrollment.percent_complete / 100) * 40)
+  }
+
+  // Compliance contribution (20% weight)
+  total += 20
+  if (data.compliance.is_ready) {
+    score += 20
+  } else {
+    score += data.compliance.deviation_rate < 0.05 ? 15 : data.compliance.deviation_rate < 0.10 ? 10 : 5
+  }
+
+  // Safety contribution (20% weight)
+  total += 20
+  if (data.safety.is_ready) {
+    score += 20
+  } else {
+    score += data.safety.n_signals === 0 ? 15 : data.safety.n_signals < 3 ? 10 : 5
+  }
+
+  // Data completeness contribution (20% weight)
+  total += 20
+  if (data.data_completeness.is_ready) {
+    score += 20
+  } else {
+    score += Math.min(20, (data.data_completeness.completion_rate / 100) * 20)
+  }
+
+  return Math.round((score / total) * 100)
+}
+
 export default function Dashboard() {
   const [, params] = useRoute('/study/:studyId')
   const studyId = params?.studyId || 'h34-delta'
@@ -114,7 +157,25 @@ export default function Dashboard() {
     refetchOnWindowFocus: false,
   })
 
-  const isLoading = summaryLoading || progressLoading || benchmarksLoading
+  const { data: readinessData, isLoading: readinessLoading } = useQuery({
+    queryKey: ['readiness-assessment'],
+    queryFn: fetchReadiness,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: riskData, isLoading: riskLoading } = useQuery({
+    queryKey: ['risk-summary'],
+    queryFn: fetchRiskSummary,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
+
+  const isLoading = summaryLoading || progressLoading || benchmarksLoading || readinessLoading || riskLoading
 
   if (isLoading) {
     return (
@@ -143,12 +204,58 @@ export default function Dashboard() {
     return acc
   }, {} as Record<string, { name: string; value: string; status: string; trend: string }>)
 
-  const readinessMetric = metricsMap['Regulatory Readiness'] || { value: 'N/A', status: 'YELLOW' }
   const safetyMetric = metricsMap['Safety Signals'] || { value: 'N/A', status: 'GREEN' }
   const complianceMetric = metricsMap['Protocol Compliance'] || { value: 'N/A', status: 'GREEN' }
   const enrollmentMetric = metricsMap['Enrollment'] || { value: 'N/A', status: 'YELLOW' }
 
+  // Calculate weighted readiness score (same formula as Readiness page)
+  const readinessScore = readinessData ? calculateReadinessScore(readinessData) : null
+  const readinessScoreStatus = readinessScore !== null
+    ? (readinessScore >= 80 ? 'GREEN' : readinessScore >= 50 ? 'YELLOW' : 'RED')
+    : 'YELLOW'
+
   const benchmarkRows = buildBenchmarkRows(benchmarks)
+
+  // Build dynamic tooltips based on actual data
+  const enrollmentTooltip = progress
+    ? `${progress.current_enrollment} of ${progress.target_enrollment} patients enrolled (${Math.round(progress.enrollment_pct)}%). Need ${Math.max(0, progress.target_enrollment - progress.current_enrollment)} more to reach target.`
+    : 'Loading enrollment data...'
+
+  const readinessTooltip = readinessData
+    ? `Weighted score breakdown: Enrollment ${readinessData.enrollment.is_ready ? '✓' : `${Math.round(readinessData.enrollment.percent_complete)}%`} (40% weight) • Compliance ${readinessData.compliance.is_ready ? '✓' : `${Math.round((1 - readinessData.compliance.deviation_rate) * 100)}%`} (20%) • Safety ${readinessData.safety.is_ready ? '✓' : `${readinessData.safety.n_signals} signals`} (20%) • Data ${readinessData.data_completeness.is_ready ? '✓' : `${Math.round(readinessData.data_completeness.completion_rate)}%`} (20%)`
+    : 'Loading readiness data...'
+
+  const safetyTooltip = readinessData
+    ? `${readinessData.safety.n_signals} safety metric(s) exceeding thresholds. Monitors: revision rate, dislocation rate, infection rate, fracture rate. Status: ${readinessData.safety.overall_status}.`
+    : 'Loading safety data...'
+
+  // Parse compliance value from dashboard API to ensure tooltip matches displayed value
+  const complianceValue = complianceMetric.value !== 'N/A'
+    ? parseInt(complianceMetric.value.replace('%', ''))
+    : (readinessData ? Math.round((1 - readinessData.compliance.deviation_rate) * 100) : 0)
+  const deviationRate = 100 - complianceValue
+
+  const complianceTooltip = readinessData
+    ? `${complianceValue}% of visits within protocol windows. Deviation rate: ${deviationRate}%. Critical: ${readinessData.compliance.by_severity?.critical || 0}, Major: ${readinessData.compliance.by_severity?.major || 0}, Minor: ${readinessData.compliance.by_severity?.minor || 0}.`
+    : 'Loading compliance data...'
+
+  const patientsTooltip = progress
+    ? [
+        `${progress.current_enrollment} enrolled of ${progress.target_enrollment} target.`,
+        progress.evaluable_patients !== undefined ? `${progress.evaluable_patients} patients currently evaluable (have 2-year HHS data).` : null,
+      ].filter(Boolean).join(' ')
+    : 'Loading patient data...'
+
+  // Calculate risk distribution
+  const highRiskCount = riskData?.high_risk_patients?.length || 0
+  const moderateRiskCount = riskData?.moderate_risk_patients?.length || 0
+  const lowRiskCount = riskData?.low_risk_patients?.length || 0
+  const totalRiskPatients = highRiskCount + moderateRiskCount + lowRiskCount
+
+  const highRiskPct = totalRiskPatients > 0 ? Math.round((highRiskCount / totalRiskPatients) * 100) : 0
+  const moderateRiskPct = totalRiskPatients > 0 ? Math.round((moderateRiskCount / totalRiskPatients) * 100) : 0
+  const lowRiskPct = totalRiskPatients > 0 ? Math.round((lowRiskCount / totalRiskPatients) * 100) : 0
+  const meanRiskScore = riskData?.mean_risk_score ? Math.round(riskData.mean_risk_score * 100) : 0
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
@@ -169,30 +276,40 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <StatCard
-          label="Readiness"
-          value={readinessMetric.value}
-          status={statusToVariant(readinessMetric.status)}
+          label="Enrollment"
+          value={`${Math.round(progress?.enrollment_pct || 0)}%`}
+          status={statusToVariant(enrollmentMetric.status)}
+          tooltip={enrollmentTooltip}
+        />
+        <StatCard
+          label="Readiness Score"
+          value={readinessScore !== null ? `${readinessScore}%` : 'N/A'}
+          status={statusToVariant(readinessScoreStatus)}
+          tooltip={readinessTooltip}
         />
         <StatCard
           label="Safety Signals"
           value={safetyMetric.value}
           status={statusToVariant(safetyMetric.status)}
+          tooltip={safetyTooltip}
         />
         <StatCard
           label="Compliance"
           value={complianceMetric.value}
           status={statusToVariant(complianceMetric.status)}
+          tooltip={complianceTooltip}
         />
         <StatCard
-          label="Enrollment"
+          label="Patients"
           value={enrollmentMetric.value}
           status={statusToVariant(enrollmentMetric.status)}
+          tooltip={patientsTooltip}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         <Card>
           <CardHeader
             title="Enrollment Progress"
@@ -208,6 +325,58 @@ export default function Dashboard() {
                 className="h-full bg-gradient-to-r from-gray-700 to-gray-900 rounded-full transition-all duration-500"
                 style={{ width: `${progress?.enrollment_pct || 0}%` }}
               />
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Risk Distribution"
+            subtitle={`${totalRiskPatients} patients assessed`}
+          />
+          <div className="mt-4 space-y-4">
+            {/* Stacked horizontal bar - Apple greyscale */}
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex shadow-inner">
+              <div
+                className="h-full transition-all duration-500"
+                style={{ width: `${highRiskPct}%`, backgroundColor: '#374151' }}
+                title={`High Risk: ${highRiskCount}`}
+              />
+              <div
+                className="h-full transition-all duration-500"
+                style={{ width: `${moderateRiskPct}%`, backgroundColor: '#9ca3af' }}
+                title={`Moderate Risk: ${moderateRiskCount}`}
+              />
+              <div
+                className="h-full transition-all duration-500"
+                style={{ width: `${lowRiskPct}%`, backgroundColor: '#e5e7eb' }}
+                title={`Low Risk: ${lowRiskCount}`}
+              />
+            </div>
+
+            {/* Legend with counts - minimal Apple style */}
+            <div className="flex justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#374151' }} />
+                <span className="text-gray-500">High</span>
+                <span className="font-semibold text-gray-900 tabular-nums">{highRiskCount}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#9ca3af' }} />
+                <span className="text-gray-500">Moderate</span>
+                <span className="font-semibold text-gray-900 tabular-nums">{moderateRiskCount}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#e5e7eb' }} />
+                <span className="text-gray-500">Low</span>
+                <span className="font-semibold text-gray-900 tabular-nums">{lowRiskCount}</span>
+              </div>
+            </div>
+
+            {/* Mean risk score - clean divider */}
+            <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">Mean Score</span>
+              <span className="text-lg font-semibold text-gray-900 tabular-nums">{meanRiskScore}%</span>
             </div>
           </div>
         </Card>
@@ -251,7 +420,7 @@ export default function Dashboard() {
                   H-34 Study
                   <span className="group relative cursor-help">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed text-left">
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed text-left shadow-lg">
                       Mean values calculated from H-34 DELTA study patient data. Scores and rates include only patients with data at the relevant timepoints.
                     </span>
                   </span>
@@ -262,7 +431,7 @@ export default function Dashboard() {
                   Benchmark
                   <span className="group relative cursor-help">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 shadow-lg">
                       Reference values from published literature
                     </span>
                   </span>
@@ -280,7 +449,7 @@ export default function Dashboard() {
                     {row.metric}
                     <span className="group relative cursor-help">
                       <HelpCircle className="w-3.5 h-3.5 text-gray-400 opacity-60 group-hover/row:opacity-100 transition-opacity" />
-                      <span className="absolute bottom-full left-0 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed">
+                      <span className="absolute bottom-full left-0 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed shadow-lg">
                         {row.tooltip}
                       </span>
                     </span>
@@ -292,7 +461,7 @@ export default function Dashboard() {
                   <span className="group relative cursor-help inline-block">
                     <span className="border-b border-dashed border-gray-300">{row.benchmarkSource}</span>
                     {row.benchmarkSourceTooltip && (
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-gray-900 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-72 pointer-events-none z-10 leading-relaxed text-left whitespace-pre-line">
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-72 pointer-events-none z-10 leading-relaxed text-left whitespace-pre-line shadow-lg">
                         {row.benchmarkSourceTooltip}
                       </span>
                     )}

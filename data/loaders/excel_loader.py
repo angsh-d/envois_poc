@@ -20,6 +20,7 @@ from data.models.unified_schema import (
     AdverseEvent,
     HHSScore,
     OHSScore,
+    Explant,
     H34StudyData,
 )
 
@@ -404,6 +405,28 @@ class H34ExcelLoader:
                 logger.warning(f"Validation error for OHS score row: {e}")
         return scores
 
+    def _load_explants(self, df: pd.DataFrame) -> List[Explant]:
+        """Parse explant/revision data from DataFrame."""
+        explants = []
+        for _, row in df.iterrows():
+            try:
+                explant = Explant(
+                    facility=self._safe_str(row.get("Facility", "")),
+                    Id=self._safe_str(row.get("Id", "")),
+                    explant_date=self._parse_date(row.get("Explant date")),
+                    stem_explanted=self._safe_str(row.get("Stem Explanted")),
+                    cup_explanted=self._safe_str(row.get("Cup Explanted")),
+                    cup_liner_explanted=self._safe_str(row.get("Cup Liner Explanted")),
+                    cup_plate_explanted=self._safe_str(row.get("Cup Plate Explanted")),
+                    head_explanted=self._safe_str(row.get("Head Explanted")),
+                    head_adaptor_explanted=self._safe_str(row.get("Head Adaptor Explanted")),
+                    notes=self._safe_str(row.get("Notes")),
+                )
+                explants.append(explant)
+            except ValidationError as e:
+                logger.warning(f"Validation error for explant row: {e}")
+        return explants
+
     def load(self) -> H34StudyData:
         """
         Load and parse the complete H-34 study data.
@@ -425,6 +448,7 @@ class H34ExcelLoader:
         adverse_events = self._load_adverse_events(self._raw_data.get("17 Adverse Events V2", pd.DataFrame()))
         hhs_scores = self._load_hhs_scores(self._raw_data.get("18 Score HHS", pd.DataFrame()))
         ohs_scores = self._load_ohs_scores(self._raw_data.get("19 Score OHS", pd.DataFrame()))
+        explants = self._load_explants(self._raw_data.get("20 Explants", pd.DataFrame()))
 
         # Load all radiographic evaluations with timepoint labels
         radiographic_evals = []
@@ -455,6 +479,7 @@ class H34ExcelLoader:
             adverse_events=adverse_events,
             hhs_scores=hhs_scores,
             ohs_scores=ohs_scores,
+            explants=explants,
             total_patients=len(patients),
             total_adverse_events=len(adverse_events),
             facilities=facilities,
@@ -469,6 +494,7 @@ class H34ExcelLoader:
         logger.info(f"  Adverse events: {study_data.total_adverse_events}")
         logger.info(f"  HHS scores: {len(study_data.hhs_scores)}")
         logger.info(f"  OHS scores: {len(study_data.ohs_scores)}")
+        logger.info(f"  Explants: {len(study_data.explants)}")
         logger.info(f"  Facilities: {study_data.facilities}")
 
         return study_data

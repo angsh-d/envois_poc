@@ -189,6 +189,8 @@ class SafetyService:
             "detection_date": datetime.utcnow().isoformat(),
             "signals": data.get("signals", []),
             "n_signals": data.get("n_signals", 0),
+            "monitored_metrics": data.get("monitored_metrics", []),
+            "n_monitored": data.get("n_monitored", 0),
             "high_priority": data.get("high_priority", []),
             "medium_priority": data.get("medium_priority", []),
             "requires_dsmb_review": data.get("requires_dsmb_review", False),

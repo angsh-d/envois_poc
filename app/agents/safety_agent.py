@@ -78,81 +78,203 @@ def _get_affected_patients_from_db(event_pattern: str) -> List[Dict[str, Any]]:
 
 def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
     """
-    Get literature citations for a specific metric from database.
-    Uses the new provenance-based data structure.
+    Get literature citations for a specific metric.
+
+    Data sources (in priority order):
+    1. PostgreSQL database (literature_publications table)
+    2. YAML file fallback (literature_benchmarks.yaml)
+
+    This ensures literature context is always available even when DB is unavailable.
     """
+    citations = []
+
+    # Try database first
     try:
         from sqlalchemy import text
         from data.models.database import SessionLocal
-        
-        if SessionLocal is None:
-            return []
-            
-        session = SessionLocal()
-        try:
-            query = text("""
-                SELECT 
-                    publication_id,
-                    title,
-                    year,
-                    journal,
-                    n_patients,
-                    benchmarks
-                FROM literature_publications
-                ORDER BY year DESC
-            """)
-            result = session.execute(query)
-            
-            citations = []
-            for row in result:
-                benchmarks = row.benchmarks or {}
-                survival_rates = benchmarks.get("survival_rates", [])
-                
-                relevant_rate = None
-                provenance = None
-                
-                for surv in survival_rates:
-                    metric = (surv.get("metric", "") or "").lower()
-                    if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
-                        relevant_rate = surv.get("value")
-                        provenance = surv.get("provenance", {})
-                        break
-                    elif metric_name == "dislocation_rate" and "dislocation" in metric:
-                        relevant_rate = surv.get("value")
-                        provenance = surv.get("provenance", {})
-                        break
-                    elif metric_name == "infection_rate" and "infection" in metric:
-                        relevant_rate = surv.get("value")
-                        provenance = surv.get("provenance", {})
-                        break
-                    elif metric_name == "fracture_rate" and "fracture" in metric:
-                        relevant_rate = surv.get("value")
-                        provenance = surv.get("provenance", {})
-                        break
-                    elif "complication" in metric or "implant_survival" in metric:
-                        relevant_rate = surv.get("value")
-                        provenance = surv.get("provenance", {})
-                
-                authors = benchmarks.get("authors", "")
-                doi = benchmarks.get("doi", "")
-                
-                citations.append({
-                    "citation_id": row.publication_id,
-                    "title": row.title,
-                    "year": row.year,
-                    "journal": row.journal,
-                    "n_patients": row.n_patients,
-                    "authors": authors,
-                    "doi": doi,
-                    "reported_rate": relevant_rate,
-                    "provenance": provenance,
-                    "reference": f"{authors.split(',')[0] if authors else 'Unknown'} et al. ({row.year})",
-                })
-            return citations
-        finally:
-            session.close()
+
+        if SessionLocal is not None:
+            session = SessionLocal()
+            try:
+                query = text("""
+                    SELECT
+                        publication_id,
+                        title,
+                        year,
+                        journal,
+                        n_patients,
+                        benchmarks
+                    FROM literature_publications
+                    ORDER BY year DESC
+                """)
+                result = session.execute(query)
+
+                for row in result:
+                    benchmarks = row.benchmarks or {}
+                    survival_rates = benchmarks.get("survival_rates", [])
+
+                    relevant_rate = None
+                    provenance = None
+
+                    for surv in survival_rates:
+                        metric = (surv.get("metric", "") or "").lower()
+                        if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
+                            relevant_rate = surv.get("value")
+                            provenance = surv.get("provenance", {})
+                            break
+                        elif metric_name == "dislocation_rate" and "dislocation" in metric:
+                            relevant_rate = surv.get("value")
+                            provenance = surv.get("provenance", {})
+                            break
+                        elif metric_name == "infection_rate" and "infection" in metric:
+                            relevant_rate = surv.get("value")
+                            provenance = surv.get("provenance", {})
+                            break
+                        elif metric_name == "fracture_rate" and "fracture" in metric:
+                            relevant_rate = surv.get("value")
+                            provenance = surv.get("provenance", {})
+                            break
+                        elif "complication" in metric or "implant_survival" in metric:
+                            relevant_rate = surv.get("value")
+                            provenance = surv.get("provenance", {})
+
+                    authors = benchmarks.get("authors", "")
+                    doi = benchmarks.get("doi", "")
+
+                    citations.append({
+                        "citation_id": row.publication_id,
+                        "title": row.title,
+                        "year": row.year,
+                        "journal": row.journal,
+                        "n_patients": row.n_patients,
+                        "authors": authors,
+                        "doi": doi,
+                        "reported_rate": relevant_rate,
+                        "provenance": provenance,
+                        "reference": f"{authors.split(',')[0] if authors else 'Unknown'} et al. ({row.year})",
+                    })
+            finally:
+                session.close()
     except Exception as e:
-        logger.warning(f"Could not fetch literature citations: {e}")
+        logger.warning(f"Could not fetch literature citations from DB: {e}")
+
+    # If database returned results, use them
+    if citations:
+        return citations
+
+    # Fallback: Load from YAML file
+    return _get_literature_citations_from_yaml(metric_name)
+
+
+def _get_literature_citations_from_yaml(metric_name: str) -> List[Dict[str, Any]]:
+    """
+    Load literature citations from YAML file as fallback.
+
+    Source: data/processed/document_as_code/literature_benchmarks.yaml
+    Local PDFs: data/raw/literature/ and data/raw/downloaded_literature/
+    """
+    try:
+        from pathlib import Path
+        import yaml
+
+        base_path = Path(__file__).parent.parent.parent
+        yaml_path = base_path / "data" / "processed" / "document_as_code" / "literature_benchmarks.yaml"
+
+        # Local library folders for PDF provenance
+        literature_folders = [
+            base_path / "data" / "raw" / "downloaded_literature",
+            base_path / "data" / "raw" / "literature",
+        ]
+
+        if not yaml_path.exists():
+            logger.warning(f"Literature benchmarks YAML not found: {yaml_path}")
+            return []
+
+        with open(yaml_path, 'r') as f:
+            data = yaml.safe_load(f)
+
+        publications = {p["id"]: p for p in data.get("publications", [])}
+        survival_rates = data.get("outcome_benchmarks", {}).get("survival_rates", [])
+
+        citations = []
+        seen_pubs = set()
+
+        for surv in survival_rates:
+            metric = (surv.get("metric", "") or "").lower()
+            pub_id = surv.get("publication_id")
+
+            # Match metric to requested type
+            is_match = False
+            if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
+                is_match = True
+            elif metric_name == "dislocation_rate" and "dislocation" in metric:
+                is_match = True
+            elif metric_name == "infection_rate" and "infection" in metric:
+                is_match = True
+            elif metric_name == "fracture_rate" and ("fracture" in metric or "periprosthetic" in metric):
+                is_match = True
+
+            if is_match and pub_id and pub_id not in seen_pubs:
+                pub = publications.get(pub_id, {})
+
+                # Convert value to rate (some are counts, some are percentages)
+                value = surv.get("value")
+                unit = surv.get("unit", "")
+                if value is not None and unit == "percent":
+                    reported_rate = value / 100.0  # Convert to decimal
+                elif value is not None and unit == "count":
+                    # Counts are not comparable rates - skip this citation entirely
+                    # e.g., "107 revisions due to dislocation" is not a dislocation rate
+                    continue
+                else:
+                    reported_rate = value
+
+                # Skip if no valid rate - citation wouldn't be meaningful for comparison
+                if reported_rate is None or reported_rate <= 0:
+                    continue
+
+                seen_pubs.add(pub_id)
+
+                authors = pub.get("authors", "")
+                first_author = authors.split(",")[0].split()[-1] if authors else "Unknown"
+
+                # Find local PDF file for provenance
+                source_file = pub.get("source_file")
+                local_pdf_path = None
+                if source_file:  # Only search if source_file is specified
+                    for folder in literature_folders:
+                        candidate = folder / source_file
+                        if candidate.exists():
+                            # Use relative path from project root for display
+                            local_pdf_path = str(candidate.relative_to(base_path))
+                            break
+
+                # Build enhanced provenance with local file reference
+                provenance = surv.get("provenance", {}).copy() if surv.get("provenance") else {}
+                if local_pdf_path:
+                    provenance["local_source"] = local_pdf_path
+                if pub.get("doi"):
+                    provenance["doi"] = pub.get("doi")
+
+                citations.append({
+                    "citation_id": pub_id,
+                    "title": pub.get("title", ""),
+                    "year": pub.get("year"),
+                    "journal": pub.get("journal", ""),
+                    "n_patients": pub.get("sample_size"),
+                    "authors": authors,
+                    "doi": pub.get("doi", ""),
+                    "reported_rate": reported_rate,
+                    "provenance": provenance,
+                    "reference": f"{first_author} et al. ({pub.get('year', 'N/A')})",
+                    "local_source": local_pdf_path,
+                })
+
+        logger.info(f"Loaded {len(citations)} literature citations for {metric_name} from YAML")
+        return citations
+
+    except Exception as e:
+        logger.warning(f"Could not load literature citations from YAML: {e}")
         return []
 
 
@@ -413,7 +535,7 @@ class SafetyAgent(BaseAgent):
         against protocol-defined concern thresholds.
 
         THRESHOLDS (from protocol_rules.yaml):
-        - revision_rate_concern: 10% (major surgical failure)
+        - revision_rate_concern: 13% (major surgical failure)
         - dislocation_rate_concern: 8% (common early complication)
         - infection_rate_concern: 5% (serious complication)
         - fracture_rate_concern: 8% (intraoperative complication)
@@ -440,6 +562,8 @@ class SafetyAgent(BaseAgent):
         # Extract rates from nested 'rates' dict returned by data_agent
         rates = safety_data.get("rates", {})
         ae_by_type = safety_data.get("ae_by_type", {})
+        # Get affected patients from same data source as counts (Excel)
+        affected_patients_by_type = safety_data.get("affected_patients_by_type", {})
 
         # Calculate rates and compare to thresholds with full provenance
         metrics = []
@@ -448,13 +572,13 @@ class SafetyAgent(BaseAgent):
         # Revision rate (device removal)
         revision_rate = rates.get("revision_rate", 0)
         revision_count = safety_data.get("n_revisions", 0)
-        threshold = protocol_thresholds.get("revision_rate_concern", 0.10)
-        revision_patients = _get_affected_patients_from_db("loosening")
+        threshold = protocol_thresholds.get("revision_rate_concern", 0.13)
+        revision_patients = affected_patients_by_type.get("revision", [])
         metric = self._analyze_metric(
             "revision_rate", revision_rate, threshold,
             revision_count, n_patients,
             affected_patients=revision_patients,
-            threshold_source="protocol_rules.safety_thresholds.revision_rate_concern (10%)"
+            threshold_source="protocol_rules.safety_thresholds.revision_rate_concern (13%)"
         )
         metric["literature_citations"] = _get_literature_citations("revision_rate")
         metrics.append(metric)
@@ -465,7 +589,7 @@ class SafetyAgent(BaseAgent):
         dislocation_rate = rates.get("dislocation_rate", 0)
         dislocation_count = ae_by_type.get("dislocation", 0)
         threshold = protocol_thresholds.get("dislocation_rate_concern", 0.08)
-        dislocation_patients = _get_affected_patients_from_db("dislocation")
+        dislocation_patients = affected_patients_by_type.get("dislocation", [])
         metric = self._analyze_metric(
             "dislocation_rate", dislocation_rate, threshold,
             dislocation_count, n_patients,
@@ -481,7 +605,7 @@ class SafetyAgent(BaseAgent):
         infection_rate = rates.get("infection_rate", 0)
         infection_count = ae_by_type.get("infection", 0)
         threshold = protocol_thresholds.get("infection_rate_concern", 0.05)
-        infection_patients = _get_affected_patients_from_db("infection")
+        infection_patients = affected_patients_by_type.get("infection", [])
         metric = self._analyze_metric(
             "infection_rate", infection_rate, threshold,
             infection_count, n_patients,
@@ -497,7 +621,7 @@ class SafetyAgent(BaseAgent):
         fracture_rate = rates.get("fracture_rate", 0)
         fracture_count = ae_by_type.get("fracture", 0)
         threshold = protocol_thresholds.get("fracture_rate_concern", 0.08)
-        fracture_patients = _get_affected_patients_from_db("fracture")
+        fracture_patients = affected_patients_by_type.get("fracture", [])
         metric = self._analyze_metric(
             "fracture_rate", fracture_rate, threshold,
             fracture_count, n_patients,
@@ -525,6 +649,9 @@ class SafetyAgent(BaseAgent):
         # Get all registry benchmarks for breakdown
         registry_breakdown = _get_registry_breakdown()
 
+        # Separate metrics into signals (exceeded threshold) and monitored (below threshold)
+        monitored_metrics = [m for m in metrics if not m["signal"]]
+
         return {
             "n_patients": n_patients,
             "n_adverse_events": safety_data.get("n_adverse_events", 0),
@@ -532,6 +659,8 @@ class SafetyAgent(BaseAgent):
             "metrics": metrics,
             "signals": signals,
             "n_signals": len(signals),
+            "monitored_metrics": monitored_metrics,
+            "n_monitored": len(monitored_metrics),
             "registry_comparison": registry_comparison,
             "registry_breakdown": registry_breakdown,
             "overall_status": self._determine_status(signals),
@@ -583,6 +712,7 @@ class SafetyAgent(BaseAgent):
         """Detect safety signals in study data."""
         study_safety = await self._analyze_study_safety(context)
         signals = study_safety.get("signals", [])
+        monitored_metrics = study_safety.get("monitored_metrics", [])
 
         # Classify signals
         classified_signals = []
@@ -597,6 +727,8 @@ class SafetyAgent(BaseAgent):
         return {
             "signals": classified_signals,
             "n_signals": len(classified_signals),
+            "monitored_metrics": monitored_metrics,
+            "n_monitored": len(monitored_metrics),
             "high_priority": [s for s in classified_signals if s["signal_level"] == "high"],
             "medium_priority": [s for s in classified_signals if s["signal_level"] == "medium"],
             "requires_dsmb_review": any(s["signal_level"] == "high" for s in classified_signals),
@@ -622,6 +754,8 @@ class SafetyAgent(BaseAgent):
         threshold_source: str = None,
     ) -> Dict[str, Any]:
         """Analyze a single safety metric with full provenance."""
+        import math
+
         # Map metric name to event type for SQL query
         event_type_map = {
             "revision_rate": "revision",
@@ -630,21 +764,37 @@ class SafetyAgent(BaseAgent):
             "fracture_rate": "fracture",
         }
         event_pattern = event_type_map.get(name, name.replace("_rate", ""))
-        
+
+        # Calculate Wilson score 95% confidence interval
+        # More accurate than normal approximation for small samples
+        ci_lower, ci_upper = 0.0, 0.0
+        if total > 0:
+            z = 1.96  # 95% CI
+            p = rate
+            n = total
+            denominator = 1 + z * z / n
+            center = p + z * z / (2 * n)
+            spread = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
+            ci_lower = max(0, (center - spread) / denominator)
+            ci_upper = min(1, (center + spread) / denominator)
+
         # Build data source provenance
         provenance = {
             "data_sources": {
-                "event_count": f"study_adverse_events (WHERE ae_title ILIKE '%{event_pattern}%')",
-                "patient_count": "study_patients (WHERE enrolled='Yes')",
+                "event_count": f"H-34 Study Excel (Adverse Events sheet, ae_title contains '{event_pattern}')",
+                "patient_count": "H-34 Study Excel (Patients sheet, enrolled='Yes')",
+                "affected_patients": "Same source as event_count (consistent data)",
                 "threshold": f"protocol_rules.safety_thresholds.{name.replace('_rate', '_rate_concern')}",
             },
             "methodology": f"Count adverse events matching '{event_pattern}' pattern divided by enrolled patient count",
             "calculation": f"{count} events ÷ {total} patients = {round(rate * 100, 2)}%",
+            "confidence_interval": f"95% CI: {round(ci_lower * 100, 1)}% - {round(ci_upper * 100, 1)}% (Wilson score method)",
             "threshold_source": threshold_source or f"protocol_rules.yaml (safety_thresholds.{name.replace('_rate', '_rate_concern')})",
             "threshold_rationale": "Set at ~1.5x published literature rate per protocol H-34 v2.0",
             "regulatory_reference": "FDA 21 CFR 812.150 - Safety Reporting Requirements",
+            "signal_classification": "Signal levels: >3% over threshold = HIGH, >1% = MEDIUM, ≤1% = LOW",
         }
-        
+
         return {
             "metric": name,
             "rate": round(rate, 4),
@@ -653,6 +803,8 @@ class SafetyAgent(BaseAgent):
             "threshold": threshold,
             "signal": rate >= threshold,
             "threshold_exceeded_by": round(rate - threshold, 4) if rate >= threshold else 0,
+            "ci_lower": round(ci_lower, 4),
+            "ci_upper": round(ci_upper, 4),
             "provenance": provenance,
             "affected_patients": affected_patients or [],
         }
@@ -743,7 +895,8 @@ class SafetyAgent(BaseAgent):
         if not signals:
             return "acceptable"
 
-        high_count = sum(1 for s in signals if s.get("threshold_exceeded_by", 0) > 0.02)
+        # Use 0.03 threshold for "concerning" to align with _classify_signal_level "high"
+        high_count = sum(1 for s in signals if s.get("threshold_exceeded_by", 0) > 0.03)
         if high_count > 0:
             return "concerning"
         return "monitoring"
