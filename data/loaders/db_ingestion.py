@@ -354,16 +354,20 @@ class DataIngestion:
             session.close()
 
     def ingest_study_data(self) -> Dict[str, int]:
-        """Ingest study data from Excel file."""
+        """Ingest study data from Excel file.
+
+        Uses the real study data file from settings.h34_study_data_path,
+        NOT synthetic data.
+        """
         from data.loaders.excel_loader import H34ExcelLoader
-        
-        excel_files = list((self.raw_path / "study").glob("*.xlsx"))
-        if not excel_files:
-            logger.warning("No Excel study files found")
+
+        # Use real study data path from config (not synthetic)
+        excel_path = settings.project_root / settings.h34_study_data_path
+        if not excel_path.exists():
+            logger.error(f"Real study data file not found: {excel_path}")
             return {"patients": 0, "adverse_events": 0, "scores": 0}
 
-        excel_path = excel_files[0]
-        logger.info(f"Loading study data from: {excel_path}")
+        logger.info(f"Loading REAL study data from: {excel_path}")
 
         loader = H34ExcelLoader(excel_path)
         study_data = loader.load()
@@ -377,11 +381,22 @@ class DataIngestion:
             session.query(StudyPatient).delete()
             session.commit()
 
+            # Build preoperative lookup by patient_id for merging into patient records
+            preop_lookup = {}
+            for preop in study_data.preoperatives:
+                preop_pid = getattr(preop, 'patient_id', None) or getattr(preop, 'Id', None)
+                if preop_pid:
+                    preop_lookup[preop_pid] = preop
+
             patient_map = {}
             for patient in study_data.patients:
                 pid = getattr(patient, 'patient_id', None) or getattr(patient, 'Id', None)
                 if not pid:
                     continue
+
+                # Get preoperative data for this patient (contains medical_history, diagnosis, etc.)
+                preop = preop_lookup.get(pid)
+
                 p = StudyPatient(
                     patient_id=pid,
                     facility=patient.facility,
@@ -399,7 +414,13 @@ class DataIngestion:
                     screening_date=patient.screening_date,
                     consent_date=patient.consent_date,
                     enrolled=patient.enrolled,
-                    status=patient.status
+                    status=patient.status,
+                    # Merge preoperative data into patient record
+                    medical_history=preop.medical_history if preop else None,
+                    primary_diagnosis=preop.primary_diagnosis if preop else None,
+                    affected_side=preop.affected_side if preop else None,
+                    previous_hip_surgery_affected=preop.previous_hip_surgery_affected if preop else None,
+                    surgery_date=patient.surgery_date if hasattr(patient, 'surgery_date') else None,
                 )
                 session.add(p)
                 session.flush()
@@ -519,11 +540,62 @@ class DataIngestion:
                         existing.surgery_time_minutes = surgery_data.surgery_time_minutes
                         existing.intraoperative_complications = surgery_data.intraoperative_complications
 
+            # Build radiographic lookup by (patient_id, follow_up)
+            radio_lookup = {}
+            for radio in study_data.radiographic_evaluations:
+                radio_pid = getattr(radio, 'patient_id', None) or getattr(radio, 'Id', None)
+                radio_fu = radio.follow_up
+                if radio_pid and radio_fu:
+                    key = (radio_pid, radio_fu)
+                    radio_lookup[key] = {
+                        "xray_date": radio.xray_date.isoformat() if radio.xray_date else None,
+                        "ap_view": radio.ap_view,
+                        "lat_view": radio.lat_view,
+                        "femoral_offset": radio.femoral_offset,
+                        "ccd_angle": radio.ccd_angle,
+                        "leg_length_discrepancy": radio.leg_length_discrepancy,
+                    }
+
+            # Map follow_up_type to radiographic follow_up naming
+            fu_type_to_radio_fu = {
+                "Discharge": "FU at discharge",
+                "2 Months": "FU 2 Months",
+                "6 Months": "FU 6 Months",
+                "1 Year": "FU 1 Year",
+                "2 Years": "FU 2 Years",
+            }
+
+            # Load follow-up visits with radiographic data
+            for fu in study_data.follow_ups:
+                fu_pid = getattr(fu, 'patient_id', None) or getattr(fu, 'Id', None)
+                if fu_pid not in patient_map:
+                    continue
+
+                # Get matching radiographic data if available (map follow_up_type to radio follow_up)
+                radio_fu_name = fu_type_to_radio_fu.get(fu.follow_up_type, fu.follow_up_type)
+                radio_data = radio_lookup.get((fu_pid, radio_fu_name), {})
+
+                visit = StudyVisit(
+                    patient_id=patient_map[fu_pid],
+                    visit_type=fu.follow_up_type,
+                    visit_date=fu.follow_up_date,
+                    visit_data={
+                        "pain_status": fu.pain_status,
+                        "mobility_status": fu.mobility_status,
+                        "wound_healing": fu.wound_healing,
+                        "complications": fu.complications,
+                        "notes": fu.notes,
+                    },
+                    radiographic_data=radio_data if radio_data else {}
+                )
+                session.add(visit)
+
             session.commit()
             result = {
                 "patients": len(study_data.patients),
                 "adverse_events": len(study_data.adverse_events),
-                "scores": len(study_data.hhs_scores) + len(study_data.ohs_scores)
+                "scores": len(study_data.hhs_scores) + len(study_data.ohs_scores),
+                "visits": len(study_data.follow_ups)
             }
             logger.info(f"Ingested study data: {result}")
             return result

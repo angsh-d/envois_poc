@@ -78,204 +78,101 @@ def _get_affected_patients_from_db(event_pattern: str) -> List[Dict[str, Any]]:
 
 def _get_literature_citations(metric_name: str) -> List[Dict[str, Any]]:
     """
-    Get literature citations for a specific metric.
+    Get literature citations for a specific metric from database.
 
-    Data sources (in priority order):
-    1. PostgreSQL database (literature_publications table)
-    2. YAML file fallback (literature_benchmarks.yaml)
+    Data source: PostgreSQL database (literature_publications table)
 
-    This ensures literature context is always available even when DB is unavailable.
+    Raises:
+        Returns empty list with warning if database is unavailable.
+        In production, database must be available for proper citation retrieval.
     """
+    from app.exceptions import DatabaseUnavailableError
+
     citations = []
 
-    # Try database first
     try:
         from sqlalchemy import text
         from data.models.database import SessionLocal
 
-        if SessionLocal is not None:
-            session = SessionLocal()
-            try:
-                query = text("""
-                    SELECT
-                        publication_id,
-                        title,
-                        year,
-                        journal,
-                        n_patients,
-                        benchmarks
-                    FROM literature_publications
-                    ORDER BY year DESC
-                """)
-                result = session.execute(query)
+        if SessionLocal is None:
+            logger.error("Database not configured for literature citations")
+            raise DatabaseUnavailableError(
+                "Database not available for literature citations. "
+                "Configure DATABASE_URL and run migration script."
+            )
 
-                for row in result:
-                    benchmarks = row.benchmarks or {}
-                    survival_rates = benchmarks.get("survival_rates", [])
+        session = SessionLocal()
+        try:
+            query = text("""
+                SELECT
+                    publication_id,
+                    title,
+                    year,
+                    journal,
+                    n_patients,
+                    benchmarks
+                FROM literature_publications
+                ORDER BY year DESC
+            """)
+            result = session.execute(query)
 
-                    relevant_rate = None
-                    provenance = None
+            for row in result:
+                benchmarks = row.benchmarks or {}
+                survival_rates = benchmarks.get("survival_rates", [])
 
-                    for surv in survival_rates:
-                        metric = (surv.get("metric", "") or "").lower()
-                        if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
-                            relevant_rate = surv.get("value")
-                            provenance = surv.get("provenance", {})
-                            break
-                        elif metric_name == "dislocation_rate" and "dislocation" in metric:
-                            relevant_rate = surv.get("value")
-                            provenance = surv.get("provenance", {})
-                            break
-                        elif metric_name == "infection_rate" and "infection" in metric:
-                            relevant_rate = surv.get("value")
-                            provenance = surv.get("provenance", {})
-                            break
-                        elif metric_name == "fracture_rate" and "fracture" in metric:
-                            relevant_rate = surv.get("value")
-                            provenance = surv.get("provenance", {})
-                            break
-                        elif "complication" in metric or "implant_survival" in metric:
-                            relevant_rate = surv.get("value")
-                            provenance = surv.get("provenance", {})
+                relevant_rate = None
+                provenance = None
 
-                    authors = benchmarks.get("authors", "")
-                    doi = benchmarks.get("doi", "")
+                for surv in survival_rates:
+                    metric = (surv.get("metric", "") or "").lower()
+                    if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "dislocation_rate" and "dislocation" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "infection_rate" and "infection" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif metric_name == "fracture_rate" and "fracture" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
+                        break
+                    elif "complication" in metric or "implant_survival" in metric:
+                        relevant_rate = surv.get("value")
+                        provenance = surv.get("provenance", {})
 
-                    citations.append({
-                        "citation_id": row.publication_id,
-                        "title": row.title,
-                        "year": row.year,
-                        "journal": row.journal,
-                        "n_patients": row.n_patients,
-                        "authors": authors,
-                        "doi": doi,
-                        "reported_rate": relevant_rate,
-                        "provenance": provenance,
-                        "reference": f"{authors.split(',')[0] if authors else 'Unknown'} et al. ({row.year})",
-                    })
-            finally:
-                session.close()
-    except Exception as e:
-        logger.warning(f"Could not fetch literature citations from DB: {e}")
-
-    # If database returned results, use them
-    if citations:
-        return citations
-
-    # Fallback: Load from YAML file
-    return _get_literature_citations_from_yaml(metric_name)
-
-
-def _get_literature_citations_from_yaml(metric_name: str) -> List[Dict[str, Any]]:
-    """
-    Load literature citations from YAML file as fallback.
-
-    Source: data/processed/document_as_code/literature_benchmarks.yaml
-    Local PDFs: data/raw/literature/ and data/raw/downloaded_literature/
-    """
-    try:
-        from pathlib import Path
-        import yaml
-
-        base_path = Path(__file__).parent.parent.parent
-        yaml_path = base_path / "data" / "processed" / "document_as_code" / "literature_benchmarks.yaml"
-
-        # Local library folders for PDF provenance
-        literature_folders = [
-            base_path / "data" / "raw" / "downloaded_literature",
-            base_path / "data" / "raw" / "literature",
-        ]
-
-        if not yaml_path.exists():
-            logger.warning(f"Literature benchmarks YAML not found: {yaml_path}")
-            return []
-
-        with open(yaml_path, 'r') as f:
-            data = yaml.safe_load(f)
-
-        publications = {p["id"]: p for p in data.get("publications", [])}
-        survival_rates = data.get("outcome_benchmarks", {}).get("survival_rates", [])
-
-        citations = []
-        seen_pubs = set()
-
-        for surv in survival_rates:
-            metric = (surv.get("metric", "") or "").lower()
-            pub_id = surv.get("publication_id")
-
-            # Match metric to requested type
-            is_match = False
-            if metric_name == "revision_rate" and ("revision" in metric or "survival" in metric):
-                is_match = True
-            elif metric_name == "dislocation_rate" and "dislocation" in metric:
-                is_match = True
-            elif metric_name == "infection_rate" and "infection" in metric:
-                is_match = True
-            elif metric_name == "fracture_rate" and ("fracture" in metric or "periprosthetic" in metric):
-                is_match = True
-
-            if is_match and pub_id and pub_id not in seen_pubs:
-                pub = publications.get(pub_id, {})
-
-                # Convert value to rate (some are counts, some are percentages)
-                value = surv.get("value")
-                unit = surv.get("unit", "")
-                if value is not None and unit == "percent":
-                    reported_rate = value / 100.0  # Convert to decimal
-                elif value is not None and unit == "count":
-                    # Counts are not comparable rates - skip this citation entirely
-                    # e.g., "107 revisions due to dislocation" is not a dislocation rate
-                    continue
-                else:
-                    reported_rate = value
-
-                # Skip if no valid rate - citation wouldn't be meaningful for comparison
-                if reported_rate is None or reported_rate <= 0:
-                    continue
-
-                seen_pubs.add(pub_id)
-
-                authors = pub.get("authors", "")
-                first_author = authors.split(",")[0].split()[-1] if authors else "Unknown"
-
-                # Find local PDF file for provenance
-                source_file = pub.get("source_file")
-                local_pdf_path = None
-                if source_file:  # Only search if source_file is specified
-                    for folder in literature_folders:
-                        candidate = folder / source_file
-                        if candidate.exists():
-                            # Use relative path from project root for display
-                            local_pdf_path = str(candidate.relative_to(base_path))
-                            break
-
-                # Build enhanced provenance with local file reference
-                provenance = surv.get("provenance", {}).copy() if surv.get("provenance") else {}
-                if local_pdf_path:
-                    provenance["local_source"] = local_pdf_path
-                if pub.get("doi"):
-                    provenance["doi"] = pub.get("doi")
+                authors = benchmarks.get("authors", "")
+                doi = benchmarks.get("doi", "")
 
                 citations.append({
-                    "citation_id": pub_id,
-                    "title": pub.get("title", ""),
-                    "year": pub.get("year"),
-                    "journal": pub.get("journal", ""),
-                    "n_patients": pub.get("sample_size"),
+                    "citation_id": row.publication_id,
+                    "title": row.title,
+                    "year": row.year,
+                    "journal": row.journal,
+                    "n_patients": row.n_patients,
                     "authors": authors,
-                    "doi": pub.get("doi", ""),
-                    "reported_rate": reported_rate,
+                    "doi": doi,
+                    "reported_rate": relevant_rate,
                     "provenance": provenance,
-                    "reference": f"{first_author} et al. ({pub.get('year', 'N/A')})",
-                    "local_source": local_pdf_path,
+                    "reference": f"{authors.split(',')[0] if authors else 'Unknown'} et al. ({row.year})",
                 })
 
-        logger.info(f"Loaded {len(citations)} literature citations for {metric_name} from YAML")
-        return citations
+            logger.debug(f"Loaded {len(citations)} literature citations for {metric_name} from database")
+            return citations
+        finally:
+            session.close()
 
+    except DatabaseUnavailableError:
+        raise
     except Exception as e:
-        logger.warning(f"Could not load literature citations from YAML: {e}")
-        return []
+        logger.error(f"Failed to fetch literature citations from database: {e}")
+        raise DatabaseUnavailableError(
+            f"Database query failed for literature citations: {e}"
+        )
 
 
 def _get_registry_breakdown() -> List[Dict[str, Any]]:

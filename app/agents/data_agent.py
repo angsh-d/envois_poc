@@ -1,8 +1,8 @@
 """
 Data Agent for Clinical Intelligence Platform.
 
-Responsible for querying and analyzing study data from the H-34 Excel export.
-Uses H34ExcelLoader to load real study data - no fallback or mock data.
+Responsible for querying and analyzing study data from the database.
+Uses database as the single source of truth - no Excel fallback.
 """
 import logging
 from datetime import datetime, date
@@ -12,57 +12,273 @@ from app.agents.base_agent import (
     BaseAgent, AgentContext, AgentResult, AgentType, SourceType
 )
 from app.config import settings
-from data.loaders.excel_loader import H34ExcelLoader
-from data.models.unified_schema import H34StudyData
+from app.exceptions import DatabaseUnavailableError, StudyDataLoadError
+from data.loaders.db_loader import get_db_loader
+from data.models.unified_schema import (
+    H34StudyData, Patient, Preoperative, Intraoperative, SurgeryData,
+    AdverseEvent, HHSScore, OHSScore, Explant, RadiographicEvaluation
+)
 
 logger = logging.getLogger(__name__)
 
 # Module-level singleton for loaded study data
 _study_data: Optional[H34StudyData] = None
-_excel_loader: Optional[H34ExcelLoader] = None
 
 
 def get_study_data() -> H34StudyData:
     """
-    Get the loaded H-34 study data singleton.
+    Get the loaded H-34 study data singleton from database.
 
     Raises:
-        FileNotFoundError: If the Excel file doesn't exist
-        ValueError: If data loading fails
+        DatabaseUnavailableError: If database is not available
+        StudyDataLoadError: If data loading fails
     """
-    global _study_data, _excel_loader
+    global _study_data
 
     if _study_data is not None:
         return _study_data
 
-    # Get path from settings
-    excel_path = settings.get_h34_study_data_path()
+    db_loader = get_db_loader()
 
-    # If primary study data doesn't exist, try synthetic data
-    if not excel_path.exists():
-        excel_path = settings.get_h34_synthetic_data_path()
-
-    if not excel_path.exists():
-        raise FileNotFoundError(
-            f"H-34 study data file not found. Checked paths:\n"
-            f"  Primary: {settings.get_h34_study_data_path()}\n"
-            f"  Synthetic: {settings.get_h34_synthetic_data_path()}"
+    if not db_loader.is_available():
+        raise DatabaseUnavailableError(
+            "Database not available for study data. "
+            "Configure DATABASE_URL and ensure database is accessible."
         )
 
-    logger.info(f"Loading H-34 study data from: {excel_path}")
-    _excel_loader = H34ExcelLoader(excel_path)
-    _study_data = _excel_loader.load()
+    try:
+        # Load data from database
+        patients_raw = db_loader.load_study_patients()
+        adverse_events_raw = db_loader.load_adverse_events()
+        hhs_scores_raw = db_loader.load_scores("HHS")
+        ohs_scores_raw = db_loader.load_scores("OHS")
+        surgeries_raw = db_loader.load_surgeries()
 
-    logger.info(f"Successfully loaded {_study_data.total_patients} patients")
-    return _study_data
+        if not patients_raw:
+            raise StudyDataLoadError(
+                "No patient data found in database. "
+                "Run migration script to load study data."
+            )
 
+        # Build Patient models from database records
+        patients = []
+        preoperatives = []
+        for p in patients_raw:
+            patients.append(Patient(
+                facility=p.get("facility", ""),
+                patient_id=p["patient_id"],
+                year_of_birth=p.get("year_of_birth"),
+                weight=p.get("weight"),
+                height=p.get("height"),
+                bmi=p.get("bmi"),
+                gender=p.get("gender"),
+                race=p.get("race"),
+                activity_level=p.get("activity_level"),
+                work_status=p.get("work_status"),
+                smoking_habits=p.get("smoking_habits"),
+                alcohol_habits=p.get("alcohol_habits"),
+                concomitant_medications=p.get("concomitant_medications"),
+                enrolled=p.get("enrolled"),
+                status=p.get("status"),
+                medical_history=p.get("medical_history"),
+                primary_diagnosis=p.get("primary_diagnosis"),
+            ))
+            # Build Preoperative from merged patient data (medical_history, diagnosis, prior surgery, etc.)
+            if p.get("medical_history") or p.get("primary_diagnosis") or p.get("previous_hip_surgery_affected"):
+                preoperatives.append(Preoperative(
+                    facility=p.get("facility", ""),
+                    patient_id=p["patient_id"],
+                    medical_history=p.get("medical_history"),
+                    primary_diagnosis=p.get("primary_diagnosis"),
+                    affected_side=p.get("affected_side"),
+                    osteoporosis=None,  # Not stored separately in DB
+                    previous_hip_surgery_affected=p.get("previous_hip_surgery_affected"),  # From preoperative data
+                ))
 
-def get_excel_loader() -> H34ExcelLoader:
-    """Get the Excel loader (ensures data is loaded)."""
-    global _excel_loader
-    if _excel_loader is None:
-        get_study_data()  # This initializes the loader
-    return _excel_loader
+        # Build AdverseEvent models
+        adverse_events = []
+        for ae in adverse_events_raw:
+            onset_date = None
+            if ae.get("onset_date"):
+                try:
+                    onset_date = datetime.fromisoformat(ae["onset_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            initial_report_date = None
+            if ae.get("initial_report_date"):
+                try:
+                    initial_report_date = datetime.fromisoformat(ae["initial_report_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            report_date = None
+            if ae.get("report_date"):
+                try:
+                    report_date = datetime.fromisoformat(ae["report_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            device_removal_date = None
+            if ae.get("device_removal_date"):
+                try:
+                    device_removal_date = datetime.fromisoformat(ae["device_removal_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            adverse_events.append(AdverseEvent(
+                facility="",
+                patient_id=ae.get("patient_id", ""),
+                ae_id=ae.get("ae_id"),
+                report_type=ae.get("report_type"),
+                initial_report_date=initial_report_date,
+                report_date=report_date,
+                onset_date=onset_date,
+                ae_title=ae.get("ae_title"),
+                event_narrative=ae.get("event_narrative"),
+                is_sae="Yes" if ae.get("is_sae") else "No",
+                classification=ae.get("classification"),
+                outcome=ae.get("outcome"),
+                severity=ae.get("severity"),
+                device_relationship=ae.get("device_relationship"),
+                procedure_relationship=ae.get("procedure_relationship"),
+                expectedness=ae.get("expectedness"),
+                action_taken=ae.get("action_taken"),
+                device_removed=ae.get("device_removed"),
+                device_removal_date=device_removal_date,
+            ))
+
+        # Build HHSScore models
+        hhs_scores = []
+        for s in hhs_scores_raw:
+            follow_up_date = None
+            if s.get("follow_up_date"):
+                try:
+                    follow_up_date = datetime.fromisoformat(s["follow_up_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            components = s.get("components", {}) or {}
+            hhs_scores.append(HHSScore(
+                facility="",
+                patient_id=s.get("patient_id", ""),
+                follow_up=s.get("follow_up"),
+                follow_up_date=follow_up_date,
+                total_score=s.get("total_score"),
+                score_category=s.get("score_category"),
+                pain=components.get("pain"),
+                stairs=components.get("stairs"),
+                shoes_socks=components.get("shoes_socks"),
+                sitting=components.get("sitting"),
+                public_transport=components.get("public_transport"),
+                limp=components.get("limp"),
+                walking_support=components.get("walking_support"),
+                distance_walked=components.get("distance_walked"),
+                flexion=components.get("flexion"),
+                extension=components.get("extension"),
+                abduction=components.get("abduction"),
+                adduction=components.get("adduction"),
+                external_rotation=components.get("external_rotation"),
+                internal_rotation=components.get("internal_rotation"),
+            ))
+
+        # Build OHSScore models
+        ohs_scores = []
+        for s in ohs_scores_raw:
+            follow_up_date = None
+            if s.get("follow_up_date"):
+                try:
+                    follow_up_date = datetime.fromisoformat(s["follow_up_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            components = s.get("components", {}) or {}
+            ohs_scores.append(OHSScore(
+                facility="",
+                patient_id=s.get("patient_id", ""),
+                follow_up=s.get("follow_up"),
+                follow_up_date=follow_up_date,
+                total_score=s.get("total_score"),
+                score_category=s.get("score_category"),
+                q1=components.get("q1"),
+                q2=components.get("q2"),
+                q3=components.get("q3"),
+                q4=components.get("q4"),
+                q5=components.get("q5"),
+                q6=components.get("q6"),
+                q7=components.get("q7"),
+                q8=components.get("q8"),
+                q9=components.get("q9"),
+                q10=components.get("q10"),
+                q11=components.get("q11"),
+                q12=components.get("q12"),
+            ))
+
+        # Build Intraoperative models from surgeries
+        intraoperatives = []
+        for s in surgeries_raw:
+            surgery_date = None
+            if s.get("surgery_date"):
+                try:
+                    surgery_date = datetime.fromisoformat(s["surgery_date"]).date()
+                except (ValueError, TypeError):
+                    pass
+            intraoperatives.append(Intraoperative(
+                facility="",
+                patient_id=str(s.get("patient_id", "")),
+                surgery_date=surgery_date,
+                cup_type=s.get("cup_type"),
+                cup_diameter=s.get("cup_diameter"),
+                stem_type=s.get("stem_type"),
+                head_type=s.get("head_type"),
+                head_material=s.get("head_material"),
+            ))
+
+        # Load visits with radiographic data
+        visits_raw = db_loader.load_visits()
+        radiographic_evaluations = []
+        for v in visits_raw:
+            radio_data = v.get("radiographic_data", {})
+            if radio_data:  # Only create if radiographic data exists
+                xray_date = None
+                if radio_data.get("xray_date"):
+                    try:
+                        xray_date = datetime.fromisoformat(radio_data["xray_date"]).date()
+                    except (ValueError, TypeError):
+                        pass
+                radiographic_evaluations.append(RadiographicEvaluation(
+                    facility="",
+                    patient_id=str(v.get("patient_id", "")),
+                    follow_up=v.get("visit_type"),
+                    xray_date=xray_date,
+                    ap_view=radio_data.get("ap_view"),
+                    lat_view=radio_data.get("lat_view"),
+                    femoral_offset=radio_data.get("femoral_offset"),
+                    ccd_angle=radio_data.get("ccd_angle"),
+                    leg_length_discrepancy=radio_data.get("leg_length_discrepancy"),
+                ))
+
+        # Get unique facilities
+        facilities = list(set(p.facility for p in patients if p.facility))
+
+        _study_data = H34StudyData(
+            patients=patients,
+            preoperatives=preoperatives,  # Built from merged patient data
+            radiographic_evaluations=radiographic_evaluations,
+            intraoperatives=intraoperatives,
+            surgery_data=[],
+            follow_ups=[],
+            adverse_events=adverse_events,
+            hhs_scores=hhs_scores,
+            ohs_scores=ohs_scores,
+            explants=[],  # Could load from db if table exists
+            total_patients=len(patients),
+            total_adverse_events=len(adverse_events),
+            facilities=facilities,
+        )
+
+        logger.info(f"Successfully loaded {len(patients_raw)} patients from database")
+        return _study_data
+
+    except (DatabaseUnavailableError, StudyDataLoadError):
+        raise
+    except Exception as e:
+        logger.error(f"Failed to load study data from database: {e}")
+        raise StudyDataLoadError(f"Database query failed: {e}")
 
 
 class DataAgent(BaseAgent):

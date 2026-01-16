@@ -105,7 +105,13 @@ class GeminiEmbeddingFunction:
 
         Returns:
             Embedding vector (768 dimensions).
+
+        Raises:
+            RuntimeError: If embedding generation fails.
         """
+        if not query or not query.strip():
+            raise ValueError("Query cannot be empty")
+
         try:
             result = genai.embed_content(
                 model=self.model,
@@ -115,7 +121,7 @@ class GeminiEmbeddingFunction:
             return result['embedding']
         except Exception as e:
             logger.error(f"Error generating query embedding: {e}")
-            return [0.0] * self._dimension
+            raise RuntimeError(f"Failed to generate embedding for query: {e}") from e
 
 
 class PgVectorStore:
@@ -160,13 +166,21 @@ class PgVectorStore:
         self._init_database()
         logger.info("PgVectorStore initialized with PostgreSQL")
 
+    # Connection timeout in seconds
+    CONNECTION_TIMEOUT = 30
+    STATEMENT_TIMEOUT = 60000  # 60 seconds in milliseconds
+
     def _get_connection(self, register_vec: bool = True):
-        """Get a new database connection.
-        
+        """Get a new database connection with timeout settings.
+
         Args:
             register_vec: Whether to register vector type (set False during init)
         """
-        conn = psycopg2.connect(self.database_url)
+        conn = psycopg2.connect(
+            self.database_url,
+            connect_timeout=self.CONNECTION_TIMEOUT,
+            options=f"-c statement_timeout={self.STATEMENT_TIMEOUT}"
+        )
         if register_vec:
             register_vector(conn)
         return conn

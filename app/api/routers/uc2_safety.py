@@ -37,6 +37,13 @@ class SafetyMetric(BaseModel):
     threshold: float = Field(..., description="Protocol threshold")
     signal: bool = Field(default=False, description="Whether threshold is exceeded")
     threshold_exceeded_by: float = Field(default=0.0, description="Amount by which threshold exceeded")
+    ci_lower: Optional[float] = Field(None, description="Lower bound of 95% confidence interval")
+    ci_upper: Optional[float] = Field(None, description="Upper bound of 95% confidence interval")
+    provenance: Optional[Dict[str, Any]] = Field(None, description="Data provenance metadata")
+    affected_patients: List[Dict[str, Any]] = Field(default_factory=list, description="List of affected patients")
+    literature_citations: List[Dict[str, Any]] = Field(default_factory=list, description="Supporting literature citations")
+    signal_level: Optional[str] = Field(None, description="Signal priority level (high/medium/low)")
+    recommended_action: Optional[str] = Field(None, description="Recommended clinical action")
 
 
 class RiskFactor(BaseModel):

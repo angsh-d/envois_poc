@@ -23,6 +23,7 @@ from app.agents.safety_agent import SafetyAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.synthesis_agent import SynthesisAgent
 from app.agents.data_agent import get_study_data
+from app.exceptions import LLMServiceError
 from data.loaders.yaml_loader import get_hybrid_loader
 
 logger = logging.getLogger(__name__)
@@ -319,26 +320,6 @@ class RiskService:
         content = f"{medical_history}|{smoking_habits}|{osteoporosis}|{primary_diagnosis}"
         return hashlib.md5(content.encode()).hexdigest()
 
-    def _fallback_pattern_extraction(
-        self,
-        medical_history: Optional[str],
-        smoking_habits: Optional[str],
-        osteoporosis: Optional[str]
-    ) -> Dict[str, bool]:
-        """Fallback to pattern matching if LLM extraction fails."""
-        history = (medical_history or "").lower()
-        smoking = (smoking_habits or "").lower()
-        osteo = (osteoporosis or "").lower()
-
-        return {
-            "diabetes": "diabet" in history or " dm" in history or history.startswith("dm"),
-            "rheumatoid_arthritis": "rheumatoid" in history or " ra " in history,
-            "chronic_kidney_disease": "kidney" in history or "renal" in history or "ckd" in history,
-            "osteoporosis": osteo == "yes" or "osteoporosis" in osteo,
-            "smoking_current": "current" in smoking or "daily" in smoking or "smoker" in smoking,
-            "smoking_former": "former" in smoking or "ex" in smoking or "previous" in smoking,
-        }
-
     async def _extract_risk_factors_llm(
         self,
         medical_history: Optional[str],
@@ -409,11 +390,17 @@ class RiskService:
             return result
 
         except json.JSONDecodeError as e:
-            logger.warning(f"Failed to parse LLM response as JSON: {e}")
-            return self._fallback_pattern_extraction(medical_history, smoking_habits, osteoporosis)
+            logger.error(f"Failed to parse LLM response as JSON: {e}")
+            raise LLMServiceError(
+                f"LLM returned invalid JSON for risk factor extraction: {e}. "
+                "Check LLM service configuration and prompt format."
+            )
         except Exception as e:
-            logger.warning(f"LLM extraction failed, using fallback: {e}")
-            return self._fallback_pattern_extraction(medical_history, smoking_habits, osteoporosis)
+            logger.error(f"LLM extraction failed: {e}")
+            raise LLMServiceError(
+                f"Risk factor extraction via LLM failed: {e}. "
+                "Ensure LLM service is properly configured."
+            )
 
     async def get_patient_risk(self, patient_id: str) -> Dict[str, Any]:
         """
@@ -614,19 +601,25 @@ class RiskService:
 
         features["is_female"] = patient.gender and patient.gender.lower() in ["female", "f"]
 
-        # Get preoperative data for comorbidities
+        # Get preoperative data for comorbidities - use merged data from Patient first
+        # (medical_history and primary_diagnosis are now merged into Patient model)
         preop = None
         for p in study_data.preoperatives:
             if p.patient_id == patient.patient_id:
                 preop = p
                 break
 
+        # Use patient-level medical_history (preferred) or fall back to preop
+        medical_history = getattr(patient, 'medical_history', None) or (preop.medical_history if preop else None)
+        primary_diagnosis = getattr(patient, 'primary_diagnosis', None) or (preop.primary_diagnosis if preop else None)
+        osteoporosis_field = preop.osteoporosis if preop else None
+
         # LLM-based extraction for text fields (smoking, medical history, etc.)
         llm_factors = await self._extract_risk_factors_llm(
-            medical_history=preop.medical_history if preop else None,
+            medical_history=medical_history,
             smoking_habits=patient.smoking_habits,
-            osteoporosis=preop.osteoporosis if preop else None,
-            primary_diagnosis=preop.primary_diagnosis if preop else None,
+            osteoporosis=osteoporosis_field,
+            primary_diagnosis=primary_diagnosis,
         )
 
         # Map LLM results to feature names

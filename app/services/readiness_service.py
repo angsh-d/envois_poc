@@ -333,6 +333,7 @@ class ReadinessService:
         return {
             "enrolled": enrolled,
             "target": target,
+            "interim_target": evaluable_target,  # Alias for frontend compatibility
             "evaluable_target": evaluable_target,
             "percent_complete": round((enrolled / target) * 100, 1) if target > 0 else 0,
             "status": status,

@@ -57,6 +57,17 @@ class MissingAssessmentDetector(BaseDetector):
         "2 Years": "fu_2yr",
     }
 
+    # Map between alternate naming conventions for visits
+    # Key: canonical name, Value: list of alternative names (including canonical)
+    VISIT_NAME_VARIANTS = {
+        "fu_2mo": ["FU 2 Months", "2 Months"],
+        "fu_6mo": ["FU 6 Months", "6 Months"],
+        "fu_1yr": ["FU 1 Year", "1 Year"],
+        "fu_2yr": ["FU 2 Years", "2 Years"],
+        "discharge": ["Discharge"],
+        "preoperative": ["Preoperative"],
+    }
+
     def detect(self, study_data: H34StudyData) -> DetectorResult:
         """
         Detect missing required assessments.
@@ -125,14 +136,22 @@ class MissingAssessmentDetector(BaseDetector):
             patient_ohs_visits = ohs_by_patient_visit.get(patient_id, set())
             patient_radio_visits = radio_by_patient_visit.get(patient_id, set())
 
-            # All visits the patient has data for
+            # All visits the patient has data for - normalized by visit_id to avoid duplicates
             all_visits = patient_hhs_visits | patient_ohs_visits | patient_radio_visits
+            # Convert to unique visit_ids to avoid checking same visit twice
+            # (e.g., both "FU 2 Months" and "2 Months" map to "fu_2mo")
+            checked_visit_ids = set()
 
             for visit_name in all_visits:
-                visits_checked += 1
                 visit_id = self.FOLLOWUP_TO_VISIT_ID.get(visit_name)
                 if not visit_id:
                     continue
+
+                # Skip if we already checked this visit_id (avoid duplicates)
+                if visit_id in checked_visit_ids:
+                    continue
+                checked_visit_ids.add(visit_id)
+                visits_checked += 1
 
                 # Get required assessments for this visit from protocol
                 visit_window = self.protocol_rules.get_visit(visit_id)
@@ -144,15 +163,16 @@ class MissingAssessmentDetector(BaseDetector):
                 missing = []
 
                 # Check HHS - ONLY if HHS data exists in dataset
+                # Use visit_id to check all name variants (handles "FU 2 Months" vs "2 Months")
                 if "hhs" in required and has_hhs_data:
-                    if visit_name in patient_hhs_visits:
+                    if self._has_assessment_for_visit(visit_id, patient_hhs_visits):
                         completed.append("hhs")
                     else:
                         missing.append("hhs")
 
                 # Check OHS - ONLY if OHS data exists in dataset
                 if "ohs" in required and has_ohs_data:
-                    if visit_name in patient_ohs_visits:
+                    if self._has_assessment_for_visit(visit_id, patient_ohs_visits):
                         completed.append("ohs")
                     else:
                         missing.append("ohs")
@@ -161,8 +181,7 @@ class MissingAssessmentDetector(BaseDetector):
                 # NOTE: If no radiology data in entire dataset, this is a data
                 # availability issue, NOT a protocol deviation
                 if ("radiology" in required or "radiology_baseline" in required) and has_radio_data:
-                    radio_label = self._get_radio_label(visit_name)
-                    if radio_label and radio_label in patient_radio_visits:
+                    if self._has_assessment_for_visit(visit_id, patient_radio_visits):
                         completed.append("radiology")
                     else:
                         missing.append("radiology")
@@ -209,6 +228,13 @@ class MissingAssessmentDetector(BaseDetector):
             visits_checked=visits_checked,
             execution_time_ms=(time.time() - start_time) * 1000,
         )
+
+    def _has_assessment_for_visit(
+        self, visit_id: str, patient_visits: Set[str]
+    ) -> bool:
+        """Check if patient has assessment for any variant of this visit."""
+        variants = self.VISIT_NAME_VARIANTS.get(visit_id, [])
+        return any(v in patient_visits for v in variants)
 
     def _get_radio_label(self, visit_name: str) -> Optional[str]:
         """Map visit name to radiographic evaluation follow-up label."""

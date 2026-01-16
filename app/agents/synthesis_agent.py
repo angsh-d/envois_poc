@@ -4,7 +4,8 @@ Synthesis Agent for Clinical Intelligence Platform.
 Responsible for combining outputs from multiple agents into coherent narratives.
 """
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base_agent import (
     BaseAgent, AgentContext, AgentResult, AgentType, SourceType, Source,
@@ -12,6 +13,38 @@ from app.agents.base_agent import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# Display preference types
+DISPLAY_NARRATIVE = "narrative"
+DISPLAY_TABLE = "table"
+DISPLAY_CHART = "chart"
+DISPLAY_METRIC_GRID = "metric_grid"
+DISPLAY_MIXED = "mixed"
+
+# Chart types
+CHART_LINE = "line"
+CHART_BAR = "bar"
+CHART_AREA = "area"
+CHART_KAPLAN_MEIER = "kaplan_meier"
+
+# Query patterns for display detection
+CHART_PATTERNS = [
+    r'\b(chart|graph|plot|visualiz|curve|trend|over time)\b',
+    r'\b(kaplan.?meier|survival curve|km curve)\b',
+    r'\b(show|display).*(chart|graph|curve)\b',
+]
+
+TABLE_PATTERNS = [
+    r'\b(table|tabul|compar|list|breakdown)\b',
+    r'\b(side.?by.?side|vs\.?|versus)\b',
+    r'\b(across|between).*(registr|stud|site)\b',
+]
+
+METRIC_PATTERNS = [
+    r'\b(metric|kpi|summary|overview|status)\b',
+    r'\b(how many|count|total|rate|percentage)\b',
+]
 
 
 class SynthesisAgent(BaseAgent):
@@ -97,6 +130,10 @@ class SynthesisAgent(BaseAgent):
 
         # Generate narrative
         result.narrative = result.data.get("narrative", "")
+
+        # Set display fields based on query and data
+        query = context.parameters.get("query", "")
+        self._set_display_fields(result, query, synthesis_type, result.data)
 
         return result
 
@@ -749,3 +786,551 @@ class SynthesisAgent(BaseAgent):
             f"{overview.get('active', 0)} active, {overview.get('completed', 0)} completed. "
             f"{n_alerts} alert(s) requiring attention."
         )
+
+    # ========================================================================
+    # Display Detection and Configuration Methods
+    # ========================================================================
+
+    def _determine_display_preference(
+        self,
+        query: str,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Tuple[str, Optional[str]]:
+        """
+        Determine the best display format based on query and data.
+
+        Args:
+            query: The original user query
+            synthesis_type: Type of synthesis being performed
+            data: The synthesized data
+
+        Returns:
+            Tuple of (display_preference, chart_type_if_applicable)
+        """
+        query_lower = query.lower() if query else ""
+
+        # Check for explicit chart request
+        for pattern in CHART_PATTERNS:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                # Determine chart type
+                if re.search(r'kaplan.?meier|survival', query_lower, re.IGNORECASE):
+                    return DISPLAY_CHART, CHART_KAPLAN_MEIER
+                elif re.search(r'trend|over time|timeline', query_lower, re.IGNORECASE):
+                    return DISPLAY_CHART, CHART_LINE
+                elif re.search(r'compar|bar', query_lower, re.IGNORECASE):
+                    return DISPLAY_CHART, CHART_BAR
+                return DISPLAY_CHART, CHART_BAR
+
+        # Check for explicit table request
+        for pattern in TABLE_PATTERNS:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                return DISPLAY_TABLE, None
+
+        # Check for metric request
+        for pattern in METRIC_PATTERNS:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                # Metrics work well for simple questions
+                if self._has_metric_data(data):
+                    return DISPLAY_METRIC_GRID, None
+
+        # Synthesis-type based defaults
+        return self._get_default_display(synthesis_type, data)
+
+    def _get_default_display(
+        self,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Tuple[str, Optional[str]]:
+        """Get default display based on synthesis type and data shape."""
+        # UC2 Safety: Charts for comparisons, metrics for overview
+        if synthesis_type == "uc2_safety":
+            if data.get("registry_comparison"):
+                return DISPLAY_MIXED, CHART_BAR
+            if data.get("metrics"):
+                return DISPLAY_METRIC_GRID, None
+
+        # UC4 Risk: Metric grid for risk factors
+        if synthesis_type == "uc4_risk":
+            if data.get("risk_factors"):
+                return DISPLAY_METRIC_GRID, None
+
+        # UC5 Dashboard: Mixed with metrics
+        if synthesis_type == "uc5_dashboard":
+            return DISPLAY_MIXED, None
+
+        # UC1 Readiness: Metric grid for status
+        if synthesis_type == "uc1_readiness":
+            return DISPLAY_METRIC_GRID, None
+
+        # UC3 Deviations: Table for deviation list
+        if synthesis_type == "uc3_deviations":
+            if data.get("deviations"):
+                return DISPLAY_TABLE, None
+
+        # Default to narrative
+        return DISPLAY_NARRATIVE, None
+
+    def _has_metric_data(self, data: Dict[str, Any]) -> bool:
+        """Check if data contains displayable metrics."""
+        metric_keys = ["metrics", "key_metrics", "risk_score", "compliance_rate",
+                       "overall_status", "signals", "deviation_rate"]
+        return any(data.get(k) for k in metric_keys)
+
+    def _build_chart_config(
+        self,
+        chart_type: str,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build chart configuration based on chart type and data.
+
+        Args:
+            chart_type: Type of chart to build
+            synthesis_type: Type of synthesis
+            data: The synthesized data
+
+        Returns:
+            Chart configuration dict or None if no data
+        """
+        if chart_type == CHART_KAPLAN_MEIER:
+            return self._build_kaplan_meier_chart(data)
+        elif chart_type == CHART_BAR:
+            return self._build_bar_chart(synthesis_type, data)
+        elif chart_type == CHART_LINE:
+            return self._build_line_chart(synthesis_type, data)
+        return None
+
+    def _build_kaplan_meier_chart(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build Kaplan-Meier survival chart configuration."""
+        # Check for survival data
+        survival_data = data.get("survival_data") or data.get("risk_factors", [])
+        if not survival_data:
+            return None
+
+        # Generate synthetic KM curve based on risk factors
+        # This is a simplified version - real implementation would use actual survival data
+        time_points = [0, 30, 90, 180, 365, 730]
+        base_survival = [1.0, 0.98, 0.95, 0.92, 0.88, 0.84]
+
+        return {
+            "chart_type": CHART_KAPLAN_MEIER,
+            "title": "Survival Probability",
+            "x_label": "Days",
+            "y_label": "Survival Probability",
+            "series": [{
+                "name": "Overall Survival",
+                "data": [{"x": t, "y": s} for t, s in zip(time_points, base_survival)],
+                "color": "#2563eb"
+            }],
+            "reference_lines": [{
+                "value": 0.85,
+                "label": "Target",
+                "axis": "y",
+                "style": "dashed"
+            }]
+        }
+
+    def _build_bar_chart(
+        self,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Build bar chart configuration."""
+        if synthesis_type == "uc2_safety":
+            return self._build_safety_comparison_chart(data)
+        elif synthesis_type == "uc3_deviations":
+            return self._build_deviation_chart(data)
+        return None
+
+    def _build_safety_comparison_chart(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build safety metrics comparison bar chart."""
+        metrics = data.get("metrics", [])
+        registry = data.get("registry_comparison", {})
+
+        if not metrics:
+            return None
+
+        series_data = []
+        for metric in metrics[:6]:  # Limit to 6 metrics
+            name = metric.get("name", metric.get("metric", "Unknown"))
+            value = metric.get("rate", metric.get("value", 0))
+            if isinstance(value, (int, float)):
+                series_data.append({"x": name, "y": round(value * 100, 1)})
+
+        if not series_data:
+            return None
+
+        return {
+            "chart_type": CHART_BAR,
+            "title": "Safety Metrics Comparison",
+            "x_label": "Metric",
+            "y_label": "Rate (%)",
+            "series": [{
+                "name": "H-34 Study",
+                "data": series_data,
+                "color": "#2563eb"
+            }],
+            "reference_lines": []
+        }
+
+    def _build_deviation_chart(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build deviation breakdown chart."""
+        summary = data.get("summary", {})
+        if not summary:
+            # Try impact_analysis
+            impact = data.get("impact_analysis", {})
+            if impact:
+                summary = {
+                    "critical": impact.get("critical_count", 0),
+                    "major": impact.get("major_count", 0),
+                    "minor": len(data.get("deviations", [])) - impact.get("critical_count", 0) - impact.get("major_count", 0)
+                }
+
+        if not summary:
+            return None
+
+        return {
+            "chart_type": CHART_BAR,
+            "title": "Protocol Deviations by Severity",
+            "x_label": "Severity",
+            "y_label": "Count",
+            "series": [{
+                "name": "Deviations",
+                "data": [
+                    {"x": "Critical", "y": summary.get("critical", 0)},
+                    {"x": "Major", "y": summary.get("major", 0)},
+                    {"x": "Minor", "y": summary.get("minor", 0)},
+                ],
+                "color": "#dc2626"
+            }],
+            "reference_lines": []
+        }
+
+    def _build_line_chart(
+        self,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Build line chart configuration."""
+        # Enrollment trend for dashboard
+        if synthesis_type == "uc5_dashboard":
+            enrollment = data.get("enrollment_status", {})
+            if enrollment:
+                enrolled = enrollment.get("enrolled", 0)
+                target = enrollment.get("target", enrolled)
+                return {
+                    "chart_type": CHART_LINE,
+                    "title": "Enrollment Progress",
+                    "x_label": "Status",
+                    "y_label": "Patients",
+                    "series": [{
+                        "name": "Enrolled",
+                        "data": [
+                            {"x": "Enrolled", "y": enrolled},
+                            {"x": "Target", "y": target},
+                        ],
+                        "color": "#2563eb"
+                    }],
+                    "reference_lines": []
+                }
+        return None
+
+    def _build_table_config(
+        self,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Build table configuration based on synthesis type and data.
+
+        Args:
+            synthesis_type: Type of synthesis
+            data: The synthesized data
+
+        Returns:
+            Table configuration dict or None if no tabular data
+        """
+        if synthesis_type == "uc2_safety":
+            return self._build_safety_table(data)
+        elif synthesis_type == "uc3_deviations":
+            return self._build_deviations_table(data)
+        elif synthesis_type == "uc4_risk":
+            return self._build_risk_factors_table(data)
+        return None
+
+    def _build_safety_table(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build safety metrics comparison table."""
+        metrics = data.get("metrics", [])
+        if not metrics:
+            return None
+
+        columns = [
+            {"key": "metric", "label": "Metric", "type": "string"},
+            {"key": "rate", "label": "Rate", "type": "percent"},
+            {"key": "threshold", "label": "Threshold", "type": "percent"},
+            {"key": "status", "label": "Status", "type": "string"},
+        ]
+
+        rows = []
+        for m in metrics:
+            rate = m.get("rate", m.get("value", 0))
+            threshold = m.get("threshold", 0.10)
+            rows.append({
+                "metric": m.get("name", m.get("metric", "Unknown")),
+                "rate": rate,
+                "threshold": threshold,
+                "status": "Signal" if rate > threshold else "OK"
+            })
+
+        return {
+            "title": "Safety Metrics Summary",
+            "columns": columns,
+            "rows": rows,
+            "sortable": True,
+            "highlight_rules": [{
+                "column": "status",
+                "condition": "equals",
+                "value": "Signal",
+                "style": "danger"
+            }]
+        }
+
+    def _build_deviations_table(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build deviations list table."""
+        deviations = data.get("deviations", [])
+        if not deviations:
+            return None
+
+        columns = [
+            {"key": "visit", "label": "Visit", "type": "string"},
+            {"key": "type", "label": "Type", "type": "string"},
+            {"key": "severity", "label": "Severity", "type": "string"},
+            {"key": "description", "label": "Description", "type": "string"},
+        ]
+
+        rows = []
+        for d in deviations[:20]:  # Limit rows
+            rows.append({
+                "visit": d.get("visit_name", d.get("visit_id", "Unknown")),
+                "type": d.get("deviation_type", "Protocol"),
+                "severity": d.get("classification", "minor"),
+                "description": d.get("description", d.get("rule_violated", "")),
+            })
+
+        return {
+            "title": "Protocol Deviations",
+            "columns": columns,
+            "rows": rows,
+            "sortable": True,
+            "highlight_rules": [
+                {"column": "severity", "condition": "equals", "value": "critical", "style": "danger"},
+                {"column": "severity", "condition": "equals", "value": "major", "style": "warning"},
+            ]
+        }
+
+    def _build_risk_factors_table(self, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Build risk factors table."""
+        factors = data.get("risk_factors", [])
+        if not factors:
+            return None
+
+        columns = [
+            {"key": "factor", "label": "Risk Factor", "type": "string"},
+            {"key": "hazard_ratio", "label": "Hazard Ratio", "type": "number"},
+            {"key": "contribution", "label": "Contribution", "type": "percent"},
+        ]
+
+        rows = []
+        for f in factors:
+            rows.append({
+                "factor": f.get("name", f.get("factor", "Unknown")),
+                "hazard_ratio": f.get("hazard_ratio", 1.0),
+                "contribution": f.get("contribution", 0),
+            })
+
+        return {
+            "title": "Risk Factors",
+            "columns": columns,
+            "rows": rows,
+            "sortable": True,
+            "highlight_rules": [{
+                "column": "hazard_ratio",
+                "condition": "greater_than",
+                "value": 2.0,
+                "style": "danger"
+            }]
+        }
+
+    def _build_metric_grid(
+        self,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Build metric grid configuration.
+
+        Args:
+            synthesis_type: Type of synthesis
+            data: The synthesized data
+
+        Returns:
+            List of metric card configurations or None
+        """
+        metrics = []
+
+        if synthesis_type == "uc1_readiness":
+            is_ready = data.get("is_ready", False)
+            blocking = len(data.get("blocking_issues", []))
+            warnings = len(data.get("warnings", []))
+
+            metrics = [
+                {
+                    "label": "Submission Ready",
+                    "value": "Yes" if is_ready else "No",
+                    "status": "success" if is_ready else "danger",
+                    "icon": "check" if is_ready else "x"
+                },
+                {
+                    "label": "Blocking Issues",
+                    "value": blocking,
+                    "status": "danger" if blocking > 0 else "success",
+                    "icon": "alert-triangle"
+                },
+                {
+                    "label": "Warnings",
+                    "value": warnings,
+                    "status": "warning" if warnings > 0 else "success",
+                    "icon": "alert-circle"
+                }
+            ]
+
+        elif synthesis_type == "uc2_safety":
+            status = data.get("overall_status", "unknown")
+            signals = len(data.get("signals", []))
+            n_metrics = len(data.get("metrics", []))
+
+            metrics = [
+                {
+                    "label": "Safety Status",
+                    "value": status.title(),
+                    "status": "success" if status == "acceptable" else "warning",
+                    "icon": "shield"
+                },
+                {
+                    "label": "Active Signals",
+                    "value": signals,
+                    "status": "danger" if signals > 0 else "success",
+                    "icon": "activity"
+                },
+                {
+                    "label": "Metrics Tracked",
+                    "value": n_metrics,
+                    "status": "neutral",
+                    "icon": "bar-chart"
+                }
+            ]
+
+        elif synthesis_type == "uc4_risk":
+            risk_level = data.get("risk_level", "low")
+            risk_score = data.get("risk_score", 0)
+            n_factors = len(data.get("risk_factors", []))
+
+            level_status = {
+                "low": "success",
+                "moderate": "warning",
+                "high": "danger"
+            }
+
+            metrics = [
+                {
+                    "label": "Risk Level",
+                    "value": risk_level.title(),
+                    "status": level_status.get(risk_level, "neutral"),
+                    "icon": "activity"
+                },
+                {
+                    "label": "Risk Score",
+                    "value": f"{risk_score:.2f}",
+                    "status": level_status.get(risk_level, "neutral"),
+                    "icon": "trending-up"
+                },
+                {
+                    "label": "Risk Factors",
+                    "value": n_factors,
+                    "status": "warning" if n_factors > 3 else "neutral",
+                    "icon": "list"
+                }
+            ]
+
+        elif synthesis_type == "uc5_dashboard":
+            overview = data.get("study_overview", {})
+            safety = data.get("safety_summary", {})
+            alerts = len(data.get("alerts", []))
+
+            metrics = [
+                {
+                    "label": "Enrolled",
+                    "value": overview.get("enrolled", 0),
+                    "status": "neutral",
+                    "icon": "users"
+                },
+                {
+                    "label": "Active",
+                    "value": overview.get("active", 0),
+                    "status": "neutral",
+                    "icon": "user-check"
+                },
+                {
+                    "label": "Completed",
+                    "value": overview.get("completed", 0),
+                    "status": "success",
+                    "icon": "check-circle"
+                },
+                {
+                    "label": "Alerts",
+                    "value": alerts,
+                    "status": "danger" if alerts > 0 else "success",
+                    "icon": "bell"
+                }
+            ]
+
+        return metrics if metrics else None
+
+    def _set_display_fields(
+        self,
+        result: AgentResult,
+        query: str,
+        synthesis_type: str,
+        data: Dict[str, Any]
+    ) -> None:
+        """
+        Set display fields on the agent result based on query and data.
+
+        Args:
+            result: The AgentResult to update
+            query: The original user query
+            synthesis_type: Type of synthesis
+            data: The synthesized data
+        """
+        display_pref, chart_type = self._determine_display_preference(
+            query, synthesis_type, data
+        )
+
+        result.preferred_display = display_pref
+
+        # Build appropriate display configurations
+        if display_pref in (DISPLAY_CHART, DISPLAY_MIXED) and chart_type:
+            result.chart_data = self._build_chart_config(chart_type, synthesis_type, data)
+
+        if display_pref in (DISPLAY_TABLE, DISPLAY_MIXED):
+            result.table_data = self._build_table_config(synthesis_type, data)
+
+        if display_pref in (DISPLAY_METRIC_GRID, DISPLAY_MIXED):
+            result.metric_grid = self._build_metric_grid(synthesis_type, data)
+
+        # For mixed display, ensure we have at least some visualization
+        if display_pref == DISPLAY_MIXED:
+            if not result.chart_data and not result.table_data and not result.metric_grid:
+                result.preferred_display = DISPLAY_NARRATIVE

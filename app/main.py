@@ -7,14 +7,23 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, FileResponse, HTMLResponse
+from fastapi.responses import Response, FileResponse, HTMLResponse, JSONResponse
+
+from app.exceptions import (
+    DatabaseUnavailableError,
+    DataNotFoundError,
+    DatabaseQueryError,
+    LLMServiceError,
+    StudyDataLoadError,
+    ConfigurationError,
+)
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 import websockets
 import asyncio
 
 from app.config import settings
-from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization, simulation
+from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization, simulation, data_browser
 from app.services.cache_service import warmup_cache, start_background_refresh, get_cache_service
 
 # Detect production mode
@@ -41,6 +50,86 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Exception handlers for custom exceptions
+@app.exception_handler(DatabaseUnavailableError)
+async def database_unavailable_handler(request: Request, exc: DatabaseUnavailableError):
+    """Handle database unavailable errors - return 503 Service Unavailable."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": "database_unavailable",
+            "message": str(exc),
+            "action": "Configure DATABASE_URL or check database connectivity"
+        }
+    )
+
+
+@app.exception_handler(DataNotFoundError)
+async def data_not_found_handler(request: Request, exc: DataNotFoundError):
+    """Handle data not found errors - return 404 Not Found."""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "data_not_found",
+            "message": str(exc),
+            "action": "Run migration script to load required data"
+        }
+    )
+
+
+@app.exception_handler(DatabaseQueryError)
+async def database_query_handler(request: Request, exc: DatabaseQueryError):
+    """Handle database query errors - return 500 Internal Server Error."""
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "database_query_error",
+            "message": str(exc),
+            "action": "Check database integrity and query parameters"
+        }
+    )
+
+
+@app.exception_handler(LLMServiceError)
+async def llm_service_handler(request: Request, exc: LLMServiceError):
+    """Handle LLM service errors - return 503 Service Unavailable."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": "llm_service_unavailable",
+            "message": str(exc),
+            "action": "Configure LLM API keys (GEMINI_API_KEY or AZURE_OPENAI_API_KEY)"
+        }
+    )
+
+
+@app.exception_handler(StudyDataLoadError)
+async def study_data_handler(request: Request, exc: StudyDataLoadError):
+    """Handle study data load errors - return 503 Service Unavailable."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": "study_data_unavailable",
+            "message": str(exc),
+            "action": "Run data migration to load study data from Excel to database"
+        }
+    )
+
+
+@app.exception_handler(ConfigurationError)
+async def configuration_handler(request: Request, exc: ConfigurationError):
+    """Handle configuration errors - return 500 Internal Server Error."""
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "configuration_error",
+            "message": str(exc),
+            "action": "Check environment variables and configuration"
+        }
+    )
+
+
 # Include routers
 app.include_router(health.router, tags=["Health"])
 app.include_router(uc1_readiness.router, prefix="/api/v1/uc1", tags=["UC1: Regulatory Readiness"])
@@ -51,6 +140,7 @@ app.include_router(uc5_dashboard.router, prefix="/api/v1/uc5", tags=["UC5: Execu
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(protocol_digitization.router, prefix="/api/v1/protocol", tags=["Protocol Digitization"])
 app.include_router(simulation.router, prefix="/api/v1/simulation", tags=["Monte Carlo Simulation"])
+app.include_router(data_browser.router, prefix="/api/v1/data-browser", tags=["Data Browser"])
 
 # Vite dev server URL for proxying frontend requests (development only)
 VITE_DEV_URL = os.getenv("VITE_DEV_URL", "http://127.0.0.1:5173")

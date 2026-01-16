@@ -17,6 +17,7 @@ class DeviationType(str, Enum):
     """Types of protocol deviations detected by the system."""
     VISIT_TIMING = "visit_timing"
     MISSING_ASSESSMENT = "missing_assessment"
+    MISSED_VISIT = "missed_visit"
     IE_VIOLATION = "ie_violation"
     CONSENT_TIMING = "consent_timing"
     AE_REPORTING = "ae_reporting"

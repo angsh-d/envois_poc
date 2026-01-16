@@ -140,6 +140,11 @@ class AgentResult:
     llm_calls: int = 0
     uncertainty: Optional[UncertaintyInfo] = None
     reasoning: Optional[str] = None  # Explicit reasoning for AI-generated content
+    # Display configuration for intelligent response rendering
+    preferred_display: str = "narrative"  # narrative, table, chart, metric_grid, mixed
+    chart_data: Optional[Dict[str, Any]] = None
+    table_data: Optional[Dict[str, Any]] = None
+    metric_grid: Optional[List[Dict[str, Any]]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized sources."""
@@ -153,11 +158,18 @@ class AgentResult:
             "error": self.error,
             "execution_time_ms": self.execution_time_ms,
             "llm_calls": self.llm_calls,
+            "preferred_display": self.preferred_display,
         }
         if self.uncertainty:
             result["uncertainty"] = self.uncertainty.to_dict()
         if self.reasoning:
             result["reasoning"] = self.reasoning
+        if self.chart_data:
+            result["chart_data"] = self.chart_data
+        if self.table_data:
+            result["table_data"] = self.table_data
+        if self.metric_grid:
+            result["metric_grid"] = self.metric_grid
         return result
 
     def add_source(

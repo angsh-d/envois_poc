@@ -11,6 +11,7 @@ from app.api.routers import (
     uc5_dashboard,
     protocol_digitization,
     simulation,
+    data_browser,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "uc5_dashboard",
     "protocol_digitization",
     "simulation",
+    "data_browser",
 ]

@@ -10,6 +10,7 @@ import StudyProtocol from './pages/StudyProtocol'
 import DataSources from './pages/DataSources'
 import Agents from './pages/Agents'
 import SimulationStudio from './pages/SimulationStudio'
+import DataBrowser from './pages/DataBrowser'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
       <Route path="/study/:studyId/simulation">{(params) => <SimulationStudio params={params} />}</Route>
       <Route path="/study/:studyId/data">{(params) => <DataSources params={params} />}</Route>
       <Route path="/study/:studyId/agents">{(params) => <Agents params={params} />}</Route>
+      <Route path="/study/:studyId/browser">{(params) => <DataBrowser params={params} />}</Route>
     </Switch>
   )
 }

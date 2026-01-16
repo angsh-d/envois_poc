@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel, Field
 
 from app.services.risk_service import get_risk_service
+from app.services.cache_service import get_cache_service
 
 router = APIRouter()
 
@@ -81,6 +82,10 @@ class PopulationRiskResponse(BaseModel):
     high_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
     moderate_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
     low_risk_patients: List[PatientRiskDetail] = Field(default_factory=list)
+    high_risk_count: int = Field(default=0, description="Count of high risk patients")
+    moderate_risk_count: int = Field(default=0, description="Count of moderate risk patients")
+    low_risk_count: int = Field(default=0, description="Count of low risk patients")
+    high_risk_pct: float = Field(default=0.0, description="Percentage of high risk patients")
     factor_prevalence: List[FactorPrevalence] = Field(default_factory=list)
     mean_risk_score: float = Field(..., description="Mean risk score")
     median_risk_score: Optional[float] = Field(None, description="Median risk score")
@@ -156,8 +161,16 @@ async def get_population_risk() -> PopulationRiskResponse:
     Returns aggregate statistics on risk stratification
     across all enrolled patients.
     """
+    # Check cache first
+    cache = get_cache_service()
+    cached = await cache.get("risk-population")
+    if cached and not cached.get("is_stale"):
+        return PopulationRiskResponse(**cached["data"])
+
+    # Cache miss - compute and cache result
     service = get_risk_service()
     result = await service.get_population_risk()
+    await cache.set("risk-population", result)
 
     return PopulationRiskResponse(**result)
 
@@ -170,8 +183,15 @@ async def get_risk_factors() -> RiskFactorsResponse:
     Returns literature-derived hazard ratios and sources
     for each risk factor in the model.
     """
+    # Check cache first (risk factors are static)
+    cache = get_cache_service()
+    cached = await cache.get("risk-factors")
+    if cached and not cached.get("is_stale"):
+        return RiskFactorsResponse(**cached["data"])
+
     service = get_risk_service()
     result = await service.get_risk_factors()
+    await cache.set("risk-factors", result)
 
     return RiskFactorsResponse(**result)
 

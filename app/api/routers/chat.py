@@ -24,6 +24,7 @@ from app.agents.data_agent import DataAgent
 from app.agents.literature_agent import LiteratureAgent
 from app.agents.registry_agent import RegistryAgent
 from app.agents.code_agent import get_code_agent, CodeLanguage
+from data.vectorstore import get_vector_store
 
 
 class IntentClassification(BaseModel):
@@ -33,6 +34,7 @@ class IntentClassification(BaseModel):
     needs_clinical_data: bool = Field(default=False, description="Needs study-specific clinical data")
     needs_multi_registry: bool = Field(default=False, description="Needs all 5 registries comparison")
     needs_multi_source_synthesis: bool = Field(default=False, description="Needs cross-source synthesis")
+    needs_rag: bool = Field(default=False, description="Needs document-level RAG context from PDFs")
     query_type: str = Field(default="general", description="Specific query type for specialized handling")
     confidence: float = Field(default=0.5, description="Classification confidence 0-1")
 
@@ -137,6 +139,109 @@ class Evidence(BaseModel):
     total_sample_size: Optional[int] = None  # Combined n across all sources
 
 
+class DisplayPreference(str, Enum):
+    """Preferred display format for response."""
+    NARRATIVE = "narrative"
+    TABLE = "table"
+    CHART = "chart"
+    METRIC_GRID = "metric_grid"
+    MIXED = "mixed"
+
+
+class ChartType(str, Enum):
+    """Type of chart to display."""
+    LINE = "line"
+    BAR = "bar"
+    AREA = "area"
+    SCATTER = "scatter"
+    KAPLAN_MEIER = "kaplan_meier"
+
+
+class ChartDataPoint(BaseModel):
+    """Single data point for chart."""
+    x: float
+    y: float
+    label: Optional[str] = None
+
+
+class ChartSeries(BaseModel):
+    """A data series for chart."""
+    name: str
+    data: List[ChartDataPoint]
+    color: Optional[str] = None
+
+
+class ReferenceLine(BaseModel):
+    """Reference line on chart."""
+    value: float
+    label: str
+    color: Optional[str] = None
+    axis: str = "y"  # x or y
+
+
+class ChartConfig(BaseModel):
+    """Configuration for chart display."""
+    chart_type: ChartType
+    title: str
+    x_label: str
+    y_label: str
+    series: List[ChartSeries]
+    reference_lines: Optional[List[ReferenceLine]] = None
+    x_domain: Optional[List[float]] = None
+    y_domain: Optional[List[float]] = None
+    show_legend: bool = True
+
+
+class TableColumn(BaseModel):
+    """Column definition for table."""
+    key: str
+    header: str
+    sortable: bool = True
+    align: str = "left"  # left, center, right
+    format: Optional[str] = None  # percent, number, date
+
+
+class HighlightRule(BaseModel):
+    """Rule for highlighting table cells."""
+    column: str
+    condition: str  # "gt", "lt", "eq", "between"
+    value: Any
+    color: str  # CSS color
+
+
+class TableConfig(BaseModel):
+    """Configuration for table display."""
+    title: str
+    columns: List[TableColumn]
+    rows: List[Dict[str, Any]]
+    sortable: bool = True
+    highlight_rules: Optional[List[HighlightRule]] = None
+
+
+class MetricCard(BaseModel):
+    """Single metric card for metric grid."""
+    label: str
+    value: str
+    change: Optional[str] = None  # e.g., "+5%"
+    change_direction: Optional[str] = None  # up, down, neutral
+    status: Optional[str] = None  # good, warning, critical
+
+
+class NarrativeSection(BaseModel):
+    """Section of narrative content."""
+    heading: Optional[str] = None
+    content: str
+
+
+class DisplayData(BaseModel):
+    """Display configuration for intelligent response rendering."""
+    preferred_display: DisplayPreference = DisplayPreference.NARRATIVE
+    chart_data: Optional[ChartConfig] = None
+    table_data: Optional[TableConfig] = None
+    metric_grid: Optional[List[MetricCard]] = None
+    narrative_sections: Optional[List[NarrativeSection]] = None
+
+
 class ChatMessage(BaseModel):
     """Chat message in conversation history."""
     role: str  # user or assistant
@@ -158,6 +263,7 @@ class ChatResponse(BaseModel):
     response: str
     sources: List[Source]
     evidence: Optional[Evidence] = None  # Detailed evidence supporting the response
+    display: Optional[DisplayData] = None  # Intelligent display format
     suggested_followups: Optional[List[str]] = None
     cached: bool = False  # Whether response came from cache
 
@@ -256,6 +362,16 @@ INTENT_KEYWORDS = {
         "revision-free survival", "revision free survival", "time-to-event",
         "time to event", "implant survival", "survival rate", "survival data",
         "km analysis", "km curve", "censored", "event-free", "survivorship"
+    ],
+    "rag": [
+        # Keywords for RAG-based document retrieval
+        "protocol says", "according to protocol", "protocol states",
+        "in the protocol", "document says", "explain from literature",
+        "what does the registry report", "registry report says",
+        "detailed explanation", "more details", "elaborate on",
+        "original source", "citation", "quote from", "reference from",
+        "procedure", "methodology", "follow-up schedule", "visit window",
+        "eligibility criteria", "inclusion", "exclusion", "endpoint"
     ]
 }
 
@@ -423,6 +539,10 @@ async def detect_question_intent_llm(question: str, page_context: str) -> Set[st
         if intent_obj.needs_multi_source_synthesis:
             intents.add("multi_source")
 
+        # RAG document retrieval for detailed context
+        if intent_obj.needs_rag:
+            intents.add("rag")
+
         # Map query_type to specific intents
         # Some query types require specific sources (e.g., revision_reasons needs registry)
         query_type_intents = {
@@ -556,6 +676,12 @@ def detect_question_intent_keywords(question: str) -> Set[str]:
             intents.add("survival_analysis")
             break
 
+    # Check for RAG keywords (document-level retrieval)
+    for keyword in INTENT_KEYWORDS["rag"]:
+        if keyword in question_lower:
+            intents.add("rag")
+            break
+
     # Check for comparison keywords (needs multiple sources)
     for keyword in INTENT_KEYWORDS["comparison"]:
         if keyword in question_lower:
@@ -573,9 +699,14 @@ def detect_question_intent_keywords(question: str) -> Set[str]:
     return intents
 
 
-async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
+async def query_agents(intents: Set[str], study_id: str, query: str = "") -> Dict[str, Any]:
     """
     Query relevant agents based on detected intents.
+
+    Args:
+        intents: Set of detected intents
+        study_id: Study identifier
+        query: User's query text (for RAG search)
 
     Returns aggregated data from all queried agents.
     """
@@ -583,6 +714,7 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
         "data": None,
         "literature": None,
         "registry": None,
+        "rag": None,
         "sources": [],
         "evidence": {
             "metrics": [],
@@ -1207,6 +1339,56 @@ async def query_agents(intents: Set[str], study_id: str) -> Dict[str, Any]:
         except Exception as e:
             logger.warning(f"Registry agent error: {e}")
 
+    # Query RAG Vector Store for document-level context
+    if "rag" in intents:
+        if not query or not query.strip():
+            logger.warning("RAG intent detected but query is empty - skipping RAG search")
+        else:
+            try:
+                store = get_vector_store()
+                # Search across all source types for comprehensive context
+                rag_results_by_source = store.search_multi_source(
+                    query=query,
+                    source_types=["protocol", "literature", "registry"],
+                    n_results_per_source=3
+                )
+                # Flatten results from all source types
+                all_rag_results = []
+                for source_type, source_results in rag_results_by_source.items():
+                    for r in source_results:
+                        # Fix: Handle distance=0 correctly (perfect match should be relevance=1.0)
+                        distance = r.get("distance")
+                        relevance = 1.0 - distance if distance is not None else 0.8
+                        all_rag_results.append({
+                            "content": r.get("content", "")[:500],  # Truncate for context
+                            "source_file": r.get("metadata", {}).get("source_file", "unknown"),
+                            "source_type": source_type,
+                            "page_number": r.get("metadata", {}).get("page_number"),
+                            "relevance": relevance
+                        })
+
+                if all_rag_results:
+                    results["rag"] = {
+                        "n_results": len(all_rag_results),
+                        "results": all_rag_results
+                    }
+                    results["sources"].append({
+                        "type": "rag_documents",
+                        "reference": f"Document Retrieval ({len(all_rag_results)} chunks)",
+                        "confidence": 0.85,
+                        "confidence_level": "high",
+                        "lineage": DataLineage.RAW_DATA.value,
+                        "metadata": {
+                            "n_chunks": len(all_rag_results),
+                            "source_types": list(rag_results_by_source.keys()),
+                            "strengths": ["Direct document quotes", "Full text context"],
+                            "limitations": ["May include tangential content"]
+                        }
+                    })
+                    logger.info(f"RAG search returned {len(all_rag_results)} chunks")
+            except Exception as e:
+                logger.warning(f"RAG search error: {e}")
+
     return results
 
 
@@ -1538,6 +1720,29 @@ def build_agent_context(agent_results: Dict[str, Any], page_context: str) -> str
 
         context_parts.append("")
 
+    # Add RAG document context
+    if agent_results.get("rag"):
+        rag = agent_results["rag"]
+        rag_results = rag.get("results", [])
+        if rag_results:
+            context_parts.append("=== DOCUMENT CONTEXT (RAG) ===")
+            context_parts.append(f"Retrieved {len(rag_results)} relevant document chunks:")
+            context_parts.append("")
+
+            for i, result in enumerate(rag_results[:5], 1):
+                source_type = result.get("source_type", "unknown")
+                source_file = result.get("source_file", "unknown")
+                page = result.get("page_number", "N/A")
+                content = result.get("content", "")
+                relevance = result.get("relevance", 0)
+
+                context_parts.append(f"[{i}] Source: {source_file} (Type: {source_type}, Page: {page}, Relevance: {relevance:.2f})")
+                context_parts.append(f"    Content: {content[:400]}...")
+                context_parts.append("")
+
+            context_parts.append("Note: When answering, cite specific document sources using format [Source: filename, Page: X]")
+            context_parts.append("")
+
     return "\n".join(context_parts)
 
 
@@ -1578,7 +1783,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         logger.info(f"Detected intents for question: {intents}")
 
         # Step 2: Query relevant agents
-        agent_results = await query_agents(intents, request.study_id)
+        agent_results = await query_agents(intents, request.study_id, query=request.message)
 
         # Step 3: Build context from agent results
         agent_context = build_agent_context(agent_results, request.context)

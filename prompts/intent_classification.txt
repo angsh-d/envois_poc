@@ -9,7 +9,8 @@ Based on the question, classify the intent by determining:
 3. needs_clinical_data - Does the question need study-specific clinical/patient data?
 4. needs_multi_registry - Does the question require comparing ALL 5 registries?
 5. needs_multi_source_synthesis - Does the question require synthesizing multiple source types?
-6. query_type - Specific query type for specialized handling:
+6. needs_rag - Does the question need document-level context from PDFs (protocol details, methodology, specific quotes, eligibility criteria, visit schedules)?
+7. query_type - Specific query type for specialized handling:
    - "revision_reasons" - Questions about why revisions occur
    - "threshold_proximity" - Questions about proximity to regulatory thresholds
    - "outcomes_by_indication" - Questions about outcomes by patient indication
@@ -29,6 +30,9 @@ Examples:
 - "How many patients have experienced adverse events?" -> needs_clinical_data=true, query_type="safety_signals"
 - "Show me the Kaplan-Meier survival curve for our study" -> needs_clinical_data=true, query_type="survival_analysis"
 - "What is the revision-free survival rate in our study?" -> needs_clinical_data=true, query_type="survival_analysis"
+- "What are the eligibility criteria in the protocol?" -> needs_rag=true, query_type="general"
+- "What does the AOANJRR report say about methodology?" -> needs_rag=true, needs_registry=true, query_type="registry_metadata"
+- "Explain the visit schedule from the protocol" -> needs_rag=true, query_type="general"
 
 Respond with a JSON object only, no other text:
 {{
@@ -37,6 +41,7 @@ Respond with a JSON object only, no other text:
   "needs_clinical_data": true or false,
   "needs_multi_registry": true or false,
   "needs_multi_source_synthesis": true or false,
+  "needs_rag": true or false,
   "query_type": "one of the query types above",
   "confidence": 0.0 to 1.0
 }}

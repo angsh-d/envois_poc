@@ -12,7 +12,7 @@ import uuid
 
 from app.agents.base_agent import AgentContext, AgentType, get_orchestrator
 from app.agents.protocol_agent import ProtocolAgent
-from app.agents.data_agent import DataAgent
+from app.agents.data_agent import DataAgent, get_study_data
 from app.agents.compliance_agent import ComplianceAgent
 from app.agents.synthesis_agent import SynthesisAgent
 from app.detectors import (
@@ -22,8 +22,9 @@ from app.detectors import (
     DetectorResult,
 )
 from app.config import settings
+from app.exceptions import StudyDataLoadError, DatabaseUnavailableError
 from data.loaders.yaml_loader import get_hybrid_loader
-from data.loaders.excel_loader import H34ExcelLoader
+from data.loaders.db_loader import get_db_loader
 
 logger = logging.getLogger(__name__)
 
@@ -52,26 +53,19 @@ class DeviationsService:
 
     def _get_study_data(self):
         """
-        Load and cache H-34 study data from Excel.
+        Load and cache H-34 study data from database.
 
-        Uses same data source as DataAgent for consistency across all use cases.
-        Primary data takes precedence over synthetic data.
+        Uses the centralized get_study_data() function from data_agent
+        which handles database loading and model conversion.
+
+        Raises:
+            StudyDataLoadError: If study data cannot be loaded from database
+            DatabaseUnavailableError: If database is not available
         """
         if self._study_data is None:
-            # Use centralized path configuration (same as DataAgent)
-            # This ensures Readiness and Deviations pages use identical data
-            excel_path = settings.get_h34_study_data_path()
-
-            # Fall back to synthetic if primary doesn't exist
-            if not excel_path.exists():
-                excel_path = settings.get_h34_synthetic_data_path()
-
-            if excel_path.exists():
-                loader = H34ExcelLoader(excel_path)
-                self._study_data = loader.load()
-                logger.info(f"Loaded H-34 study data from {excel_path.name}: {self._study_data.total_patients} patients")
-            else:
-                logger.warning(f"H-34 Excel file not found at {excel_path}")
+            # Use the centralized study data loader from data_agent
+            self._study_data = get_study_data()
+            logger.info(f"Loaded H-34 study data: {self._study_data.total_patients} patients")
 
         return self._study_data
 

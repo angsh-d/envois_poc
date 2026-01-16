@@ -228,12 +228,14 @@ class StudyPatient(Base):
     affected_side = Column(String(20))
     primary_diagnosis = Column(String(200))
     medical_history = Column(Text)
+    previous_hip_surgery_affected = Column(String(10))  # Yes/No - prior surgery on affected side
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     adverse_events = relationship("StudyAdverseEvent", back_populates="patient")
     scores = relationship("StudyScore", back_populates="patient")
     visits = relationship("StudyVisit", back_populates="patient")
+    surgery = relationship("StudySurgery", back_populates="patient", uselist=False)
 
 
 class StudyAdverseEvent(Base):
@@ -332,6 +334,8 @@ class StudySurgery(Base):
     head_diameter = Column(Float)
     implant_details = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    patient = relationship("StudyPatient", back_populates="surgery")
 
 
 class HazardRatioEstimate(Base):

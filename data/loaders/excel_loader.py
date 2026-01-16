@@ -427,6 +427,27 @@ class H34ExcelLoader:
                 logger.warning(f"Validation error for explant row: {e}")
         return explants
 
+    def _load_follow_ups(self, df: pd.DataFrame, follow_up_type: str) -> List[FollowUp]:
+        """Parse follow-up visit data from DataFrame."""
+        follow_ups = []
+        for _, row in df.iterrows():
+            try:
+                fu = FollowUp(
+                    facility=self._safe_str(row.get("Facility", "")),
+                    Id=self._safe_str(row.get("Id", "")),
+                    follow_up_type=follow_up_type,
+                    follow_up_date=self._parse_date(row.get("Date", row.get("Data FU"))),
+                    pain_status=self._safe_str(row.get("Missing")),
+                    mobility_status=self._safe_str(row.get("Missing reason")),
+                    wound_healing=self._safe_str(row.get("In range")),
+                    complications=self._safe_str(row.get("Reason details")),
+                    notes=self._safe_str(row.get("Notes")),
+                )
+                follow_ups.append(fu)
+            except ValidationError as e:
+                logger.warning(f"Validation error for follow-up row: {e}")
+        return follow_ups
+
     def load(self) -> H34StudyData:
         """
         Load and parse the complete H-34 study data.
@@ -466,6 +487,21 @@ class H34ExcelLoader:
                     self._load_radiographic(self._raw_data[sheet_name], label)
                 )
 
+        # Load all follow-up visits
+        follow_ups = []
+        fu_sheets = [
+            ("7 FU at discharge", "Discharge"),
+            ("9 FU 2 Months", "2 Months"),
+            ("11 FU 6 Months", "6 Months"),
+            ("13 FU 1 Year", "1 Year"),
+            ("15 FU 2 Years", "2 Years"),
+        ]
+        for sheet_name, fu_type in fu_sheets:
+            if sheet_name in self._raw_data:
+                follow_ups.extend(
+                    self._load_follow_ups(self._raw_data[sheet_name], fu_type)
+                )
+
         # Extract unique facilities
         facilities = list(set(p.facility for p in patients if p.facility))
 
@@ -476,6 +512,7 @@ class H34ExcelLoader:
             radiographic_evaluations=radiographic_evals,
             intraoperatives=intraoperatives,
             surgery_data=surgery_data,
+            follow_ups=follow_ups,
             adverse_events=adverse_events,
             hhs_scores=hhs_scores,
             ohs_scores=ohs_scores,
@@ -491,6 +528,7 @@ class H34ExcelLoader:
         logger.info(f"  Intraoperatives: {len(study_data.intraoperatives)}")
         logger.info(f"  Surgery records: {len(study_data.surgery_data)}")
         logger.info(f"  Radiographic evaluations: {len(study_data.radiographic_evaluations)}")
+        logger.info(f"  Follow-up visits: {len(study_data.follow_ups)}")
         logger.info(f"  Adverse events: {study_data.total_adverse_events}")
         logger.info(f"  HHS scores: {len(study_data.hhs_scores)}")
         logger.info(f"  OHS scores: {len(study_data.ohs_scores)}")

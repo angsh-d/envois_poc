@@ -74,6 +74,11 @@ class Patient(BaseModel):
     consent_date: Optional[date] = Field(None, description="Consent date")
     enrolled: Optional[str] = Field(None, description="Enrollment status")
     status: Optional[str] = Field(None, description="Current patient status")
+    # Merged from preoperative data for risk factor extraction
+    medical_history: Optional[str] = Field(None, description="Relevant medical history (comorbidities)")
+    primary_diagnosis: Optional[str] = Field(None, description="Primary diagnosis")
+    affected_side: Optional[str] = Field(None, description="Affected side (Left/Right/Bilateral)")
+    surgery_date: Optional[date] = Field(None, description="Surgery date")
 
     class Config:
         populate_by_name = True

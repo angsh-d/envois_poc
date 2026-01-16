@@ -693,12 +693,15 @@ def get_doc_loader() -> DocumentAsCodeLoader:
 
 class HybridLoader:
     """
-    Hybrid loader that tries database first, then falls back to files.
-    Provides seamless transition from file-based to database-backed storage.
+    Database-first loader for production.
+    Raises exceptions instead of falling back to files.
+
+    Note: Patient risk factors and outcome benchmarks are still merged from YAML
+    as supplementary reference data (not a fallback).
     """
 
     def __init__(self):
-        self._file_loader = get_doc_loader()
+        self._file_loader = get_doc_loader()  # For supplementary data only
         self._db_loader = None
 
     def _get_db_loader(self):
@@ -708,67 +711,109 @@ class HybridLoader:
                 from data.loaders.db_loader import get_db_loader
                 self._db_loader = get_db_loader()
             except Exception as e:
-                logger.warning(f"Database loader not available: {e}")
+                logger.error(f"Database loader not available: {e}")
         return self._db_loader
 
-    def load_protocol_rules(self) -> ProtocolRules:
-        """Load protocol rules from DB or files."""
+    def _ensure_db_available(self):
+        """Ensure database is available, raise exception if not."""
+        from app.exceptions import DatabaseUnavailableError
+
         db_loader = self._get_db_loader()
-        if db_loader and db_loader.is_available():
-            result = db_loader.load_protocol_rules()
-            if result:
-                logger.debug("Loaded protocol rules from database")
-                return result
-        logger.debug("Loading protocol rules from files (fallback)")
-        return self._file_loader.load_protocol_rules()
+        if not db_loader or not db_loader.is_available():
+            raise DatabaseUnavailableError(
+                "Database is not available. Ensure DATABASE_URL is configured and database is accessible."
+            )
+        return db_loader
+
+    def load_protocol_rules(self) -> ProtocolRules:
+        """Load protocol rules from database only.
+
+        Raises:
+            DatabaseUnavailableError: If database is not available
+            DataNotFoundError: If protocol rules not found in database
+        """
+        from app.exceptions import DataNotFoundError
+
+        db_loader = self._ensure_db_available()
+        result = db_loader.load_protocol_rules()
+
+        if not result:
+            raise DataNotFoundError(
+                "Protocol rules not found in database. Run migration script to load protocol data."
+            )
+
+        logger.debug("Loaded protocol rules from database")
+        return result
 
     def load_literature_benchmarks(self) -> LiteratureBenchmarks:
-        """Load literature benchmarks from DB or files.
+        """Load literature benchmarks from database.
 
-        Always merges patient_risk_factors and outcome_benchmarks from YAML
-        since they may not be in DB.
+        Note: Patient risk factors and outcome benchmarks are merged from YAML
+        as supplementary reference data (these are literature constants, not study data).
+
+        Raises:
+            DatabaseUnavailableError: If database is not available
+            DataNotFoundError: If literature benchmarks not found in database
         """
-        db_loader = self._get_db_loader()
-        if db_loader and db_loader.is_available():
-            result = db_loader.load_literature_benchmarks()
-            if result:
-                logger.debug("Loaded literature benchmarks from database")
-                # Always merge from YAML (not stored in DB)
-                yaml_data = self._file_loader.load_literature_benchmarks()
+        from app.exceptions import DataNotFoundError
 
-                # Merge patient_risk_factors
-                patient_risk_factors = [
-                    rf for rf in yaml_data.all_risk_factors
-                    if rf.factor in ['age_over_80', 'bmi_over_35', 'diabetes', 'osteoporosis',
-                                    'rheumatoid_arthritis', 'chronic_kidney_disease', 'smoking',
-                                    'prior_revision', 'severe_bone_loss', 'paprosky_3b']
-                ]
-                if patient_risk_factors:
-                    existing_factors = {rf.factor for rf in result.all_risk_factors}
-                    for rf in patient_risk_factors:
-                        if rf.factor not in existing_factors:
-                            result.all_risk_factors.append(rf)
-                    logger.debug(f"Merged {len(patient_risk_factors)} patient risk factors from YAML")
+        db_loader = self._ensure_db_available()
+        result = db_loader.load_literature_benchmarks()
 
-                # Merge outcome_benchmarks (meta-analysis data like Kunutsor 2019)
-                if yaml_data.outcome_benchmarks:
-                    result.outcome_benchmarks = yaml_data.outcome_benchmarks
-                    logger.debug(f"Merged outcome_benchmarks from YAML: {list(yaml_data.outcome_benchmarks.keys())}")
+        if not result:
+            raise DataNotFoundError(
+                "Literature benchmarks not found in database. Run migration script to load literature data."
+            )
 
-                return result
-        logger.debug("Loading literature benchmarks from files (fallback)")
-        return self._file_loader.load_literature_benchmarks()
+        logger.debug("Loaded literature benchmarks from database")
+
+        # Merge supplementary reference data from YAML (not a fallback)
+        # These are static literature constants used for risk calculation
+        try:
+            yaml_data = self._file_loader.load_literature_benchmarks()
+
+            # Merge patient_risk_factors (static hazard ratios from literature)
+            patient_risk_factors = [
+                rf for rf in yaml_data.all_risk_factors
+                if rf.factor in ['age_over_80', 'bmi_over_35', 'diabetes', 'osteoporosis',
+                                'rheumatoid_arthritis', 'chronic_kidney_disease', 'smoking',
+                                'prior_revision', 'severe_bone_loss', 'paprosky_3b']
+            ]
+            if patient_risk_factors:
+                existing_factors = {rf.factor for rf in result.all_risk_factors}
+                for rf in patient_risk_factors:
+                    if rf.factor not in existing_factors:
+                        result.all_risk_factors.append(rf)
+                logger.debug(f"Merged {len(patient_risk_factors)} patient risk factors from YAML reference")
+
+            # Merge outcome_benchmarks (meta-analysis data like Kunutsor 2019)
+            if yaml_data.outcome_benchmarks:
+                result.outcome_benchmarks = yaml_data.outcome_benchmarks
+                logger.debug(f"Merged outcome_benchmarks from YAML reference: {list(yaml_data.outcome_benchmarks.keys())}")
+        except Exception as e:
+            logger.warning(f"Could not load supplementary YAML reference data: {e}")
+
+        return result
 
     def load_registry_norms(self) -> RegistryNorms:
-        """Load registry norms from DB or files."""
-        db_loader = self._get_db_loader()
-        if db_loader and db_loader.is_available():
-            result = db_loader.load_registry_norms()
-            if result:
-                logger.debug("Loaded registry norms from database")
-                return result
-        logger.debug("Loading registry norms from files (fallback)")
-        return self._file_loader.load_registry_norms()
+        """Load registry norms from database only.
+
+        Raises:
+            DatabaseUnavailableError: If database is not available
+            DataNotFoundError: If registry norms not found in database
+        """
+        from app.exceptions import DataNotFoundError
+
+        db_loader = self._ensure_db_available()
+        result = db_loader.load_registry_norms()
+
+        if not result:
+            raise DataNotFoundError(
+                "Registry norms not found in database. Run migration script to load registry data."
+            )
+
+        logger.debug("Loaded registry norms from database")
+        return result
 
 
 _hybrid_loader: Optional[HybridLoader] = None

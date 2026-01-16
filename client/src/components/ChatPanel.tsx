@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check, Zap } from 'lucide-react'
-import { ChatMessage, sendChatMessage, Source, Evidence, generateCode, isCodeGenerationRequest, CodeGenerationResponse } from '@/lib/api'
+import { ChatMessage, sendChatMessage, Source, Evidence, generateCode, isCodeGenerationRequest, CodeGenerationResponse, DisplayData } from '@/lib/api'
 import { ResponseDisplay } from './ResponseDisplay'
 import { ProvenanceCard } from './ProvenanceCard'
 import { EvidencePanel } from './EvidencePanel'
@@ -28,6 +28,7 @@ interface CachedResponse {
   evidence?: Evidence
   timestamp: number
   codeResponse?: CodeGenerationResponse
+  display?: DisplayData
 }
 
 function CodeBlock({ code, language }: { code: string; language: string }) {
@@ -132,12 +133,13 @@ function getCachedResponse(key: string): CachedResponse | null {
 }
 
 // Set cached response
-function setCachedResponse(key: string, response: string, sources: Source[], evidence?: Evidence): void {
+function setCachedResponse(key: string, response: string, sources: Source[], evidence?: Evidence, display?: DisplayData): void {
   try {
     const data: CachedResponse = {
       response,
       sources,
       evidence,
+      display,
       timestamp: Date.now()
     }
     localStorage.setItem(key, JSON.stringify(data))
@@ -237,6 +239,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           evidence: cached.evidence,
           timestamp: new Date().toISOString(),
           codeResponse: cached.codeResponse,
+          display: cached.display,
         }
         setMessages((prev) => [...prev, assistantMessage])
       } else if (isCodeRequest) {
@@ -275,7 +278,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         )
 
         // Cache the response
-        setCachedResponse(cacheKey, response.response, response.sources, response.evidence)
+        setCachedResponse(cacheKey, response.response, response.sources, response.evidence, response.display)
 
         const assistantMessage: ChatMessage = {
           role: 'assistant',
@@ -283,6 +286,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           sources: response.sources,
           evidence: response.evidence,
           timestamp: new Date().toISOString(),
+          display: response.display,
         }
         setMessages((prev) => [...prev, assistantMessage])
 
@@ -459,7 +463,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
                   }}
                 >
                   {msg.role === 'assistant' ? (
-                    <ResponseDisplay content={msg.content} isExpanded={panelSize !== 'compact'} />
+                    <ResponseDisplay content={msg.content} isExpanded={panelSize !== 'compact'} display={msg.display} />
                   ) : (
                     <p className="text-[14px] leading-relaxed whitespace-pre-wrap text-white">
                       {msg.content}

@@ -281,8 +281,15 @@ class DatabaseLoader:
                     "work_status": p.work_status,
                     "smoking_habits": p.smoking_habits,
                     "alcohol_habits": p.alcohol_habits,
+                    "concomitant_medications": p.concomitant_medications,
                     "enrolled": p.enrolled,
-                    "status": p.status
+                    "status": p.status,
+                    # Preoperative data merged into patient record
+                    "medical_history": p.medical_history,
+                    "primary_diagnosis": p.primary_diagnosis,
+                    "affected_side": p.affected_side,
+                    "previous_hip_surgery_affected": p.previous_hip_surgery_affected,
+                    "surgery_date": p.surgery_date.isoformat() if p.surgery_date else None,
                 }
                 for p in patients
             ]
@@ -308,6 +315,8 @@ class DatabaseLoader:
                     "patient_id": e.patient.patient_id if e.patient else None,
                     "ae_id": e.ae_id,
                     "report_type": e.report_type,
+                    "initial_report_date": e.initial_report_date.isoformat() if e.initial_report_date else None,
+                    "report_date": e.report_date.isoformat() if e.report_date else None,
                     "onset_date": e.onset_date.isoformat() if e.onset_date else None,
                     "ae_title": e.ae_title,
                     "event_narrative": e.event_narrative,
@@ -318,7 +327,9 @@ class DatabaseLoader:
                     "device_relationship": e.device_relationship,
                     "procedure_relationship": e.procedure_relationship,
                     "expectedness": e.expectedness,
-                    "action_taken": e.action_taken
+                    "action_taken": e.action_taken,
+                    "device_removed": "Yes" if e.device_removed else "No",
+                    "device_removal_date": e.device_removal_date.isoformat() if e.device_removal_date else None
                 }
                 for e in events
             ]
@@ -368,11 +379,13 @@ class DatabaseLoader:
             return []
 
         try:
-            surgeries = session.query(StudySurgery).all()
+            surgeries = session.query(StudySurgery).options(
+                joinedload(StudySurgery.patient)
+            ).all()
             return [
                 {
                     "id": s.id,
-                    "patient_id": s.patient_id,
+                    "patient_id": s.patient.patient_id if s.patient else None,
                     "surgery_date": s.surgery_date.isoformat() if s.surgery_date else None,
                     "surgical_approach": s.surgical_approach,
                     "anaesthesia": s.anaesthesia,
@@ -388,6 +401,34 @@ class DatabaseLoader:
             ]
         except Exception as e:
             logger.error(f"Error loading surgeries from DB: {e}")
+            return []
+        finally:
+            session.close()
+
+    def load_visits(self) -> List[Dict[str, Any]]:
+        """Load study visits with radiographic data from database."""
+        session = self._get_session()
+        if not session:
+            return []
+
+        try:
+            visits = session.query(StudyVisit).options(
+                joinedload(StudyVisit.patient)
+            ).all()
+            return [
+                {
+                    "id": v.id,
+                    "patient_id": v.patient.patient_id if v.patient else None,
+                    "visit_type": v.visit_type,
+                    "visit_date": v.visit_date.isoformat() if v.visit_date else None,
+                    "days_from_surgery": v.days_from_surgery,
+                    "visit_data": v.visit_data or {},
+                    "radiographic_data": v.radiographic_data or {}
+                }
+                for v in visits
+            ]
+        except Exception as e:
+            logger.error(f"Error loading visits from DB: {e}")
             return []
         finally:
             session.close()
@@ -417,6 +458,58 @@ class DatabaseLoader:
         except Exception as e:
             logger.error(f"Error getting study summary from DB: {e}")
             return {}
+        finally:
+            session.close()
+
+    def health_check(self) -> Dict[str, Any]:
+        """
+        Perform database health check.
+
+        Returns:
+            Dict with status, table counts, and any issues
+
+        Raises:
+            DatabaseUnavailableError: If database is unreachable
+        """
+        from app.exceptions import DatabaseUnavailableError
+
+        if not self._db_available:
+            raise DatabaseUnavailableError(
+                "Database not configured. Set DATABASE_URL environment variable."
+            )
+
+        session = self._get_session()
+        if not session:
+            raise DatabaseUnavailableError(
+                "Could not create database session. Check DATABASE_URL."
+            )
+
+        try:
+            # Check each required table has data
+            checks = {
+                "protocol_rules": session.query(ProtocolRule).count(),
+                "literature_publications": session.query(LiteraturePublication).count(),
+                "registry_benchmarks": session.query(RegistryBenchmark).count(),
+                "study_patients": session.query(StudyPatient).count(),
+            }
+
+            missing = [k for k, v in checks.items() if v == 0]
+            if missing:
+                return {
+                    "status": "degraded",
+                    "missing_data": missing,
+                    "table_counts": checks,
+                    "message": f"Tables with no data: {missing}. Run migration script to load data."
+                }
+
+            return {
+                "status": "healthy",
+                "table_counts": checks,
+                "message": "All required tables have data."
+            }
+        except Exception as e:
+            logger.error(f"Database health check failed: {e}")
+            raise DatabaseUnavailableError(f"Database health check failed: {e}")
         finally:
             session.close()
 

@@ -1,9 +1,14 @@
 import React, { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle2, Info, Globe, BarChart3, Shield } from 'lucide-react'
+import { DisplayData } from '@/lib/api'
+import { ChatChart } from './ChatChart'
+import { ChatTable } from './ChatTable'
+import { ChatMetricGrid } from './ChatMetricGrid'
 
 interface ResponseDisplayProps {
   content: string
   isExpanded?: boolean
+  display?: DisplayData
 }
 
 // Content block types - enhanced for new registry data
@@ -443,8 +448,15 @@ function HighlightedText({ text }: { text: string }) {
   )
 }
 
-export function ResponseDisplay({ content, isExpanded = false }: ResponseDisplayProps) {
+export function ResponseDisplay({ content, isExpanded = false, display }: ResponseDisplayProps) {
   const blocks = useMemo(() => parseContent(content), [content])
+
+  // Check if we have structured display data
+  const hasDisplayData = display && (
+    display.chart_data ||
+    display.table_data ||
+    (display.metric_grid && display.metric_grid.length > 0)
+  )
 
   // Collect table rows if consecutive table blocks
   const processedBlocks = useMemo(() => {
@@ -503,8 +515,28 @@ export function ResponseDisplay({ content, isExpanded = false }: ResponseDisplay
 
   return (
     <div className="space-y-3">
-      {/* Top metrics bar in expanded mode */}
-      {isExpanded && topMetrics.length > 0 && (
+      {/* Structured display components (when display data is present) */}
+      {hasDisplayData && (
+        <div className="space-y-4">
+          {/* Metric Grid */}
+          {display.metric_grid && display.metric_grid.length > 0 && (
+            <ChatMetricGrid metrics={display.metric_grid} />
+          )}
+
+          {/* Chart */}
+          {display.chart_data && (
+            <ChatChart config={display.chart_data} />
+          )}
+
+          {/* Table */}
+          {display.table_data && (
+            <ChatTable config={display.table_data} />
+          )}
+        </div>
+      )}
+
+      {/* Top metrics bar in expanded mode (fallback when no structured display) */}
+      {!hasDisplayData && isExpanded && topMetrics.length > 0 && (
         <div className="flex flex-wrap gap-2 pb-2 border-b border-gray-100">
           {topMetrics.map((metric, i) => (
             <MetricCard key={i} {...metric} />
@@ -512,66 +544,71 @@ export function ResponseDisplay({ content, isExpanded = false }: ResponseDisplay
         </div>
       )}
 
-      {/* Render blocks */}
-      {finalBlocks.map((block, i) => {
-        if (block.type === 'tableGroup' && 'rows' in block) {
-          return <SimpleTable key={i} rows={block.rows} />
-        }
-
-        if (block.type === 'listGroup' && 'items' in block) {
-          return (
-            <ul key={i} className="space-y-1 ml-1">
-              {block.items.map((item, j) => (
-                <li key={j} className="flex items-start gap-2 text-[13px] text-gray-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#007aff] mt-2 flex-shrink-0" />
-                  <span>{parseMarkdown(item)}</span>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-
-        switch (block.type) {
-          case 'heading': {
-            const level = (block.data?.level as number) || 3
-            const headingClasses = {
-              1: 'text-xl font-bold text-gray-900 mt-4 mb-2',
-              2: 'text-lg font-semibold text-gray-900 mt-3 mb-2',
-              3: 'text-[15px] font-semibold text-gray-800 mt-3 mb-1',
-              4: 'text-[14px] font-medium text-gray-700 mt-2 mb-1',
+      {/* Narrative/text content - always shown unless display is chart-only */}
+      {(!hasDisplayData || display?.preferred_display === 'mixed' || display?.preferred_display === 'narrative') && (
+        <>
+          {/* Render blocks */}
+          {finalBlocks.map((block, i) => {
+            if (block.type === 'tableGroup' && 'rows' in block) {
+              return <SimpleTable key={i} rows={block.rows} />
             }
-            return (
-              <h3 key={i} className={headingClasses[level as keyof typeof headingClasses] || headingClasses[3]}>
-                {parseMarkdown(block.content)}
-              </h3>
-            )
-          }
-          case 'threshold':
-            return <ThresholdAlert key={i} content={block.content} />
 
-          case 'registry':
-            return <RegistryCard key={i} content={block.content} />
+            if (block.type === 'listGroup' && 'items' in block) {
+              return (
+                <ul key={i} className="space-y-1 ml-1">
+                  {block.items.map((item, j) => (
+                    <li key={j} className="flex items-start gap-2 text-[13px] text-gray-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#007aff] mt-2 flex-shrink-0" />
+                      <span>{parseMarkdown(item)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
 
-          case 'revision':
-            return <RevisionCard key={i} content={block.content} />
+            switch (block.type) {
+              case 'heading': {
+                const level = (block.data?.level as number) || 3
+                const headingClasses = {
+                  1: 'text-xl font-bold text-gray-900 mt-4 mb-2',
+                  2: 'text-lg font-semibold text-gray-900 mt-3 mb-2',
+                  3: 'text-[15px] font-semibold text-gray-800 mt-3 mb-1',
+                  4: 'text-[14px] font-medium text-gray-700 mt-2 mb-1',
+                }
+                return (
+                  <h3 key={i} className={headingClasses[level as keyof typeof headingClasses] || headingClasses[3]}>
+                    {parseMarkdown(block.content)}
+                  </h3>
+                )
+              }
+              case 'threshold':
+                return <ThresholdAlert key={i} content={block.content} />
 
-          case 'alert':
-            return <AlertBox key={i} content={block.content} type="warning" />
+              case 'registry':
+                return <RegistryCard key={i} content={block.content} />
 
-          case 'highlight':
-            return <AlertBox key={i} content={block.content} type="success" />
+              case 'revision':
+                return <RevisionCard key={i} content={block.content} />
 
-          case 'metric':
-            return <HighlightedText key={i} text={block.content} />
+              case 'alert':
+                return <AlertBox key={i} content={block.content} type="warning" />
 
-          case 'comparison':
-            return <ComparisonBadge key={i} content={block.content} />
+              case 'highlight':
+                return <AlertBox key={i} content={block.content} type="success" />
 
-          case 'text':
-          default:
-            return <HighlightedText key={i} text={block.content} />
-        }
-      })}
+              case 'metric':
+                return <HighlightedText key={i} text={block.content} />
+
+              case 'comparison':
+                return <ComparisonBadge key={i} content={block.content} />
+
+              case 'text':
+              default:
+                return <HighlightedText key={i} text={block.content} />
+            }
+          })}
+        </>
+      )}
     </div>
   )
 }

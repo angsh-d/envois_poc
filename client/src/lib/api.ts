@@ -89,6 +89,7 @@ export interface ChatMessage {
   evidence?: Evidence
   timestamp: string
   codeResponse?: CodeGenerationResponse
+  display?: DisplayData
 }
 
 interface ChatRequest {
@@ -98,11 +99,87 @@ interface ChatRequest {
   history?: ChatMessage[]
 }
 
+// Display types for intelligent chat responses
+export type DisplayPreference = 'narrative' | 'table' | 'chart' | 'metric_grid' | 'mixed'
+export type ChartType = 'line' | 'bar' | 'area' | 'scatter' | 'kaplan_meier'
+
+export interface ChartDataPoint {
+  x: number | string
+  y: number
+  label?: string
+  group?: string
+  ci_lower?: number
+  ci_upper?: number
+}
+
+export interface ChartSeries {
+  name: string
+  color: string
+  data: ChartDataPoint[]
+}
+
+export interface ReferenceLine {
+  y: number
+  label: string
+  color?: string
+  strokeDasharray?: string
+}
+
+export interface ChartConfig {
+  chart_type: ChartType
+  title: string
+  x_label: string
+  y_label: string
+  series: ChartSeries[]
+  reference_lines?: ReferenceLine[]
+  y_domain?: [number, number]
+  show_legend: boolean
+  show_grid: boolean
+}
+
+export interface TableColumn {
+  key: string
+  label: string
+  format: 'text' | 'number' | 'percent' | 'date'
+}
+
+export interface HighlightRule {
+  column: string
+  condition: string
+  style: 'warning' | 'danger' | 'success'
+}
+
+export interface TableConfig {
+  title?: string
+  columns: TableColumn[]
+  rows: Record<string, unknown>[]
+  sortable: boolean
+  highlight_rules?: HighlightRule[]
+}
+
+export interface MetricGridItem {
+  label: string
+  value: string | number
+  trend?: 'up' | 'down' | 'neutral'
+  delta?: string
+  status?: 'success' | 'warning' | 'danger' | 'neutral'
+  icon?: string
+}
+
+export interface DisplayData {
+  preferred_display: DisplayPreference
+  chart_data?: ChartConfig
+  table_data?: TableConfig
+  metric_grid?: MetricGridItem[]
+  narrative_sections?: Array<{ title: string; content: string }>
+}
+
 interface ChatResponse {
   response: string
   sources: Source[]
   evidence?: Evidence
   suggested_followups?: string[]
+  display?: DisplayData
 }
 
 export async function sendChatMessage(
@@ -289,7 +366,6 @@ export interface ReadinessResponse {
   protocol_id?: string
   protocol_version?: string
   is_ready: boolean
-  ready_for_submission: boolean
   blocking_issues: Array<{
     category: string
     issue: string
@@ -500,6 +576,7 @@ export interface DeviationsResponse {
   total_deviations: number
   visits_with_deviations: number
   compliant_visits: number
+  patients_with_patient_level_deviations: number
   deviation_rate: number
   by_severity: Record<string, number>
   by_type: Record<string, number>
@@ -568,6 +645,10 @@ export interface RiskSummaryResponse {
   high_risk_patients: PatientRiskDetail[]
   moderate_risk_patients: PatientRiskDetail[]
   low_risk_patients: PatientRiskDetail[]
+  high_risk_count: number
+  moderate_risk_count: number
+  low_risk_count: number
+  high_risk_pct: number
   factor_prevalence: FactorPrevalence[]
   mean_risk_score: number
   median_risk_score?: number
@@ -761,6 +842,84 @@ export async function quickMonteCarloSimulation(
   const response = await fetch(`${API_BASE}/simulation/monte-carlo/quick?n_patients=${nPatients}&threshold=${threshold}`)
   if (!response.ok) {
     throw new Error(`Quick simulation failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// Data Browser API Types
+export interface DataBrowserTableInfo {
+  name: string
+  row_count: number
+  description: string
+}
+
+export interface DataBrowserColumnSchema {
+  name: string
+  type: string
+  nullable: boolean
+  primary_key: boolean
+}
+
+export interface DataBrowserTableDataResponse {
+  rows: Record<string, unknown>[]
+  total: number
+  page: number
+  limit: number
+  columns: DataBrowserColumnSchema[]
+}
+
+export async function fetchDataBrowserTables(): Promise<DataBrowserTableInfo[]> {
+  const response = await fetch(`${API_BASE}/data-browser/tables`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch tables: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchDataBrowserTableData(
+  tableName: string,
+  page: number = 1,
+  limit: number = 25,
+  sortBy?: string,
+  sortDir: 'asc' | 'desc' = 'asc'
+): Promise<DataBrowserTableDataResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    sort_dir: sortDir,
+  })
+  if (sortBy) {
+    params.set('sort_by', sortBy)
+  }
+  const response = await fetch(`${API_BASE}/data-browser/tables/${tableName}?${params}`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch table data: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchDataBrowserTableSchema(tableName: string): Promise<DataBrowserColumnSchema[]> {
+  const response = await fetch(`${API_BASE}/data-browser/tables/${tableName}/schema`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch table schema: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function updateDataBrowserRow(
+  tableName: string,
+  rowId: number,
+  data: Record<string, unknown>
+): Promise<{ success: boolean; updated: Record<string, unknown> }> {
+  const response = await fetch(`${API_BASE}/data-browser/tables/${tableName}/${rowId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to update row: ${response.statusText}`)
   }
   return response.json()
 }

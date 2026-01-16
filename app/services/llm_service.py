@@ -15,6 +15,7 @@ from openai import AsyncAzureOpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from app.config import settings
+from app.exceptions import LLMServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -243,11 +244,17 @@ class LLMService:
 
         # Check if we have valid credentials for the provider
         if provider == LLMProvider.GEMINI and not self.gemini_api_key:
-            logger.warning("Gemini API key not configured - returning fallback response")
-            return "[AI-generated narrative unavailable - no LLM API key configured]"
+            logger.error("Gemini API key not configured")
+            raise LLMServiceError(
+                "Gemini API key not configured. "
+                "Set GEMINI_API_KEY environment variable."
+            )
         if provider == LLMProvider.AZURE_OPENAI and not self.azure_client:
-            logger.warning("Azure OpenAI not configured - returning fallback response")
-            return "[AI-generated narrative unavailable - no LLM API key configured]"
+            logger.error("Azure OpenAI not configured")
+            raise LLMServiceError(
+                "Azure OpenAI not configured. "
+                "Set AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT environment variables."
+            )
 
         logger.debug(f"Calling {provider.value} model {model} with {len(prompt)} chars")
 

@@ -53,6 +53,7 @@ class DeviationSummaryResponse(BaseModel):
     total_deviations: int = Field(default=0, description="Total deviations detected")
     visits_with_deviations: int = Field(default=0, description="Number of unique visits that have at least one deviation")
     compliant_visits: int = Field(default=0, description="Number of visits without any deviations")
+    patients_with_patient_level_deviations: int = Field(default=0, description="Number of patients with patient-level deviations (IE, consent)")
     deviation_rate: float = Field(default=0.0, description="Percentage of visits with deviations (0.0 to 1.0)")
     by_severity: Dict[str, int] = Field(default_factory=dict, description="Deviations by severity")
     by_type: Dict[str, int] = Field(default_factory=dict, description="Deviations by type")
