@@ -1111,6 +1111,34 @@ class OnboardingAgent(BaseAgent):
             },
         }
 
+        # Add competitive landscape recommendation if competitors were found
+        comp_discovery = discovery_results.get("competitive_discovery", {})
+        if comp_discovery.get("status") == "completed" and comp_discovery.get("competitors_identified", 0) > 0:
+            comp_products = comp_discovery.get("products", [])
+            comp_confidence = comp_discovery.get("confidence", {"overall_score": 0.8, "level": "MODERATE"})
+            recs["competitor_landscape"] = {
+                "source": "Competitive Intelligence Analysis",
+                "selected": True,
+                "competitors_identified": comp_discovery.get("competitors_identified", 0),
+                "products": comp_products,
+                "enabled_insights": [
+                    "Competitive product positioning",
+                    "Technology differentiation analysis",
+                    "Market share intelligence",
+                    "Pricing and feature comparison",
+                ],
+                "confidence": comp_confidence,
+                "why_explanation": {
+                    "summary": f"Found {comp_discovery.get('competitors_identified', 0)} competitor products for market positioning analysis.",
+                    "key_reasons": [
+                        f"Identified key competitors: {', '.join([p.get('manufacturer', '') for p in comp_products[:3]])}",
+                        "Technology differentiation opportunities identified",
+                        "Enables competitive claims validation",
+                    ],
+                    "unique_value": "Market intelligence for differentiation and positioning",
+                },
+            }
+
         # Add phase-aware recommendations if available
         if clinical_trials_rec:
             recs["clinical_trials"] = clinical_trials_rec

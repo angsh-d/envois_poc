@@ -584,9 +584,11 @@ export default function ProductConfig() {
         }
       }
 
-      // Add competitive intelligence from discovery agent results
-      const competitiveCount = state.discoveryAgents.competitive?.count || 0
+      // Add competitive intelligence from API response OR discovery agent results
+      const competitiveFromApi = apiRecs?.competitor_landscape
+      const competitiveCount = competitiveFromApi?.competitors_identified || state.discoveryAgents.competitive?.count || 0
       if (competitiveCount > 0) {
+        const whyExpl = competitiveFromApi?.why_explanation
         recs.push({
           id: 'competitive_landscape',
           name: 'Competitive Intelligence',
@@ -594,10 +596,10 @@ export default function ProductConfig() {
           status: 'pending',
           description: 'Market landscape analysis for revision hip implants',
           preview: `${competitiveCount} competitors identified and analyzed`,
-          confidence: 0.90,
-          whyRecommended: 'Strategic positioning against key market players.',
-          keyReasons: ['Market share analysis', 'Product differentiation', 'Competitive benchmarking'],
-          enabledInsights: ['Market positioning', 'Competitive strategy'],
+          confidence: competitiveFromApi?.confidence?.overall_score || 0.90,
+          whyRecommended: whyExpl?.summary || 'Strategic positioning against key market players.',
+          keyReasons: whyExpl?.key_reasons || ['Market share analysis', 'Product differentiation', 'Competitive benchmarking'],
+          enabledInsights: competitiveFromApi?.enabled_insights || ['Market positioning', 'Competitive strategy'],
           aiRecommended: true,
         })
       }
