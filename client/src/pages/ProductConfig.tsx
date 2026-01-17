@@ -248,46 +248,48 @@ export default function ProductConfig() {
   )
 
   // Watch SSE progress updates and sync to our state
+  // Accept updates during discovery OR when transitioning to recommendations (to catch late updates)
   useEffect(() => {
-    if (state.phase !== 'discovery') return
+    if (state.phase !== 'discovery' && state.phase !== 'recommendations') return
+    if (!progressHook.agentUpdates || Object.keys(progressHook.agentUpdates).length === 0) return
 
     // Map SSE agent updates to our state format
     const agents = { ...state.discoveryAgents }
     const updates = progressHook.agentUpdates
 
-    // Literature agent
+    // Literature agent (backend sends papers_found)
     if (updates.literature) {
       agents.literature = {
         status: updates.literature.status === 'completed' ? 'complete' : updates.literature.status,
-        progress: updates.literature.progress,
-        count: updates.literature.items_found || 0,
+        progress: updates.literature.progress || 0,
+        count: updates.literature.papers_found || updates.literature.items_found || 0,
       }
     }
 
-    // Registry agent
+    // Registry agent (backend sends registries_found)
     if (updates.registry) {
       agents.registry = {
         status: updates.registry.status === 'completed' ? 'complete' : updates.registry.status,
-        progress: updates.registry.progress,
-        count: updates.registry.items_found || 0,
+        progress: updates.registry.progress || 0,
+        count: updates.registry.registries_found || updates.registry.items_found || 0,
       }
     }
 
-    // FDA agent
+    // FDA agent (backend sends maude_events)
     if (updates.fda) {
       agents.fda = {
         status: updates.fda.status === 'completed' ? 'complete' : updates.fda.status,
-        progress: updates.fda.progress,
-        count: updates.fda.items_found || 0,
+        progress: updates.fda.progress || 0,
+        count: updates.fda.maude_events || updates.fda.items_found || 0,
       }
     }
 
-    // Competitive agent
+    // Competitive agent (backend sends competitors_identified)
     if (updates.competitive) {
       agents.competitive = {
         status: updates.competitive.status === 'completed' ? 'complete' : updates.competitive.status,
-        progress: updates.competitive.progress,
-        count: updates.competitive.items_found || 0,
+        progress: updates.competitive.progress || 0,
+        count: updates.competitive.competitors_identified || updates.competitive.items_found || 0,
       }
     }
 
