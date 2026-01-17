@@ -923,3 +923,523 @@ export async function updateDataBrowserRow(
   }
   return response.json()
 }
+
+// ============================================================================
+// ENHANCED CHAT API - Advanced Agentic Capabilities
+// ============================================================================
+
+export type AlertSeverity = 'critical' | 'warning' | 'info' | 'resolved'
+export type AlertCategory = 'threshold_exceeded' | 'threshold_approaching' | 'trend_detected' | 'outlier_detected' | 'data_quality' | 'compliance_issue'
+
+export interface SafetyAlert {
+  id: string
+  category: AlertCategory
+  severity: AlertSeverity
+  title: string
+  description: string
+  metric_name: string
+  current_value: number
+  threshold_value?: number
+  benchmark_value?: number
+  trend_direction?: 'increasing' | 'decreasing' | 'stable'
+  affected_patients: string[]
+  data_source: string
+  created_at: string
+  acknowledged: boolean
+  acknowledged_at?: string
+  acknowledged_by?: string
+  recommendations: string[]
+  related_alerts: string[]
+}
+
+export interface ReasoningStep {
+  step: string
+  input_data: Record<string, unknown>
+  reasoning: string
+  output: Record<string, unknown>
+  confidence: number
+  timestamp: string
+}
+
+export interface EnhancedChatRequest {
+  message: string
+  session_id?: string
+  study_id?: string
+  context?: string
+  enable_reasoning?: boolean
+  enable_investigation?: boolean
+}
+
+export interface EnhancedChatResponse {
+  response: string
+  session_id: string
+  sources: Source[]
+  reasoning_trace?: ReasoningStep[]
+  follow_up_suggestions: string[]
+  safety_alerts?: SafetyAlert[]
+  confidence: number
+  display_preference: DisplayPreference
+}
+
+export interface SafetyAlertSummary {
+  total_active: number
+  critical_count: number
+  warning_count: number
+  alerts: SafetyAlert[]
+  proactive_insights: string[]
+}
+
+export interface CorrelationRequest {
+  variable_1_name: string
+  variable_1_values: number[]
+  variable_2_name: string
+  variable_2_values: number[]
+  correlation_type?: 'pearson' | 'spearman'
+}
+
+export interface CorrelationResponse {
+  variable_1: string
+  variable_2: string
+  correlation_type: string
+  coefficient: number
+  p_value: number
+  sample_size: number
+  significance: 'highly_significant' | 'significant' | 'marginally_significant' | 'not_significant'
+  interpretation: string
+  confidence_interval?: [number, number]
+}
+
+export interface InvestigationRequest {
+  question: string
+  study_id?: string
+  max_depth?: number
+}
+
+export interface InvestigationHypothesis {
+  id: string
+  statement: string
+  rationale: string
+  status: 'proposed' | 'investigating' | 'supported' | 'refuted' | 'inconclusive'
+  supporting_evidence: string[]
+  refuting_evidence: string[]
+  confidence: number
+}
+
+export interface InvestigationRecommendation {
+  recommendation: string
+  priority: 'high' | 'medium' | 'low'
+  rationale: string
+  effort: 'high' | 'medium' | 'low'
+  expected_impact: string
+}
+
+export interface InvestigationResponse {
+  question: string
+  summary: string
+  hypotheses: InvestigationHypothesis[]
+  findings: Array<{ finding: string; source: string; confidence: number }>
+  recommendations: InvestigationRecommendation[]
+  reasoning_trace: ReasoningStep[]
+  confidence: number
+}
+
+export interface ProactiveSuggestions {
+  page_context: string
+  suggestions: string[]
+  safety_insights: string[]
+  trending_topics: string[]
+}
+
+// Enhanced Chat API Functions
+
+export async function sendEnhancedChatMessage(
+  request: EnhancedChatRequest
+): Promise<EnhancedChatResponse> {
+  const response = await fetch(`${API_BASE}/enhanced-chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  if (!response.ok) {
+    throw new Error(`Enhanced chat request failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchSafetyAlerts(
+  severity?: AlertSeverity,
+  acknowledged?: boolean
+): Promise<SafetyAlertSummary> {
+  const params = new URLSearchParams()
+  if (severity) params.set('severity', severity)
+  if (acknowledged !== undefined) params.set('acknowledged', String(acknowledged))
+
+  const url = params.toString()
+    ? `${API_BASE}/enhanced-chat/safety-alerts?${params}`
+    : `${API_BASE}/enhanced-chat/safety-alerts`
+
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch safety alerts: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function acknowledgeAlert(alertId: string): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/safety-alerts/${alertId}/acknowledge`, {
+    method: 'POST',
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to acknowledge alert: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function analyzeCorrelation(request: CorrelationRequest): Promise<CorrelationResponse> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/analyze/correlation`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  if (!response.ok) {
+    throw new Error(`Correlation analysis failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function runInvestigation(request: InvestigationRequest): Promise<InvestigationResponse> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/investigate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  if (!response.ok) {
+    throw new Error(`Investigation failed: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchProactiveSuggestions(pageContext: string): Promise<ProactiveSuggestions> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/suggestions/${pageContext}`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch suggestions: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function getSessionInfo(sessionId: string): Promise<{
+  session_id: string
+  study_id: string
+  created_at: string
+  updated_at: string
+  message_count: number
+  page_context: string
+  has_summary: boolean
+}> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/session/${sessionId}`)
+  if (!response.ok) {
+    throw new Error(`Failed to get session info: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function endSession(sessionId: string): Promise<{ success: boolean; message: string }> {
+  const response = await fetch(`${API_BASE}/enhanced-chat/session/${sessionId}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to end session: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// ============================================================================
+// UC7: COMPETITIVE INTELLIGENCE API
+// ============================================================================
+
+export type CompetitivePosition = 'STRONG' | 'COMPETITIVE' | 'DEVELOPING'
+
+export interface QuickStat {
+  stat: string
+  value: string
+  context: string
+}
+
+export interface Differentiator {
+  category: string
+  differentiator: string
+  evidence: string
+}
+
+export interface Rebuttal {
+  objection: string
+  rebuttal: string
+}
+
+export interface CompetitiveLandscapeResponse {
+  success: boolean
+  report_type: string
+  generated_at: string
+  study_metrics: Record<string, unknown>
+  competitive_landscape?: string
+  registry_comparison: Array<Record<string, unknown>>
+  literature_benchmarks: Record<string, unknown>
+  key_differentiators: Differentiator[]
+  sources: Array<Record<string, unknown>>
+  confidence: number
+}
+
+export interface BenchmarkingResponse {
+  success: boolean
+  report_type: string
+  generated_at: string
+  study_metrics: Record<string, unknown>
+  registry_benchmarks: Record<string, unknown>
+  literature_comparison: Array<Record<string, unknown>>
+  overall_position: {
+    position: CompetitivePosition
+    description: string
+    favorable_metrics: number
+    total_metrics: number
+  }
+  sources: Array<Record<string, unknown>>
+  confidence: number
+}
+
+export interface BattleCardResponse {
+  success: boolean
+  report_type: string
+  generated_at: string
+  product: string
+  battle_card_content?: string
+  quick_stats: QuickStat[]
+  talking_points: string[]
+  rebuttals: Rebuttal[]
+  sources: Array<Record<string, unknown>>
+  confidence: number
+}
+
+export async function fetchCompetitiveLandscape(): Promise<CompetitiveLandscapeResponse> {
+  const response = await fetch(`${API_BASE}/uc7/landscape`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch competitive landscape: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchCompetitiveBenchmarking(): Promise<BenchmarkingResponse> {
+  const response = await fetch(`${API_BASE}/uc7/benchmarking`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch competitive benchmarking: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchBattleCard(): Promise<BattleCardResponse> {
+  const response = await fetch(`${API_BASE}/uc7/battle-card`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch battle card: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchDifferentiators(): Promise<{
+  success: boolean
+  generated_at: string
+  product: string
+  differentiators: Differentiator[]
+  sources: Array<Record<string, unknown>>
+}> {
+  const response = await fetch(`${API_BASE}/uc7/differentiators`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch differentiators: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchTalkingPoints(): Promise<{
+  success: boolean
+  generated_at: string
+  product: string
+  talking_points: string[]
+  quick_stats: QuickStat[]
+  sources: Array<Record<string, unknown>>
+}> {
+  const response = await fetch(`${API_BASE}/uc7/talking-points`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch talking points: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// ============================================================================
+// UC10: CLAIM VALIDATION API
+// ============================================================================
+
+export type ClaimValidationStatus = 'validated' | 'partial' | 'not_validated' | 'insufficient_evidence'
+export type ClaimConfidenceLevel = 'high' | 'medium' | 'low'
+
+export interface ClaimEvidence {
+  type: string
+  evidence: string
+  claim_value?: string
+}
+
+export interface ClaimValidationResponse {
+  success: boolean
+  claim: string
+  validated_at: string
+  claim_validated: boolean | string
+  validation_status: ClaimValidationStatus
+  supporting_evidence: ClaimEvidence[]
+  contradicting_evidence: ClaimEvidence[]
+  evidence_gaps: string[]
+  confidence_level: ClaimConfidenceLevel
+  recommended_language?: string
+  analysis?: string
+  compliance_notes: string[]
+  sources: Array<Record<string, unknown>>
+  study_data_used: Record<string, unknown>
+}
+
+export interface ClaimBatchResult {
+  claim: string
+  validated?: boolean | string
+  status?: ClaimValidationStatus
+  confidence?: ClaimConfidenceLevel
+  recommended_language?: string
+  error?: string
+}
+
+export interface ClaimBatchResponse {
+  success: boolean
+  validated_at: string
+  n_claims: number
+  summary: {
+    validated: number
+    partial: number
+    not_validated: number
+  }
+  results: ClaimBatchResult[]
+}
+
+export async function validateClaim(claim: string): Promise<ClaimValidationResponse> {
+  const response = await fetch(`${API_BASE}/uc10/validate-claim`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ claim }),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to validate claim: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function validateClaimsBatch(claims: string[]): Promise<ClaimBatchResponse> {
+  const response = await fetch(`${API_BASE}/uc10/validate-batch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(claims),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to validate claims batch: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchExampleClaims(): Promise<{
+  example_claims: Array<{
+    category: string
+    claim: string
+    expected: string
+  }>
+  validation_statuses: Array<{
+    status: string
+    description: string
+  }>
+}> {
+  const response = await fetch(`${API_BASE}/uc10/example-claims`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch example claims: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchComplianceGuidelines(): Promise<{
+  guidelines: Array<{
+    category: string
+    guidance: string
+    example_issue: string
+  }>
+  regulatory_references: string[]
+}> {
+  const response = await fetch(`${API_BASE}/uc10/compliance-guidelines`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch compliance guidelines: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+// ============================================================================
+// PRODUCTS API
+// ============================================================================
+
+export type ProductStatus = 'active' | 'configured' | 'pending'
+
+export interface Product {
+  id: string
+  name: string
+  category: string
+  description: string
+  status: ProductStatus
+  indication: string
+  study_phase?: string
+  study_id?: string
+  data_last_updated?: string
+}
+
+export interface ProductsResponse {
+  success: boolean
+  products: Product[]
+  total: number
+  generated_at: string
+}
+
+export interface DataTimestampResponse {
+  last_updated: string
+  formatted: string
+}
+
+export async function fetchProducts(): Promise<ProductsResponse> {
+  const response = await fetch(`${API_BASE}/products`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchProduct(productId: string): Promise<Product> {
+  const response = await fetch(`${API_BASE}/products/${productId}`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch product: ${response.statusText}`)
+  }
+  return response.json()
+}
+
+export async function fetchDataTimestamp(): Promise<DataTimestampResponse> {
+  const response = await fetch(`${API_BASE}/products/data-timestamp`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch data timestamp: ${response.statusText}`)
+  }
+  return response.json()
+}

@@ -1,0 +1,200 @@
+You are an AI assistant generating a Product Intelligence Brief for a clinical intelligence platform.
+
+PRODUCT INFORMATION:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Protocol ID: {protocol_id}
+- Technologies: {technologies}
+
+TASK: Generate a comprehensive summary of the configured intelligence platform for this product.
+
+Provide your response as a JSON object:
+{{
+    "summary": "A 2-3 sentence executive summary of the intelligence configuration",
+    "product_profile": {{
+        "name": "{product_name}",
+        "description": "Brief clinical description of the product",
+        "key_differentiators": ["list", "of", "product", "differentiators"],
+        "target_population": "Description of target patient population"
+    }},
+    "intelligence_capabilities": {{
+        "safety_monitoring": {{
+            "enabled": true,
+            "description": "What safety intelligence is available"
+        }},
+        "efficacy_tracking": {{
+            "enabled": true,
+            "description": "What efficacy tracking is available"
+        }},
+        "competitive_intelligence": {{
+            "enabled": true,
+            "description": "What competitive insights are available"
+        }},
+        "regulatory_readiness": {{
+            "enabled": true,
+            "description": "What regulatory support is available"
+        }}
+    }},
+    "key_metrics_available": [
+        {{
+            "metric": "metric name",
+            "source": "data source",
+            "update_frequency": "real-time/daily/weekly"
+        }}
+    ],
+    "persona_access": {{
+        "medical_director": ["accessible", "modules"],
+        "quality_manager": ["accessible", "modules"],
+        "regulatory_affairs": ["accessible", "modules"],
+        "sales_marketing": ["accessible", "modules"]
+    }},
+    "next_steps": ["recommended", "actions", "for", "the", "steward"]
+}}
+
+## FEW-SHOT EXAMPLES
+
+### Example 1: Trabecular Titanium Revision Cup Intelligence Brief
+INPUT:
+- Product Name: DELTA TT Revision Cup
+- Category: Hip Reconstruction
+- Indication: Revision THA
+- Protocol ID: H-34
+- Technologies: Trabecular Titanium, Porous Coating, Uncemented
+
+OUTPUT:
+{{
+    "summary": "DELTA TT Revision Cup intelligence platform is fully configured with clinical study data from 56 patients, registry benchmarks from 5 international sources, and comprehensive FDA surveillance. The platform enables real-time safety monitoring, competitive positioning, and regulatory submission support for this trabecular titanium revision system.",
+    "product_profile": {{
+        "name": "DELTA TT Revision Cup",
+        "description": "Highly porous trabecular titanium acetabular component designed for cementless fixation in revision total hip arthroplasty, featuring 3D-printed structure for enhanced bone ingrowth",
+        "key_differentiators": ["Trabecular titanium microstructure", "High coefficient of friction for initial stability", "Optimized porosity for bone ingrowth", "Modular augment compatibility"],
+        "target_population": "Patients undergoing revision THA with Paprosky Type I-IIIB acetabular defects requiring enhanced fixation"
+    }},
+    "intelligence_capabilities": {{
+        "safety_monitoring": {{
+            "enabled": true,
+            "description": "Real-time adverse event tracking from H-34 study with integration to FDA MAUDE surveillance for similar devices. Automated alerts for revision events, infections, and dislocations."
+        }},
+        "efficacy_tracking": {{
+            "enabled": true,
+            "description": "Longitudinal HHS and OHS functional outcome tracking with MCID achievement monitoring. Radiographic integration assessment via Engh criteria."
+        }},
+        "competitive_intelligence": {{
+            "enabled": true,
+            "description": "Benchmark comparison against 6 competitor products including Zimmer Trabecular Metal and Stryker Tritanium. Registry-based survival rate comparisons across 5 international registries."
+        }},
+        "regulatory_readiness": {{
+            "enabled": true,
+            "description": "510(k) predicate analysis, clinical evidence compilation for PMA supplements, and automated adverse event trending for periodic reports."
+        }}
+    }},
+    "key_metrics_available": [
+        {{
+            "metric": "Revision Rate",
+            "source": "H-34 Protocol Database",
+            "update_frequency": "real-time"
+        }},
+        {{
+            "metric": "Kaplan-Meier Survival",
+            "source": "H-34 + Registry Benchmarks",
+            "update_frequency": "daily"
+        }},
+        {{
+            "metric": "Harris Hip Score",
+            "source": "H-34 Protocol Database",
+            "update_frequency": "real-time"
+        }},
+        {{
+            "metric": "MAUDE Event Count",
+            "source": "FDA Surveillance",
+            "update_frequency": "weekly"
+        }},
+        {{
+            "metric": "Registry Percentile Ranking",
+            "source": "AOANJRR, NJR, SHAR",
+            "update_frequency": "quarterly"
+        }}
+    ],
+    "persona_access": {{
+        "medical_director": ["Safety Intelligence", "Risk Stratification", "Clinical Outcomes Dashboard", "Literature Insights"],
+        "quality_manager": ["Adverse Event Monitoring", "CAPA Integration", "Safety Signal Detection", "Complaint Trending"],
+        "regulatory_affairs": ["FDA Surveillance", "510(k) Support", "PMA Supplements", "Periodic Reports"],
+        "sales_marketing": ["Competitive Positioning", "Claim Validation", "Key Opinion Leader Data", "Registry Comparisons"]
+    }},
+    "next_steps": ["Review generated SOTA report for clinical messaging", "Schedule competitive landscape briefing with sales leadership", "Configure automated MAUDE alert thresholds", "Set up quarterly registry benchmark updates"]
+}}
+
+### Example 2: Dual Mobility Hip System Intelligence Brief
+INPUT:
+- Product Name: EMPOWR Dual Mobility
+- Category: Hip Reconstruction
+- Indication: Primary THA
+- Protocol ID: H-45
+- Technologies: Dual Mobility, Highly Crosslinked PE
+
+OUTPUT:
+{{
+    "summary": "EMPOWR Dual Mobility intelligence platform is configured with comprehensive dislocation prevention analytics, leveraging H-45 study data from 89 patients and 4 international registry benchmarks. The platform specializes in stability outcomes monitoring, bearing wear tracking, and competitive positioning against established dual mobility systems.",
+    "product_profile": {{
+        "name": "EMPOWR Dual Mobility",
+        "description": "Dual articulation hip system designed to reduce dislocation risk through bipolar movement, featuring highly crosslinked polyethylene for bearing longevity",
+        "key_differentiators": ["Proprietary retentive mechanism", "Vitamin E-stabilized HXLPE", "Large range of motion", "Compatible with standard femoral heads"],
+        "target_population": "Primary THA patients at elevated dislocation risk including elderly, neurological conditions, previous hip surgery, and revision cases"
+    }},
+    "intelligence_capabilities": {{
+        "safety_monitoring": {{
+            "enabled": true,
+            "description": "Focused monitoring for intraprosthetic dislocation events, liner dissociation, and bearing wear. Integration with MAUDE for dual mobility-specific failure modes."
+        }},
+        "efficacy_tracking": {{
+            "enabled": true,
+            "description": "Dislocation rate tracking with risk factor analysis, functional outcome monitoring via HOOS and FJS-12, patient satisfaction metrics."
+        }},
+        "competitive_intelligence": {{
+            "enabled": true,
+            "description": "Direct comparison with Stryker MDM, Zimmer AAE, and DePuy Dual Mobility systems. Focus on dislocation rates, bearing longevity, and clinical adoption trends."
+        }},
+        "regulatory_readiness": {{
+            "enabled": true,
+            "description": "510(k) predicate tracking for dual mobility devices, intraprosthetic dislocation surveillance, and labeling claim support."
+        }}
+    }},
+    "key_metrics_available": [
+        {{
+            "metric": "Dislocation Rate",
+            "source": "H-45 Protocol Database",
+            "update_frequency": "real-time"
+        }},
+        {{
+            "metric": "Intraprosthetic Dislocation Events",
+            "source": "H-45 + MAUDE",
+            "update_frequency": "real-time"
+        }},
+        {{
+            "metric": "HOOS Score",
+            "source": "H-45 Protocol Database",
+            "update_frequency": "real-time"
+        }},
+        {{
+            "metric": "Registry Dislocation Benchmark",
+            "source": "NJR, AJRR",
+            "update_frequency": "quarterly"
+        }}
+    ],
+    "persona_access": {{
+        "medical_director": ["Dislocation Analytics", "Patient Selection Criteria", "Stability Outcomes", "Literature Evidence"],
+        "quality_manager": ["IPD Monitoring", "Bearing Failure Tracking", "Complaint Analysis", "Design Surveillance"],
+        "regulatory_affairs": ["510(k) Predicates", "Dual Mobility Clearances", "IPD Reporting", "Labeling Claims"],
+        "sales_marketing": ["Dislocation Prevention Claims", "Patient Risk Calculator", "Competitive Comparisons", "Surgeon Adoption Data"]
+    }},
+    "next_steps": ["Review dislocation prevention evidence synthesis", "Configure IPD alert threshold", "Schedule sales training on competitive positioning", "Update patient selection algorithm"]
+}}
+
+## GUIDELINES
+
+Focus on:
+1. Clearly articulating what intelligence is now available
+2. Explaining which personas can access what information
+3. Highlighting the key metrics and insights enabled
+4. Providing actionable next steps

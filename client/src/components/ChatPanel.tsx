@@ -1,6 +1,19 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
-import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check, Zap } from 'lucide-react'
-import { ChatMessage, sendChatMessage, Source, Evidence, generateCode, isCodeGenerationRequest, CodeGenerationResponse, DisplayData } from '@/lib/api'
+import { Send, MessageCircle, X, Sparkles, Clock, Maximize2, Minimize2, Shield, Code2, Copy, Check, Zap, Brain, Search, AlertTriangle } from 'lucide-react'
+import {
+  ChatMessage,
+  sendChatMessage,
+  Source,
+  Evidence,
+  generateCode,
+  isCodeGenerationRequest,
+  CodeGenerationResponse,
+  DisplayData,
+  sendEnhancedChatMessage,
+  EnhancedChatRequest,
+  ReasoningStep,
+  SafetyAlert
+} from '@/lib/api'
 import { ResponseDisplay } from './ResponseDisplay'
 import { ProvenanceCard } from './ProvenanceCard'
 import { EvidencePanel } from './EvidencePanel'
@@ -29,6 +42,16 @@ interface CachedResponse {
   timestamp: number
   codeResponse?: CodeGenerationResponse
   display?: DisplayData
+  reasoning_trace?: ReasoningStep[]
+  safety_alerts?: SafetyAlert[]
+  confidence?: number
+}
+
+// Extended ChatMessage with enhanced chat fields
+interface ExtendedChatMessage extends ChatMessage {
+  reasoning_trace?: ReasoningStep[]
+  safety_alerts?: SafetyAlert[]
+  confidence?: number
 }
 
 function CodeBlock({ code, language }: { code: string; language: string }) {
@@ -41,9 +64,9 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   }
   
   const languageColors: Record<string, string> = {
-    python: 'bg-blue-100 text-blue-700',
-    r: 'bg-purple-100 text-purple-700',
-    sql: 'bg-green-100 text-green-700',
+    python: 'bg-gray-200 text-gray-700',
+    r: 'bg-gray-300 text-gray-800',
+    sql: 'bg-gray-200 text-gray-700',
     c: 'bg-gray-100 text-gray-700'
   }
   
@@ -87,7 +110,7 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
           className="p-1.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
           title="Copy code"
         >
-          {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+          {copied ? <Check className="w-4 h-4 text-gray-600" /> : <Copy className="w-4 h-4" />}
         </button>
       </div>
       <pre className="p-4 overflow-x-auto text-sm bg-gray-900 text-gray-100 leading-relaxed">
@@ -155,12 +178,16 @@ function formatTime(timestamp: string): string {
 }
 
 export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isCached, setIsCached] = useState(false)
   const [panelSize, setPanelSize] = useState<PanelSize>('compact')
   const [suggestedFollowups, setSuggestedFollowups] = useState<string[]>([])
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined)
+  const [enableReasoning, setEnableReasoning] = useState(false)
+  const [enableInvestigation, setEnableInvestigation] = useState(false)
+  const [activeAlerts, setActiveAlerts] = useState<SafetyAlert[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -207,7 +234,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
   const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading) return
 
-    const userMessage: ChatMessage = {
+    const userMessage: ExtendedChatMessage = {
       role: 'user',
       content: input,
       timestamp: new Date().toISOString(),
@@ -222,9 +249,9 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
     // Check if this is a code generation request
     const isCodeRequest = isCodeGenerationRequest(currentInput)
 
-    // Check cache first
+    // Check cache first (skip cache for reasoning/investigation modes)
     const cacheKey = generateCacheKey(currentInput, context, studyId)
-    const cached = getCachedResponse(cacheKey)
+    const cached = !enableReasoning && !enableInvestigation ? getCachedResponse(cacheKey) : null
 
     try {
       if (cached && !isCodeRequest) {
@@ -232,7 +259,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         setIsCached(true)
         await new Promise(resolve => setTimeout(resolve, ARTIFICIAL_DELAY_MS))
 
-        const assistantMessage: ChatMessage = {
+        const assistantMessage: ExtendedChatMessage = {
           role: 'assistant',
           content: cached.response,
           sources: cached.sources,
@@ -240,22 +267,25 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           timestamp: new Date().toISOString(),
           codeResponse: cached.codeResponse,
           display: cached.display,
+          reasoning_trace: cached.reasoning_trace,
+          safety_alerts: cached.safety_alerts,
+          confidence: cached.confidence,
         }
         setMessages((prev) => [...prev, assistantMessage])
       } else if (isCodeRequest) {
         // Handle code generation request
         const codeResult = await generateCode(currentInput, undefined, false, studyId)
-        
+
         // Check for code generation success
         if (!codeResult.success) {
-          const errorMessage: ChatMessage = {
+          const errorMessage: ExtendedChatMessage = {
             role: 'assistant',
             content: `I encountered an issue generating the code: ${codeResult.error || 'Unknown error'}. Please try rephrasing your request or specifying a different language.`,
             timestamp: new Date().toISOString(),
           }
           setMessages((prev) => [...prev, errorMessage])
         } else {
-          const assistantMessage: ChatMessage = {
+          const assistantMessage: ExtendedChatMessage = {
             role: 'assistant',
             content: codeResult.explanation || `Here's the ${codeResult.language.toUpperCase()} code you requested:`,
             timestamp: new Date().toISOString(),
@@ -267,6 +297,42 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
           if (codeResult.suggested_followups && codeResult.suggested_followups.length > 0) {
             setSuggestedFollowups(codeResult.suggested_followups)
           }
+        }
+      } else if (enableReasoning || enableInvestigation) {
+        // Use enhanced chat API with reasoning/investigation modes
+        const enhancedRequest: EnhancedChatRequest = {
+          message: currentInput,
+          session_id: sessionId,
+          study_id: studyId,
+          context: context,
+          enable_reasoning: enableReasoning,
+          enable_investigation: enableInvestigation,
+        }
+
+        const response = await sendEnhancedChatMessage(enhancedRequest)
+
+        // Update session ID for conversation continuity
+        setSessionId(response.session_id)
+
+        // Update active alerts if any
+        if (response.safety_alerts && response.safety_alerts.length > 0) {
+          setActiveAlerts(response.safety_alerts)
+        }
+
+        const assistantMessage: ExtendedChatMessage = {
+          role: 'assistant',
+          content: response.response,
+          sources: response.sources,
+          timestamp: new Date().toISOString(),
+          reasoning_trace: response.reasoning_trace,
+          safety_alerts: response.safety_alerts,
+          confidence: response.confidence,
+        }
+        setMessages((prev) => [...prev, assistantMessage])
+
+        // Update suggested followups
+        if (response.follow_up_suggestions && response.follow_up_suggestions.length > 0) {
+          setSuggestedFollowups(response.follow_up_suggestions)
         }
       } else {
         // Fetch fresh response for regular chat
@@ -280,7 +346,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         // Cache the response
         setCachedResponse(cacheKey, response.response, response.sources, response.evidence, response.display)
 
-        const assistantMessage: ChatMessage = {
+        const assistantMessage: ExtendedChatMessage = {
           role: 'assistant',
           content: response.response,
           sources: response.sources,
@@ -296,7 +362,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
         }
       }
     } catch {
-      const errorMessage: ChatMessage = {
+      const errorMessage: ExtendedChatMessage = {
         role: 'assistant',
         content: 'I apologize, but I encountered an error processing your request. Please try again.',
         timestamp: new Date().toISOString(),
@@ -306,7 +372,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
       setIsLoading(false)
       setIsCached(false)
     }
-  }, [input, isLoading, context, studyId, messages])
+  }, [input, isLoading, context, studyId, messages, enableReasoning, enableInvestigation, sessionId])
 
   // Get context-specific seed questions
   const contextSeedQuestions: SeedQuestion[] = useMemo(
@@ -335,7 +401,7 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
       >
         <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
         <MessageCircle className="w-6 h-6 text-white" />
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#007aff] rounded-full flex items-center justify-center">
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center">
           <Sparkles className="w-2.5 h-2.5 text-white" />
         </span>
       </button>
@@ -397,6 +463,47 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
             <X className="w-4.5 h-4.5 text-gray-400" />
           </button>
         </div>
+      </div>
+
+      {/* Mode Toggles and Alert Indicator */}
+      <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between gap-2 bg-gray-50/50">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setEnableReasoning(!enableReasoning)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+              enableReasoning
+                ? 'bg-gray-800 text-white border border-gray-700'
+                : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+            }`}
+            title="Chain-of-thought reasoning mode"
+          >
+            <Brain className="w-3 h-3" />
+            <span>Reasoning</span>
+          </button>
+          <button
+            onClick={() => setEnableInvestigation(!enableInvestigation)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+              enableInvestigation
+                ? 'bg-gray-700 text-white border border-gray-600'
+                : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
+            }`}
+            title="Autonomous investigation mode"
+          >
+            <Search className="w-3 h-3" />
+            <span>Investigate</span>
+          </button>
+        </div>
+        {activeAlerts.length > 0 && (
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 border border-gray-200 rounded-full">
+            <AlertTriangle className="w-3 h-3 text-gray-600" />
+            <span className="text-[10px] font-medium text-gray-700">{activeAlerts.length} alert{activeAlerts.length > 1 ? 's' : ''}</span>
+          </div>
+        )}
+        {sessionId && (
+          <div className="text-[9px] text-gray-400 truncate max-w-[80px]" title={`Session: ${sessionId}`}>
+            Session active
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -481,8 +588,8 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
 
                 {/* Execution Results for SQL */}
                 {msg.codeResponse && msg.codeResponse.data_preview && msg.role === 'assistant' && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-xs font-medium text-green-700 mb-2">Query Results</div>
+                  <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Query Results</div>
                     <div className="text-sm text-gray-700">
                       {msg.codeResponse.execution_result}
                     </div>
@@ -490,15 +597,15 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
                       <div className="mt-2 overflow-x-auto">
                         <table className="text-xs w-full">
                           <thead>
-                            <tr className="border-b border-green-200">
+                            <tr className="border-b border-gray-200">
                               {msg.codeResponse.data_preview.columns.map((col, idx) => (
-                                <th key={idx} className="text-left px-2 py-1 text-green-800 font-medium">{col}</th>
+                                <th key={idx} className="text-left px-2 py-1 text-gray-800 font-medium">{col}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
                             {msg.codeResponse.data_preview.sample_rows.slice(0, 3).map((row, idx) => (
-                              <tr key={idx} className="border-b border-green-100">
+                              <tr key={idx} className="border-b border-gray-100">
                                 {msg.codeResponse!.data_preview!.columns.map((col, colIdx) => (
                                   <td key={colIdx} className="px-2 py-1 text-gray-600">{String(row[col] ?? '')}</td>
                                 ))}
@@ -513,10 +620,71 @@ export function ChatPanel({ studyId, context, isOpen, onToggle }: ChatPanelProps
 
                 {/* Warnings */}
                 {msg.codeResponse && msg.codeResponse.warnings && msg.codeResponse.warnings.length > 0 && msg.role === 'assistant' && (
-                  <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                  <div className="mt-2 p-2 bg-gray-100 border border-gray-200 rounded-lg text-xs text-gray-700">
                     {msg.codeResponse.warnings.map((w, idx) => (
                       <div key={idx}>{w}</div>
                     ))}
+                  </div>
+                )}
+
+                {/* Reasoning Trace - shows chain-of-thought steps */}
+                {msg.reasoning_trace && msg.reasoning_trace.length > 0 && msg.role === 'assistant' && (
+                  <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-700 mb-2">
+                      <Brain className="w-3 h-3" />
+                      <span>Reasoning Trace</span>
+                    </div>
+                    <div className="space-y-2">
+                      {msg.reasoning_trace.slice(0, 5).map((step, idx) => (
+                        <div key={idx} className="text-[11px] text-gray-700 pl-3 border-l-2 border-gray-300">
+                          <div className="font-medium text-gray-800">{step.step}</div>
+                          <div className="text-gray-600 mt-0.5">{step.reasoning}</div>
+                          <div className="text-[10px] text-gray-400 mt-0.5">
+                            Confidence: {Math.round(step.confidence * 100)}%
+                          </div>
+                        </div>
+                      ))}
+                      {msg.reasoning_trace.length > 5 && (
+                        <div className="text-[10px] text-gray-600 pl-3">
+                          + {msg.reasoning_trace.length - 5} more steps
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Safety Alerts in Response */}
+                {msg.safety_alerts && msg.safety_alerts.length > 0 && msg.role === 'assistant' && (
+                  <div className="mt-3 p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-700 mb-2">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Safety Alerts Detected</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {msg.safety_alerts.slice(0, 3).map((alert, idx) => (
+                        <div key={idx} className="text-[11px] p-2 bg-white/60 rounded border border-gray-200">
+                          <div className="font-medium text-gray-800">{alert.title}</div>
+                          <div className="text-gray-600 text-[10px] mt-0.5">{alert.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Confidence Indicator */}
+                {msg.confidence !== undefined && msg.role === 'assistant' && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="text-[10px] text-gray-400">Confidence:</div>
+                    <div className="flex-1 max-w-[100px] h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          msg.confidence >= 0.8 ? 'bg-gray-700' :
+                          msg.confidence >= 0.6 ? 'bg-gray-500' : 'bg-gray-400'
+                        }`}
+                        style={{ width: `${msg.confidence * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-[10px] text-gray-500">{Math.round(msg.confidence * 100)}%</div>
                   </div>
                 )}
 

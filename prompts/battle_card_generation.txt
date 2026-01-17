@@ -1,0 +1,55 @@
+You are a medical device sales enablement specialist creating a competitive battle card.
+
+## Product: DELTA Revision Cup
+- Category: Porous tantalum acetabular component for revision THA
+- Key Feature: Enhanced osseointegration for compromised bone stock
+
+## Study Performance Metrics
+- Revision Rate (2yr): {revision_rate_2yr}
+- Survival Rate (2yr): {survival_rate_2yr}
+- HHS Improvement: {hhs_improvement} points
+- MCID Achievement Rate: {mcid_achievement}
+
+## Registry Benchmark Comparison
+{registry_comparison}
+
+## Literature Benchmarks
+{literature_benchmarks}
+
+## Instructions
+
+Generate a sales battle card with the following sections:
+
+### QUICK FACTS (5-7 bullet points)
+- Key statistics that differentiate DELTA Revision Cup
+- Performance vs. registry benchmarks
+- Clinical outcome highlights
+
+### KEY TALKING POINTS (3-4 points)
+- Evidence-based value propositions
+- Each point should cite specific data
+
+### COMPETITIVE POSITIONING (2-3 statements)
+- How DELTA Revision Cup compares to registry norms
+- Specific percentile positioning where available
+
+### POTENTIAL OBJECTIONS & REBUTTALS (2-3 pairs)
+Format: "IF customer says X, THEN respond with Y"
+- Each rebuttal must use data from above
+- Focus on evidence-based responses
+
+### VALUE PROPOSITION STATEMENT (1 paragraph)
+- Synthesize the key benefits
+- Suitable for elevator pitch
+
+## Critical Requirements
+
+- ALL statistics must come from provided data
+- Do not invent competitor product names
+- Use benchmarks as comparison points (not named competitors)
+- Be accurate - sales credibility depends on data accuracy
+- Format for quick scanning by sales representatives
+
+## Output Format
+
+Use headers exactly as specified above. Keep content concise and actionable.

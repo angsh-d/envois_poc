@@ -1,0 +1,353 @@
+You are a regulatory affairs specialist creating a regulatory precedents report for a medical device.
+
+PRODUCT CONTEXT:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Technologies: {technologies}
+
+FDA DATA:
+- Total similar clearances: {clearances_count}
+- Recent clearances:
+{recent_clearances}
+
+TASK: Generate a regulatory precedents report analyzing similar device approvals, regulatory pathways, and requirements.
+
+Provide your response as a JSON object:
+{{
+    "executive_summary": "A 2-3 paragraph summary of the regulatory landscape and key considerations",
+    "pathway_analysis": {{
+        "recommended_pathway": "510(k)/PMA/De Novo",
+        "rationale": "Why this pathway is recommended",
+        "alternative_pathways": ["Other possible pathways"],
+        "pathway_comparison": {{
+            "510k": {{"timeline": "X months", "data_requirements": "Description", "cost_estimate": "Range"}},
+            "pma": {{"timeline": "X months", "data_requirements": "Description", "cost_estimate": "Range"}}
+        }}
+    }},
+    "predicate_devices": [
+        {{
+            "k_number": "510(k) number",
+            "device_name": "Device name",
+            "manufacturer": "Company",
+            "clearance_date": "Date",
+            "relevance": "Why this is a relevant predicate",
+            "similarities": ["Key similarities"],
+            "differences": ["Key differences to address"]
+        }}
+    ],
+    "clinical_requirements": {{
+        "clinical_data_needed": "Description of clinical data requirements",
+        "study_design": "Recommended study design",
+        "endpoints": ["Primary and secondary endpoints"],
+        "sample_size_considerations": "Guidance on sample size",
+        "follow_up_duration": "Required follow-up period",
+        "comparator": "Comparison group requirements"
+    }},
+    "safety_testing": [
+        {{
+            "test_type": "Type of safety test",
+            "standard": "Applicable standard (ISO, ASTM, etc)",
+            "requirement_level": "Required/Recommended",
+            "notes": "Additional considerations"
+        }}
+    ],
+    "post_market": {{
+        "surveillance_requirements": ["Post-market surveillance requirements"],
+        "reporting_obligations": ["MDR/adverse event reporting"],
+        "registry_participation": "Registry requirements if any",
+        "periodic_reports": "Periodic reporting requirements"
+    }},
+    "international": {{
+        "eu_mdr": {{
+            "classification": "Device classification",
+            "clinical_requirements": "EU clinical data requirements",
+            "timeline_estimate": "Expected timeline"
+        }},
+        "other_markets": ["Key considerations for other markets"]
+    }},
+    "timelines": {{
+        "pre_submission_meeting": "X weeks",
+        "submission_preparation": "X months",
+        "fda_review": "X months",
+        "total_estimated": "Total timeline estimate"
+    }},
+    "recommendations": [
+        {{
+            "recommendation": "Strategic recommendation",
+            "rationale": "Why this is important",
+            "priority": "high/medium/low",
+            "action_items": ["Specific actions to take"]
+        }}
+    ]
+}}
+
+## FEW-SHOT EXAMPLES
+
+### Example 1: Trabecular Titanium Revision Cup Regulatory Precedents
+INPUT:
+- Product Name: DELTA TT Revision Cup
+- Category: Hip Reconstruction
+- Indication: Revision THA
+- Technologies: Trabecular Titanium, Porous Coating, Uncemented
+- Total similar clearances: 47
+- Recent clearances: Stryker Trident II Tritanium (K201234, 2020), Zimmer Biomet Trabecular Metal (K180456, 2018), Smith+Nephew REDAPT (K190789, 2019)
+
+OUTPUT:
+{{
+    "executive_summary": "The regulatory pathway for DELTA TT Revision Cup is well-established via 510(k) using substantial equivalence to cleared porous metal acetabular revision components. FDA has cleared over 40 similar devices in the past decade, with Trabecular Metal and Tritanium systems serving as appropriate predicates.\n\nKey regulatory considerations include demonstration of porous structure characteristics for bone ingrowth claims, biocompatibility testing per ISO 10993, and mechanical testing per ASTM/FDA guidance. Clinical data requirements are modest for 510(k) given robust predicate history, though post-market surveillance commitments are increasingly expected.\n\nThe recommended strategy is a Traditional 510(k) with Trabecular Metal or similar porous titanium cup as primary predicate, supported by bench testing and biocompatibility data. Timeline estimate is 12-15 months from submission initiation to clearance.",
+    "pathway_analysis": {{
+        "recommended_pathway": "510(k) Traditional",
+        "rationale": "Well-established predicate pathway for porous metal acetabular revision components. Multiple cleared devices with similar intended use, design features, and materials. No novel technology requiring PMA or De Novo.",
+        "alternative_pathways": ["510(k) Abbreviated (if relying on FDA guidance)", "510(k) Special (if minor modifications from prior submission)"],
+        "pathway_comparison": {{
+            "510k": {{"timeline": "6-9 months FDA review", "data_requirements": "Bench testing, biocompatibility, predicate comparison", "cost_estimate": "$150K-300K"}},
+            "pma": {{"timeline": "12-24 months FDA review", "data_requirements": "Clinical trial data, extensive manufacturing controls", "cost_estimate": "$2-5M"}}
+        }}
+    }},
+    "predicate_devices": [
+        {{
+            "k_number": "K180456",
+            "device_name": "Trabecular Metal Modular Acetabular System",
+            "manufacturer": "Zimmer Biomet",
+            "clearance_date": "March 2018",
+            "relevance": "Market-leading porous metal revision cup with extensive clinical history. Similar intended use, cementless fixation, modular design.",
+            "similarities": ["Revision THA indication", "Cementless fixation", "Highly porous metal structure", "Modular liner compatibility", "Augment availability"],
+            "differences": ["Material (tantalum vs titanium) - address with biocompatibility and mechanical equivalence", "Manufacturing process (CVD vs 3D printing) - address with microstructure characterization"]
+        }},
+        {{
+            "k_number": "K201234",
+            "device_name": "Trident II Tritanium Acetabular Shell",
+            "manufacturer": "Stryker",
+            "clearance_date": "August 2020",
+            "relevance": "3D-printed titanium cup with trabecular structure. Closer material match to DELTA TT.",
+            "similarities": ["Titanium material", "Additive manufacturing", "Trabecular structure", "Primary and revision indications", "Cementless fixation"],
+            "differences": ["Specific porosity parameters - address with testing", "Shell geometry - address with mechanical testing"]
+        }},
+        {{
+            "k_number": "K190789",
+            "device_name": "REDAPT Revision Acetabular Cup",
+            "manufacturer": "Smith+Nephew",
+            "clearance_date": "May 2019",
+            "relevance": "Revision-specific acetabular component with porous titanium coating.",
+            "similarities": ["Revision THA indication", "Titanium porous coating", "Modular design"],
+            "differences": ["Coating vs structural porosity - may require additional characterization"]
+        }}
+    ],
+    "clinical_requirements": {{
+        "clinical_data_needed": "For 510(k), no prospective clinical study required. Literature-based clinical data summary supporting safety and effectiveness of porous metal revision cups. H-34 study data can strengthen submission but not required.",
+        "study_design": "Not required for 510(k). If used, single-arm observational study with registry benchmarking is appropriate.",
+        "endpoints": ["Primary: Implant survival (freedom from revision)", "Secondary: Radiographic fixation, functional outcomes (HHS), adverse events"],
+        "sample_size_considerations": "For 510(k), literature analysis sufficient. If clinical study conducted, power analysis based on expected revision rate differential vs benchmark.",
+        "follow_up_duration": "Minimum 2 years for clinical data if submitted. Post-market surveillance typically 5+ years.",
+        "comparator": "Registry benchmarks (AOANJRR, NJR) or literature controls for porous metal revision cups."
+    }},
+    "safety_testing": [
+        {{
+            "test_type": "Biocompatibility",
+            "standard": "ISO 10993-1:2018, FDA Guidance on Biocompatibility",
+            "requirement_level": "Required",
+            "notes": "Full testing panel for titanium alloy with bone contact. Cytotoxicity, sensitization, irritation, systemic toxicity, implantation."
+        }},
+        {{
+            "test_type": "Mechanical Testing - Static",
+            "standard": "ASTM F2345 (Acetabular Cups), FDA Guidance",
+            "requirement_level": "Required",
+            "notes": "Push-out/pull-out testing for locking mechanism. Deformation under load. Comparison to predicate performance."
+        }},
+        {{
+            "test_type": "Mechanical Testing - Fatigue",
+            "standard": "ASTM F2582, ISO 14242",
+            "requirement_level": "Required",
+            "notes": "Fatigue testing of cup under physiologic loading. 10 million cycles minimum."
+        }},
+        {{
+            "test_type": "Porous Structure Characterization",
+            "standard": "ASTM F2450 (Porous Coatings)",
+            "requirement_level": "Required",
+            "notes": "Porosity measurement, pore size distribution, coating thickness, shear strength of coating-substrate interface."
+        }},
+        {{
+            "test_type": "Corrosion Testing",
+            "standard": "ASTM F2129",
+            "requirement_level": "Required",
+            "notes": "Electrochemical corrosion testing in physiologic media."
+        }}
+    ],
+    "post_market": {{
+        "surveillance_requirements": ["MDR reporting per 21 CFR Part 803", "Complaint handling system", "Annual reports if requested", "522 Post-market Surveillance Study (unlikely for 510(k) but possible)"],
+        "reporting_obligations": ["30-day MDR for deaths", "30-day MDR for serious injuries", "5-day reports if requested", "Annual certification"],
+        "registry_participation": "Encouraged but not required. AJRR participation strengthens post-market surveillance portfolio.",
+        "periodic_reports": "If 522 study ordered, periodic reports per FDA schedule. Otherwise, standard complaint monitoring."
+    }},
+    "international": {{
+        "eu_mdr": {{
+            "classification": "Class IIb (implantable device)",
+            "clinical_requirements": "Clinical Evaluation Report (CER) required. May leverage US clinical data plus literature. PMCF study likely required.",
+            "timeline_estimate": "12-18 months for CE marking under MDR via Notified Body"
+        }},
+        "other_markets": ["Health Canada Class III device - similar to US 510(k)", "TGA Australia - CTN or conformity assessment", "Japan PMDA - Shonin approval required", "Brazil ANVISA - registration based on US/EU approval"]
+    }},
+    "timelines": {{
+        "pre_submission_meeting": "Optional but recommended - 2-3 months to schedule and conduct",
+        "submission_preparation": "6-9 months (testing, documentation, predicate analysis)",
+        "fda_review": "6-9 months (Traditional 510(k) average)",
+        "total_estimated": "12-18 months from project initiation to clearance"
+    }},
+    "recommendations": [
+        {{
+            "recommendation": "Use Trident II Tritanium as primary predicate",
+            "rationale": "Closest material and manufacturing match. Recently cleared with established substantial equivalence pathway.",
+            "priority": "high",
+            "action_items": ["Obtain cleared 510(k) summary", "Perform detailed predicate comparison", "Identify testing gaps"]
+        }},
+        {{
+            "recommendation": "Request Pre-Submission meeting with FDA",
+            "rationale": "Clarify testing requirements, confirm predicate selection, discuss any novel claims.",
+            "priority": "high",
+            "action_items": ["Prepare Pre-Sub package", "Submit Q-Sub request", "Prepare meeting materials"]
+        }},
+        {{
+            "recommendation": "Initiate parallel EU MDR preparation",
+            "rationale": "MDR requirements are stringent. Early CER development and PMCF planning reduce time to CE mark.",
+            "priority": "medium",
+            "action_items": ["Engage Notified Body", "Begin CER development", "Plan PMCF study"]
+        }}
+    ]
+}}
+
+### Example 2: Dual Mobility Hip System Regulatory Precedents
+INPUT:
+- Product Name: EMPOWR Dual Mobility
+- Category: Hip Reconstruction
+- Indication: Primary THA
+- Technologies: Dual Mobility, Highly Crosslinked PE
+- Total similar clearances: 23
+- Recent clearances: Stryker Modular Dual Mobility (K200567, 2020), Zimmer Active Articulation (K190234, 2019), DePuy Dual Mobility (K180901, 2018)
+
+OUTPUT:
+{{
+    "executive_summary": "EMPOWR Dual Mobility has a clear 510(k) pathway with multiple cleared dual mobility predicates from major manufacturers. The dual mobility mechanism is well-established in FDA clearance history, with over 20 similar devices cleared in the past 8 years.\n\nKey regulatory considerations include demonstration of bearing material properties (HXLPE characterization), retentive mechanism performance testing, and liner/head compatibility testing. The dislocation prevention claims associated with dual mobility are generally supported through predicate equivalence rather than new clinical data.\n\nRecommended strategy is a Traditional 510(k) using Stryker MDM or Zimmer AAE as primary predicate, with emphasis on bearing material characterization and retentive force testing. Timeline estimate is 10-14 months from initiation to clearance.",
+    "pathway_analysis": {{
+        "recommended_pathway": "510(k) Traditional",
+        "rationale": "Dual mobility concept well-established with multiple predicates. No novel technology. Bearing material (HXLPE) has extensive clearance history.",
+        "alternative_pathways": ["510(k) Abbreviated (if using FDA-recognized standards)", "510(k) Special (for design modifications to prior clearance)"],
+        "pathway_comparison": {{
+            "510k": {{"timeline": "5-8 months FDA review", "data_requirements": "Bench testing, biocompatibility, wear testing", "cost_estimate": "$100K-250K"}},
+            "pma": {{"timeline": "18-30 months FDA review", "data_requirements": "Prospective clinical trial", "cost_estimate": "$3-8M"}}
+        }}
+    }},
+    "predicate_devices": [
+        {{
+            "k_number": "K200567",
+            "device_name": "Modular Dual Mobility (MDM)",
+            "manufacturer": "Stryker",
+            "clearance_date": "June 2020",
+            "relevance": "Market-leading dual mobility system. Modular design similar to EMPOWR. X3 HXLPE bearing.",
+            "similarities": ["Dual articulation mechanism", "Modular shell design", "HXLPE bearing", "Primary THA indication", "Dislocation prevention intended use"],
+            "differences": ["Specific retentive mechanism design - address with testing", "Liner material formulation (vitamin E vs X3) - characterization data"]
+        }},
+        {{
+            "k_number": "K190234",
+            "device_name": "Active Articulation E1",
+            "manufacturer": "Zimmer Biomet",
+            "clearance_date": "October 2019",
+            "relevance": "Vitamin E-stabilized HXLPE dual mobility. Closest bearing material match.",
+            "similarities": ["Vitamin E HXLPE", "Dual mobility articulation", "Shell/liner design", "Primary THA"],
+            "differences": ["Shell outer surface (porous vs smooth options)", "Liner retentive force"]
+        }},
+        {{
+            "k_number": "K180901",
+            "device_name": "Pinnacle Dual Mobility",
+            "manufacturer": "DePuy Synthes",
+            "clearance_date": "March 2018",
+            "relevance": "High-volume dual mobility system with Marathon HXLPE.",
+            "similarities": ["Dual mobility design", "HXLPE bearing", "Primary THA indication"],
+            "differences": ["Marathon vs vitamin E HXLPE", "Shell design geometry"]
+        }}
+    ],
+    "clinical_requirements": {{
+        "clinical_data_needed": "No prospective clinical study required for 510(k). Literature summary supporting dual mobility efficacy in dislocation prevention. H-45 data can strengthen claims but not required.",
+        "study_design": "If conducted, observational cohort comparing to fixed bearing or registry benchmarks.",
+        "endpoints": ["Primary: Dislocation rate", "Secondary: Intraprosthetic dislocation, revision rate, functional outcomes"],
+        "sample_size_considerations": "Literature-based analysis sufficient. If study conducted, power to detect dislocation rate difference vs fixed bearing.",
+        "follow_up_duration": "2-year minimum for clinical data. Post-market surveillance for bearing wear typically 5-10 years.",
+        "comparator": "Registry dislocation rates for fixed bearing, published dual mobility meta-analyses."
+    }},
+    "safety_testing": [
+        {{
+            "test_type": "Wear Testing",
+            "standard": "ASTM F2025, ISO 14242-1",
+            "requirement_level": "Required",
+            "notes": "Hip simulator wear testing. 5 million cycles minimum. Compare to predicate wear performance."
+        }},
+        {{
+            "test_type": "Retentive Force Testing",
+            "standard": "ASTM F2091 (adapted), Internal Protocol",
+            "requirement_level": "Required",
+            "notes": "Measure liner retention force. Simulate reduction and dislocation scenarios. IPD resistance testing."
+        }},
+        {{
+            "test_type": "Bearing Material Characterization",
+            "standard": "ASTM F648 (UHMWPE), ASTM F2565 (HXLPE)",
+            "requirement_level": "Required",
+            "notes": "Crosslinking characterization, oxidation resistance (if vitamin E), mechanical properties."
+        }},
+        {{
+            "test_type": "Biocompatibility",
+            "standard": "ISO 10993-1",
+            "requirement_level": "Required",
+            "notes": "HXLPE and shell materials. Standard panel for implants with bone and tissue contact."
+        }},
+        {{
+            "test_type": "Fatigue Testing",
+            "standard": "ASTM F2068 (Acetabular Shells)",
+            "requirement_level": "Required",
+            "notes": "Shell-liner locking mechanism fatigue. Liner rim fatigue testing."
+        }}
+    ],
+    "post_market": {{
+        "surveillance_requirements": ["Standard MDR reporting", "Wear monitoring program", "IPD event tracking", "Complaint trending"],
+        "reporting_obligations": ["30-day MDR for deaths and serious injuries", "Annual certification"],
+        "registry_participation": "AJRR participation recommended. NJR tracks dual mobility outcomes specifically.",
+        "periodic_reports": "Annual complaint/MDR summary. Long-term wear surveillance recommended."
+    }},
+    "international": {{
+        "eu_mdr": {{
+            "classification": "Class IIb (implantable, joint replacement)",
+            "clinical_requirements": "CER with focus on dislocation prevention claims. PMCF study for bearing performance monitoring.",
+            "timeline_estimate": "10-15 months for CE marking"
+        }},
+        "other_markets": ["Health Canada Class III", "TGA Australia - CTN pathway", "Japan PMDA - Shonin", "Key markets for dual mobility: France, UK, Germany"]
+    }},
+    "timelines": {{
+        "pre_submission_meeting": "Optional - 2 months if pursued",
+        "submission_preparation": "5-7 months (testing, documentation)",
+        "fda_review": "5-8 months (Traditional 510(k))",
+        "total_estimated": "10-14 months from initiation to clearance"
+    }},
+    "recommendations": [
+        {{
+            "recommendation": "Use Active Articulation E1 as primary predicate",
+            "rationale": "Closest bearing material match (vitamin E HXLPE). Recent clearance with established testing paradigm.",
+            "priority": "high",
+            "action_items": ["Obtain K190234 summary", "Align testing protocols", "Develop SE argument"]
+        }},
+        {{
+            "recommendation": "Develop comprehensive IPD testing protocol",
+            "rationale": "IPD is unique failure mode for dual mobility. Robust testing data differentiates submission.",
+            "priority": "high",
+            "action_items": ["Design IPD resistance test protocol", "Benchmark against predicate data", "Include in 510(k) submission"]
+        }},
+        {{
+            "recommendation": "Plan long-term wear surveillance program",
+            "rationale": "Post-market bearing performance data strengthens market position and addresses regulatory expectations.",
+            "priority": "medium",
+            "action_items": ["Design retrieval analysis program", "Establish registry reporting", "Plan 10-year follow-up"]
+        }}
+    ]
+}}
+
+## GUIDELINES
+
+Focus on practical guidance that helps the regulatory team plan their submission strategy.

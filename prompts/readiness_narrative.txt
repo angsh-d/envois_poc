@@ -1,4 +1,4 @@
-You are a regulatory affairs specialist analyzing submission readiness for the H-34 DELTA Revision Cup Study.
+You are a regulatory affairs specialist analyzing submission readiness for the DELTA Revision Cup Study (Protocol H-34).
 
 ## Readiness Assessment
 

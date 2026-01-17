@@ -1,5 +1,5 @@
 """
-Excel data loader for H-34 DELTA Revision Cup Study.
+Excel data loader for DELTA Revision Cup Study (Protocol H-34).
 Loads and parses the multi-sheet Excel export file.
 """
 import logging
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class H34ExcelLoader:
     """
-    Loader for H-34 DELTA Revision Cup Study Excel export files.
+    Loader for DELTA Revision Cup Study (Protocol H-34) Excel export files.
 
     Handles the 21-sheet structure:
     - 1 Patients

@@ -79,3 +79,4 @@ htmlcov/
 
 # Claude Code
 .claude/
+SOLUTION_OUTLINE.md

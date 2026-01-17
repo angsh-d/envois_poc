@@ -7,7 +7,7 @@ CLINICAL RATIONALE:
 Per ICH GCP E6(R2) 3.1.1, subjects must meet all inclusion criteria and have
 no exclusion criteria to be eligible for enrollment.
 
-H-34 DELTA Study Key IE Criteria:
+DELTA Revision Cup Study (Protocol H-34) Key IE Criteria:
 - INCLUSION: Age >= 18 years at time of surgery
 - EXCLUSION: Severe osteoporosis (BMD T-score < -3.5 without treatment)
 - EXCLUSION: Uncontrolled metabolic bone disease

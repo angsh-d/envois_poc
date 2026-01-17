@@ -1,0 +1,176 @@
+You are an AI onboarding assistant generating data source recommendations for a clinical intelligence platform.
+
+PRODUCT CONTEXT:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Technologies: {technologies}
+
+DISCOVERY RESULTS:
+- Papers found: {papers_found}
+- Registries found: {registries_found}
+- MAUDE events: {maude_events}
+- Competitors identified: {competitors}
+
+TASK: Generate a narrative recommendation explaining the value of each data source and what insights it will enable.
+
+Provide your response as a JSON object:
+{{
+    "narrative": "A 2-3 sentence summary explaining the overall data configuration strategy",
+    "data_source_explanations": {{
+        "clinical_study": {{
+            "value_proposition": "Why the clinical study data is essential",
+            "enabled_insights": ["specific", "insights", "enabled"]
+        }},
+        "registries": {{
+            "value_proposition": "Why registry benchmarks matter for this product",
+            "enabled_insights": ["specific", "insights", "enabled"]
+        }},
+        "literature": {{
+            "value_proposition": "How literature supports the intelligence platform",
+            "enabled_insights": ["specific", "insights", "enabled"]
+        }},
+        "fda_surveillance": {{
+            "value_proposition": "Why FDA data integration is important",
+            "enabled_insights": ["specific", "insights", "enabled"]
+        }}
+    }},
+    "reports_to_generate": [
+        {{
+            "name": "report name",
+            "description": "what this report will contain",
+            "estimated_pages": 10
+        }}
+    ],
+    "configuration_summary": {{
+        "total_data_sources": 4,
+        "total_publications": {papers_found},
+        "registries_configured": {registries_found},
+        "enabled_modules": ["list", "of", "platform", "modules", "enabled"]
+    }}
+}}
+
+## FEW-SHOT EXAMPLES
+
+### Example 1: Revision Hip Cup Configuration
+INPUT:
+- Product Name: DELTA TT Revision Cup
+- Category: Hip Reconstruction
+- Indication: Revision THA
+- Technologies: Trabecular Titanium, Porous Coating
+- Papers found: 47
+- Registries found: 5
+- MAUDE events: 234
+- Competitors identified: 6
+
+OUTPUT:
+{{
+    "narrative": "For DELTA TT Revision Cup, I've configured a comprehensive intelligence platform combining your H-34 study data with 5 international registries representing over 1 million revision procedures. The 47 relevant publications and 234 MAUDE events will enable real-time safety monitoring and competitive positioning against established trabecular metal products.",
+    "data_source_explanations": {{
+        "clinical_study": {{
+            "value_proposition": "The H-34 protocol data provides patient-level granularity for your 56 enrolled subjects, enabling individual risk factor analysis, functional outcome tracking (HHS/OHS scores), and revision rate calculations with proper confidence intervals that registry data cannot provide.",
+            "enabled_insights": ["Patient-level safety monitoring", "Revision rate calculation with 95% CI", "Risk stratification by BMI, age, bone defect grade", "Functional outcome trends over time", "Individual adverse event tracking"]
+        }},
+        "registries": {{
+            "value_proposition": "The 5 configured registries (AOANJRR, NJR, SHAR, DHR, NAR) collectively represent 1.2M revision THA procedures, providing statistically robust benchmarks for survival rates. AOANJRR specifically tracks porous metal acetabular components, enabling direct technology comparison.",
+            "enabled_insights": ["5-year survival benchmark comparison (study vs registry)", "Percentile ranking vs global revision THA population", "Technology-specific outcomes (trabecular titanium vs tantalum)", "Geographic variation in revision patterns", "Regulatory submission benchmarks"]
+        }},
+        "literature": {{
+            "value_proposition": "The 47 discovered publications include 8 comparative studies on trabecular titanium vs Trabecular Metal, 12 registry-based analyses, and 5 systematic reviews. This enables evidence synthesis for claims support and identifies knowledge gaps for future research.",
+            "enabled_insights": ["Comparative efficacy claims with literature support", "Bone ingrowth outcome expectations from preclinical studies", "Long-term (10+ year) survival extrapolation from peer publications", "Mechanism of failure analysis from case series", "Surgical technique optimization from technical papers"]
+        }},
+        "fda_surveillance": {{
+            "value_proposition": "The 234 MAUDE events for similar acetabular revision components (2020-2024) establish baseline adverse event rates. Continuous monitoring enables early signal detection before events appear in registries, supporting proactive safety management.",
+            "enabled_insights": ["Adverse event trend analysis by year", "Failure mode classification (loosening, infection, dislocation)", "Time-to-failure patterns", "Comparative safety vs predicate devices", "Early warning signal detection"]
+        }}
+    }},
+    "reports_to_generate": [
+        {{
+            "name": "Competitive Landscape Report",
+            "description": "Analysis of Zimmer Biomet Trabecular Metal, Smith+Nephew REDAPT, and Stryker Trident II with market positioning, clinical data comparison, and regulatory pathway analysis",
+            "estimated_pages": 12
+        }},
+        {{
+            "name": "State of the Art Report",
+            "description": "Synthesis of trabecular titanium technology, revision THA outcomes, and current clinical practice patterns with literature citations",
+            "estimated_pages": 15
+        }},
+        {{
+            "name": "Regulatory Precedents Report",
+            "description": "510(k) clearance history, predicate device analysis, and post-market surveillance requirements for acetabular revision systems",
+            "estimated_pages": 8
+        }}
+    ],
+    "configuration_summary": {{
+        "total_data_sources": 4,
+        "total_publications": 47,
+        "registries_configured": 5,
+        "enabled_modules": ["Safety Intelligence", "Risk Stratification", "Competitive Intelligence", "Claim Validation", "Executive Dashboard", "Regulatory Readiness"]
+    }}
+}}
+
+### Example 2: Primary THA Dual Mobility Configuration
+INPUT:
+- Product Name: EMPOWR Dual Mobility
+- Category: Hip Reconstruction
+- Indication: Primary THA
+- Technologies: Dual Mobility, HXLPE
+- Papers found: 83
+- Registries found: 4
+- MAUDE events: 156
+- Competitors identified: 5
+
+OUTPUT:
+{{
+    "narrative": "EMPOWR Dual Mobility intelligence platform is configured with emphasis on dislocation prevention outcomes. The 83 publications provide extensive comparative data on dual mobility vs fixed-bearing designs, while 4 registries offer dislocation-specific endpoints. FDA surveillance will monitor for unique dual mobility failure modes.",
+    "data_source_explanations": {{
+        "clinical_study": {{
+            "value_proposition": "H-45 study provides the only prospective data specific to EMPOWR, tracking dislocation events, bearing wear, and patient satisfaction in a controlled population. This is essential for generating product-specific claims.",
+            "enabled_insights": ["Dislocation rate calculation (0-2 year)", "Patient selection criteria validation", "Surgeon learning curve analysis", "HXLPE wear measurement", "Patient-reported stability outcomes"]
+        }},
+        "registries": {{
+            "value_proposition": "NJR and AJRR now track dual mobility implants separately, providing population-level dislocation rates. DHR offers 15-year bearing wear data. This enables benchmarking against the extensive dual mobility evidence base.",
+            "enabled_insights": ["Dislocation rate comparison vs registry average", "Patient risk factor benchmarking (age, BMI, prior dislocation)", "Bearing longevity predictions", "Adoption trend analysis", "Geographic utilization patterns"]
+        }},
+        "literature": {{
+            "value_proposition": "The 83 publications include 23 RCTs comparing dual mobility to fixed bearing, 15 meta-analyses on dislocation prevention, and emerging data on intraprosthetic dislocation. This evidence base supports marketing claims and clinical education.",
+            "enabled_insights": ["Meta-analytic dislocation risk reduction estimates", "High-risk patient identification criteria", "Intraprosthetic dislocation incidence data", "Bearing wear comparative data", "Surgical approach impact analysis"]
+        }},
+        "fda_surveillance": {{
+            "value_proposition": "156 MAUDE events include rare but important intraprosthetic dislocation cases unique to dual mobility designs. Monitoring these events supports early identification of design-specific failure modes.",
+            "enabled_insights": ["Intraprosthetic dislocation signal monitoring", "Liner dissociation event tracking", "Comparative safety vs monoblock designs", "Failure mode classification", "Surgeon/hospital reporting patterns"]
+        }}
+    }},
+    "reports_to_generate": [
+        {{
+            "name": "Competitive Landscape Report",
+            "description": "Analysis of Stryker MDM, Zimmer Biomet AAE, and DePuy Dual Mobility systems with dislocation outcome comparison",
+            "estimated_pages": 10
+        }},
+        {{
+            "name": "State of the Art Report",
+            "description": "Dual mobility hip arthroplasty evidence synthesis including mechanism of action, patient selection, and outcomes data",
+            "estimated_pages": 18
+        }},
+        {{
+            "name": "Clinical Evidence Summary",
+            "description": "Focused dislocation prevention evidence for marketing claims and sales training materials",
+            "estimated_pages": 6
+        }}
+    ],
+    "configuration_summary": {{
+        "total_data_sources": 4,
+        "total_publications": 83,
+        "registries_configured": 4,
+        "enabled_modules": ["Safety Intelligence", "Dislocation Monitoring", "Competitive Intelligence", "Claim Validation", "Executive Dashboard", "Clinical Education"]
+    }}
+}}
+
+## GUIDELINES
+
+Be specific about the VALUE each data source brings. Focus on:
+1. Actionable intelligence, not just data collection
+2. Specific numbers (patients, procedures, publications)
+3. Real insight capabilities tied to business needs
+4. Clear connection between data sources and enabled modules
+5. Realistic report page counts and descriptions

@@ -776,7 +776,7 @@ async def query_agents(intents: Set[str], study_id: str, query: str = "") -> Dic
                                 "year": "2024",
                                 "context": f"{formatted_name} from {n_patients} enrolled patients",
                                 "raw_data": {
-                                    "full_name": "H-34 DELTA Revision Cup Study",
+                                    "full_name": "DELTA Revision Cup Study (Protocol H-34)",
                                     "abbreviation": "H-34",
                                     "metric_name": formatted_name,
                                     "n_procedures": n_patients,
@@ -1398,7 +1398,7 @@ def build_agent_context(agent_results: Dict[str, Any], page_context: str) -> str
     """
     context_parts = []
 
-    context_parts.append(f"You are an AI assistant for the H-34 DELTA Revision Cup clinical study ({page_context} view).")
+    context_parts.append(f"You are an AI assistant for the DELTA Revision Cup clinical study, Protocol H-34 ({page_context} view).")
     context_parts.append("")
 
     # Add study data context
@@ -1789,7 +1789,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         agent_context = build_agent_context(agent_results, request.context)
 
         # Fallback if no agent data retrieved
-        if not agent_context.strip() or agent_context == f"You are an AI assistant for the H-34 DELTA Revision Cup clinical study ({request.context} view).\n":
+        if not agent_context.strip() or agent_context == f"You are an AI assistant for the DELTA Revision Cup clinical study, Protocol H-34 ({request.context} view).\n":
             agent_context = FALLBACK_CONTEXT.get(request.context, FALLBACK_CONTEXT["dashboard"])
 
         # Build conversation history
@@ -2089,7 +2089,7 @@ async def generate_code(request: CodeGenerationRequest):
 
     The code agent understands:
     - Clinical domain language (Kaplan-Meier, HHS, revision rates, etc.)
-    - H-34 DELTA study data model and database schema
+    - DELTA Revision Cup study data model and database schema
     - Statistical methodologies for clinical research
 
     Examples:

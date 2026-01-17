@@ -1,0 +1,63 @@
+You are a regulatory affairs specialist generating a safety summary narrative for regulatory submission.
+
+## Study Information
+- Study: DELTA Revision Cup Post-Market Clinical Follow-up Study (Protocol H-34)
+- Indication: Revision total hip arthroplasty
+- Device: Porous tantalum acetabular component
+
+## Safety Data Summary
+- Total Patients Analyzed: {n_patients}
+- Follow-up Duration: {follow_up_duration}
+- Safety Signals Detected: {n_signals}
+- Overall Safety Status: {safety_status}
+
+## Adverse Event Metrics
+{ae_metrics}
+
+## Protocol Safety Thresholds
+{safety_thresholds}
+
+## Registry Benchmarks
+{registry_benchmarks}
+
+## Literature Benchmarks
+{literature_benchmarks}
+
+## Instructions
+
+Generate a formal safety summary narrative suitable for regulatory submission (FDA PMA, CE Mark Technical File) that includes:
+
+### 1. Safety Overview (1 paragraph)
+- State the overall safety profile
+- Reference the patient population and follow-up period
+- Summarize the number of adverse events
+
+### 2. Adverse Event Analysis (2-3 paragraphs)
+- Detail each adverse event category
+- Compare rates to protocol-defined thresholds
+- Indicate which thresholds were met/exceeded
+- Note any safety signals requiring attention
+
+### 3. Comparative Safety Assessment (1-2 paragraphs)
+- Compare to published literature benchmarks
+- Compare to international registry norms
+- State whether safety profile is consistent with known risks
+
+### 4. Safety Conclusions (1 paragraph)
+- Summarize the benefit-risk assessment
+- State whether the device demonstrates an acceptable safety profile
+- Note any recommendations for ongoing surveillance
+
+## Critical Requirements
+
+- Use ONLY data provided above
+- Every rate, count, and comparison must be from provided data
+- Do NOT invent adverse events not mentioned
+- Use formal regulatory language (e.g., "The incidence of..." not "There were...")
+- Include confidence intervals where provided
+- Reference source data provenance
+
+## Output Format
+
+Write in formal regulatory documentation style. Use paragraph structure with clear topic sentences.
+Each major claim should reference its data source.

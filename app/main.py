@@ -23,7 +23,12 @@ import websockets
 import asyncio
 
 from app.config import settings
-from app.api.routers import uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard, health, chat, protocol_digitization, simulation, data_browser
+from app.api.routers import (
+    uc1_readiness, uc2_safety, uc3_deviations, uc4_risk, uc5_dashboard,
+    uc6_regulatory, uc7_competitive, uc8_sales, uc9_sota, uc10_claims,
+    uc11_fda, health, chat, enhanced_chat, protocol_digitization, simulation, data_browser,
+    onboarding, products
+)
 from app.services.cache_service import warmup_cache, start_background_refresh, get_cache_service
 
 # Detect production mode
@@ -35,7 +40,7 @@ STATIC_DIR = Path(__file__).parent.parent / "client" / "dist"
 # Initialize FastAPI app
 app = FastAPI(
     title="Clinical Intelligence Platform API",
-    description="AI-powered clinical study analytics for H-34 DELTA Revision Cup Study",
+    description="AI-powered clinical study analytics for DELTA Revision Cup (Protocol H-34)",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
@@ -137,10 +142,19 @@ app.include_router(uc2_safety.router, prefix="/api/v1/uc2", tags=["UC2: Safety S
 app.include_router(uc3_deviations.router, prefix="/api/v1/uc3", tags=["UC3: Protocol Deviations"])
 app.include_router(uc4_risk.router, prefix="/api/v1/uc4", tags=["UC4: Risk Stratification"])
 app.include_router(uc5_dashboard.router, prefix="/api/v1/uc5", tags=["UC5: Executive Dashboard"])
+app.include_router(uc6_regulatory.router, prefix="/api/v1/uc6", tags=["UC6: Regulatory Narrative"])
+app.include_router(uc7_competitive.router, prefix="/api/v1/uc7", tags=["UC7: Competitive Intelligence"])
+app.include_router(uc8_sales.router, prefix="/api/v1/uc8", tags=["UC8: Sales Enablement"])
+app.include_router(uc9_sota.router, prefix="/api/v1/uc9", tags=["UC9: SOTA Report"])
+app.include_router(uc10_claims.router, prefix="/api/v1/uc10", tags=["UC10: Claim Validation"])
+app.include_router(uc11_fda.router, prefix="/api/v1/uc11", tags=["UC11: FDA Surveillance"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
+app.include_router(enhanced_chat.router, prefix="/api/v1", tags=["Enhanced Chat"])
 app.include_router(protocol_digitization.router, prefix="/api/v1/protocol", tags=["Protocol Digitization"])
 app.include_router(simulation.router, prefix="/api/v1/simulation", tags=["Monte Carlo Simulation"])
 app.include_router(data_browser.router, prefix="/api/v1/data-browser", tags=["Data Browser"])
+app.include_router(onboarding.router, prefix="/api/v1/onboarding", tags=["Product Onboarding"])
+app.include_router(products.router, prefix="/api/v1", tags=["Products"])
 
 # Vite dev server URL for proxying frontend requests (development only)
 VITE_DEV_URL = os.getenv("VITE_DEV_URL", "http://127.0.0.1:5173")

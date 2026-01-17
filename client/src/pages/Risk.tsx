@@ -39,11 +39,11 @@ function RiskFactorCount({ clinical, demographic }: { clinical?: number, demogra
     <div className="flex items-center gap-3">
       {clinicalCount > 0 && (
         <div
-          className="flex items-center gap-1.5 bg-amber-50 px-2 py-1 rounded-md border border-amber-100"
+          className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md border border-gray-200"
           title="Number of clinical risk factors with hazard ratios"
         >
-          <Stethoscope className="w-3 h-3 text-amber-600" />
-          <span className="text-xs text-amber-700 font-medium">{clinicalCount} risk factor{clinicalCount !== 1 ? 's' : ''}</span>
+          <Stethoscope className="w-3 h-3 text-gray-600" />
+          <span className="text-xs text-gray-700 font-medium">{clinicalCount} risk factor{clinicalCount !== 1 ? 's' : ''}</span>
         </div>
       )}
     </div>
@@ -97,7 +97,7 @@ function PatientCard({ patient, isExpanded, onToggle }: {
       {isExpanded && (
         <div className="px-4 pb-4 border-t border-gray-100">
           {/* Score Calculation Breakdown */}
-          <div className="mt-4 mb-4 p-3 bg-amber-50/50 rounded-lg border border-amber-100">
+          <div className="mt-4 mb-4 p-3 bg-gray-100/50 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 font-medium">Risk Score Calculation:</span>
               <div className="flex items-center gap-2 font-mono text-xs">
@@ -108,14 +108,14 @@ function PatientCard({ patient, isExpanded, onToggle }: {
                   return (
                     <>
                       {clinicalFactors.map((f, i) => (
-                        <span key={i} className="bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                        <span key={i} className="bg-gray-200 text-gray-800 px-2 py-1 rounded">
                           {f.hazard_ratio.toFixed(2)}×
                         </span>
                       )).reduce((prev, curr, i) => (
                         <>{prev}{i > 0 && <span className="text-gray-400">×</span>}{curr}</>
                       ), <></>)}
                       <span className="text-gray-400">=</span>
-                      <span className="bg-amber-200 text-amber-900 px-2 py-1 rounded font-medium">
+                      <span className="bg-gray-300 text-gray-900 px-2 py-1 rounded font-medium">
                         {combinedHR.toFixed(2)}× HR
                       </span>
                       <span className="text-gray-400">→</span>
@@ -146,10 +146,10 @@ function PatientCard({ patient, isExpanded, onToggle }: {
               {clinicalFactors.length > 0 ? (
                 <div className="space-y-2">
                   {clinicalFactors.map((factor, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-amber-50/50 rounded-lg border border-amber-100">
+                    <div key={idx} className="flex items-center justify-between p-2 bg-gray-100/50 rounded-lg border border-gray-200">
                       <span className="text-sm text-gray-700">{formatFactorName(factor.factor)}</span>
                       <span
-                        className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded"
+                        className="text-xs font-medium text-gray-700 bg-gray-200 px-2 py-0.5 rounded"
                         title={`${factor.hazard_ratio.toFixed(2)}x increased risk compared to baseline population (from literature)`}
                       >
                         {factor.hazard_ratio.toFixed(1)}x risk
@@ -432,7 +432,7 @@ export default function Risk() {
               <div className="flex items-center justify-center gap-2 text-lg font-mono text-gray-700">
                 <span className="bg-gray-100 px-3 py-1.5 rounded-lg">Risk Score</span>
                 <span>=</span>
-                <span className="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg">Combined Hazard Ratio</span>
+                <span className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg">Combined Hazard Ratio</span>
                 <span className="text-gray-500">→</span>
                 <span className="bg-gray-100 px-3 py-1.5 rounded-lg">0-100%</span>
               </div>
@@ -442,9 +442,9 @@ export default function Risk() {
             </div>
 
             {/* Single Column Explanation */}
-            <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4 mb-4">
+            <div className="bg-gray-100/50 border border-gray-200 rounded-xl p-4 mb-4">
               <div className="flex items-center gap-2 mb-2">
-                <Stethoscope className="w-4 h-4 text-amber-600" />
+                <Stethoscope className="w-4 h-4 text-gray-600" />
                 <h4 className="font-medium text-gray-700">Literature-Derived Hazard Ratios</h4>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -452,7 +452,7 @@ export default function Risk() {
                 (NJR UK, AOANJRR) and meta-analyses. Each patient's risk factors are identified, their hazard ratios
                 are multiplied together, and the combined HR is converted to a percentage.
               </p>
-              <div className="mt-3 p-2 bg-white rounded-lg border border-amber-200">
+              <div className="mt-3 p-2 bg-white rounded-lg border border-gray-300">
                 <p className="text-xs font-mono text-gray-700 text-center">
                   Score = (Combined HR − 1) ÷ 5 &nbsp;&nbsp; <span className="text-gray-500">[capped at 5-95%]</span>
                 </p>

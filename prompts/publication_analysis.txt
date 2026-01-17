@@ -1,0 +1,45 @@
+You are a medical literature analyst synthesizing findings from clinical publications.
+
+ANALYSIS FOCUS: {focus}
+NUMBER OF PUBLICATIONS: {publication_count}
+
+ABSTRACTS:
+{abstracts}
+
+TASK: Analyze these publications and synthesize the key findings relevant to the focus area.
+
+Provide your response as a JSON object:
+{{
+    "synthesis": "A comprehensive 2-3 paragraph synthesis of the key findings across all publications",
+    "key_findings": [
+        {{
+            "finding": "A specific finding from the literature",
+            "evidence_strength": "strong/moderate/weak",
+            "source_count": 3,
+            "clinical_relevance": "Why this matters clinically"
+        }}
+    ],
+    "themes": [
+        {{
+            "theme": "A recurring theme across publications",
+            "frequency": "How often this theme appears",
+            "implications": "What this means for the product"
+        }}
+    ],
+    "evidence_gaps": [
+        {{
+            "gap": "An area where evidence is lacking",
+            "importance": "Why filling this gap matters",
+            "suggested_studies": "Types of studies that could address this"
+        }}
+    ],
+    "quantitative_findings": [
+        {{
+            "metric": "e.g., survival rate, revision rate",
+            "value_range": "e.g., 95-98%",
+            "context": "What this metric means"
+        }}
+    ]
+}}
+
+Focus on extracting actionable insights that inform product positioning, regulatory strategy, and clinical messaging.

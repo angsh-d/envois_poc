@@ -1,5 +1,5 @@
 """
-Synthetic Data Generator for H-34 DELTA Revision Cup Study.
+Synthetic Data Generator for DELTA Revision Cup Study (Protocol H-34).
 
 Generates clinically-realistic synthetic patient data based on:
 1. Actual H-34 study distributions (N=37)
@@ -79,7 +79,7 @@ class SyntheticConfig:
 
 class SyntheticH34Generator:
     """
-    Generates synthetic H-34 DELTA Revision Cup Study data.
+    Generates synthetic DELTA Revision Cup Study data (Protocol H-34).
 
     All generated data is marked with is_synthetic=True for transparency.
     """

@@ -225,6 +225,52 @@ export const SEED_QUESTIONS: Record<string, ContextQuestions> = {
         isAgentic: false
       }
     ]
+  },
+
+  // Competitive Intelligence (PM-focused)
+  competitive: {
+    description: 'Competitive landscape and sales enablement',
+    questions: [
+      {
+        text: 'Generate a battle card vs Zimmer Biomet revision cups',
+        isAgentic: true
+      },
+      {
+        text: 'What are our key differentiators based on registry data?',
+        isAgentic: true
+      },
+      {
+        text: 'How does our 2-year survival rate compare to competitors?',
+        isAgentic: false
+      },
+      {
+        text: "What's our competitive position in the revision hip market?",
+        isAgentic: true
+      }
+    ]
+  },
+
+  // Claim Validation (PM and Marketing focused)
+  claims: {
+    description: 'Marketing claim substantiation',
+    questions: [
+      {
+        text: 'Can we claim "95% survival at 2 years" in marketing materials?',
+        isAgentic: true
+      },
+      {
+        text: 'What claims can we substantiate with our current clinical data?',
+        isAgentic: true
+      },
+      {
+        text: 'Is the claim "superior outcomes vs competitors" compliant?',
+        isAgentic: true
+      },
+      {
+        text: 'What evidence gaps exist for our key marketing claims?',
+        isAgentic: false
+      }
+    ]
   }
 }
 

@@ -1,0 +1,47 @@
+You are an executive communications specialist creating a brief executive summary for a medical device product.
+
+PRODUCT CONTEXT:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+
+KEY FINDINGS FROM RESEARCH:
+{key_findings}
+
+TASK: Generate a concise executive summary suitable for senior leadership review.
+
+Provide your response as a JSON object:
+{{
+    "headline": "A single compelling headline summarizing the product's intelligence status",
+    "key_points": [
+        {{
+            "point": "Key finding or insight",
+            "implication": "What this means for the business"
+        }}
+    ],
+    "strategic_implications": [
+        {{
+            "area": "Strategic area (e.g., Market Position, Regulatory, Clinical)",
+            "finding": "What the research shows",
+            "recommendation": "Recommended action"
+        }}
+    ],
+    "recommended_actions": [
+        {{
+            "action": "Specific recommended action",
+            "owner": "Suggested owner (e.g., Regulatory, Marketing, Clinical)",
+            "priority": "high/medium/low",
+            "timeline": "Suggested timeline"
+        }}
+    ],
+    "risk_factors": [
+        {{
+            "risk": "Identified risk",
+            "likelihood": "high/medium/low",
+            "impact": "Potential impact",
+            "mitigation": "Recommended mitigation"
+        }}
+    ]
+}}
+
+Keep language executive-friendly: clear, concise, action-oriented.

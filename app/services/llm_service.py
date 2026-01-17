@@ -65,6 +65,7 @@ class LLMService:
         "gemini-2.5-pro": 65536,
         "gemini-2.5-flash": 65536,
         "gemini-2.0-flash": 8192,
+        "gpt-5-mini": 16384,
         "gpt-4": 16384,
         "gpt-4o": 16384,
     }
@@ -229,7 +230,7 @@ class LLMService:
 
         Args:
             prompt: The prompt to send to the LLM
-            model: Model identifier (gemini-2.5-pro, gpt-4, etc.)
+            model: Model identifier (gemini-3-pro-preview, gpt-5-mini, etc.)
             max_tokens: Maximum output tokens (uses model default if None)
             temperature: Sampling temperature (0.0-1.0)
             response_format: Optional format hint ("json" for JSON output)
@@ -341,7 +342,7 @@ class LLMService:
         if models is None:
             models = ["gemini-3-pro-preview"]
             if self.azure_client:
-                models.append("gpt-5.1")  # Azure OpenAI fallback
+                models.append("gpt-5-mini")  # Azure OpenAI fallback
 
         # Get responses in parallel
         responses = await asyncio.gather(*[

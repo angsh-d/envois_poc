@@ -13,6 +13,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
+import re
+
 from pydantic import BaseModel, Field
 
 # Import directly from modules to avoid circular import via services/__init__.py
@@ -20,6 +22,121 @@ from app.services.llm_service import get_llm_service, LLMService
 from app.services.prompt_service import get_prompt_service, PromptService
 
 logger = logging.getLogger(__name__)
+
+
+# ==================== Input Sanitization for LLM Prompts ====================
+
+# Patterns that could indicate prompt injection attempts
+PROMPT_INJECTION_PATTERNS = [
+    r"ignore\s+(previous|above|all)\s+instructions?",
+    r"disregard\s+(previous|above|all)\s+instructions?",
+    r"forget\s+(previous|above|all)\s+instructions?",
+    r"system\s*:\s*",
+    r"<\s*system\s*>",
+    r"<\s*/?\s*instruction\s*>",
+    r"```\s*(system|instruction)",
+    r"\[INST\]",
+    r"\[/INST\]",
+    r"<<\s*SYS\s*>>",
+    r"<\|im_start\|>",
+    r"<\|im_end\|>",
+]
+
+# Characters that should be escaped in user input
+SPECIAL_CHARS_TO_ESCAPE = {
+    '"': '\\"',
+    "'": "\\'",
+    "\\": "\\\\",
+    "\n": " ",  # Replace newlines with spaces
+    "\r": "",   # Remove carriage returns
+    "\t": " ",  # Replace tabs with spaces
+}
+
+
+def sanitize_prompt_input(value: str, max_length: int = 1000, field_name: str = "input") -> str:
+    """
+    Sanitize user input before interpolating into LLM prompts.
+
+    Protections:
+    - Truncates to max_length to prevent token overflow
+    - Escapes special characters that could break prompt structure
+    - Detects and flags potential prompt injection attempts
+    - Normalizes whitespace
+
+    Args:
+        value: The user input to sanitize
+        max_length: Maximum allowed length (default 1000)
+        field_name: Name of the field for logging
+
+    Returns:
+        Sanitized string safe for prompt interpolation
+    """
+    if not isinstance(value, str):
+        value = str(value) if value is not None else ""
+
+    # Truncate to max length
+    if len(value) > max_length:
+        logger.warning(f"Truncating {field_name} from {len(value)} to {max_length} chars")
+        value = value[:max_length] + "..."
+
+    # Check for prompt injection patterns
+    value_lower = value.lower()
+    for pattern in PROMPT_INJECTION_PATTERNS:
+        if re.search(pattern, value_lower, re.IGNORECASE):
+            logger.warning(f"Potential prompt injection detected in {field_name}: {pattern}")
+            # Remove the suspicious pattern
+            value = re.sub(pattern, "[FILTERED]", value, flags=re.IGNORECASE)
+
+    # Escape special characters
+    for char, escaped in SPECIAL_CHARS_TO_ESCAPE.items():
+        value = value.replace(char, escaped)
+
+    # Normalize whitespace (collapse multiple spaces)
+    value = " ".join(value.split())
+
+    return value
+
+
+def sanitize_prompt_parameters(parameters: Dict[str, Any], max_lengths: Optional[Dict[str, int]] = None) -> Dict[str, Any]:
+    """
+    Sanitize all string parameters in a dictionary for LLM prompt interpolation.
+
+    Args:
+        parameters: Dictionary of parameter name -> value
+        max_lengths: Optional dict of field name -> max length overrides
+
+    Returns:
+        Dictionary with all string values sanitized
+    """
+    # Default max lengths for specific field types that need more space
+    default_field_lengths = {
+        "signals": 15000,           # Safety signals can be large
+        "context": 10000,           # Context fields need room
+        "data": 10000,              # Data fields need room
+        "analysis": 8000,           # Analysis results
+        "recommendations": 8000,    # Recommendation lists
+        "narrative": 5000,          # Narrative text
+        "description": 3000,        # Descriptions
+    }
+    max_lengths = {**default_field_lengths, **(max_lengths or {})}
+    default_max_length = 1000
+
+    sanitized = {}
+    for key, value in parameters.items():
+        if isinstance(value, str):
+            max_len = max_lengths.get(key, default_max_length)
+            sanitized[key] = sanitize_prompt_input(value, max_length=max_len, field_name=key)
+        elif isinstance(value, list):
+            # Sanitize list elements if they're strings
+            sanitized[key] = [
+                sanitize_prompt_input(str(v), max_length=200, field_name=f"{key}[{i}]")
+                if isinstance(v, str) else v
+                for i, v in enumerate(value)
+            ]
+        else:
+            sanitized[key] = value
+
+    return sanitized
 
 
 class AgentType(str, Enum):
@@ -31,6 +148,13 @@ class AgentType(str, Enum):
     COMPLIANCE = "compliance"
     SAFETY = "safety"
     SYNTHESIS = "synthesis"
+    FDA = "fda"
+    # Onboarding and Research agents
+    ONBOARDING = "onboarding"
+    PUBLICATION_DISCOVERY = "publication_discovery"
+    DEEP_RESEARCH = "deep_research"
+    REPORT_GENERATION = "report_generation"
+    RESEARCH = "research"  # For competitive intelligence and general research
 
 
 class SourceType(str, Enum):
@@ -43,6 +167,14 @@ class SourceType(str, Enum):
     CALCULATION = "calculation"
     COMPLIANCE_ANALYSIS = "compliance_analysis"
     SAFETY_ANALYSIS = "safety_analysis"
+    FDA_MAUDE = "fda_maude"
+    FDA_510K = "fda_510k"
+    FDA_RECALL = "fda_recall"
+    # Onboarding and Research sources
+    PUBMED = "pubmed"
+    WEB_RESEARCH = "web_research"
+    COMPETITIVE_INTEL = "competitive_intel"
+    REGULATORY_INTEL = "regulatory_intel"
 
 
 class ConfidenceLevel(str, Enum):
@@ -413,6 +545,7 @@ class BaseAgent(ABC):
         prompt_name: str,
         parameters: Optional[Dict[str, Any]] = None,
         strict: bool = False,
+        sanitize: bool = True,
     ) -> str:
         """
         Load a prompt template with parameter substitution.
@@ -421,11 +554,15 @@ class BaseAgent(ABC):
             prompt_name: Name of the prompt file (without .txt)
             parameters: Values to substitute into the template
             strict: If True, raise error on missing parameters
+            sanitize: If True, sanitize parameters to prevent prompt injection (default True)
 
         Returns:
             Populated prompt string
         """
-        return self.prompts.load(prompt_name, parameters or {}, strict)
+        params = parameters or {}
+        if sanitize and params:
+            params = sanitize_prompt_parameters(params)
+        return self.prompts.load(prompt_name, params, strict)
 
 
 class AgentOrchestrator:

@@ -1,4 +1,4 @@
-You are a clinical intelligence assistant analyzing patient risk for the H-34 DELTA Revision Cup Study.
+You are a clinical intelligence assistant analyzing patient risk for the DELTA Revision Cup Study (Protocol H-34).
 
 ## Patient Risk Profile
 

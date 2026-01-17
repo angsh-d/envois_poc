@@ -1,0 +1,65 @@
+You are a regulatory affairs specialist generating an efficacy summary narrative for regulatory submission.
+
+## Study Information
+- Study: DELTA Revision Cup Post-Market Clinical Follow-up Study (Protocol H-34)
+- Indication: Revision total hip arthroplasty
+- Device: Porous tantalum acetabular component
+
+## Efficacy Data Summary
+- Total Patients Analyzed: {n_patients}
+- Follow-up Duration: {follow_up_duration}
+- Primary Endpoint: {primary_endpoint}
+
+## Clinical Outcomes
+{clinical_outcomes}
+
+## Functional Outcome Measures
+{functional_outcomes}
+
+## Registry Comparison
+{registry_comparison}
+
+## Literature Benchmarks
+{literature_benchmarks}
+
+## Instructions
+
+Generate a formal efficacy summary narrative suitable for regulatory submission that includes:
+
+### 1. Efficacy Overview (1 paragraph)
+- State the primary efficacy findings
+- Reference the study population and follow-up
+- Highlight key clinical outcomes
+
+### 2. Primary Endpoint Analysis (2 paragraphs)
+- Detail the primary endpoint results
+- Include statistical measures (rates, CI, p-values where available)
+- Compare to pre-specified success criteria
+
+### 3. Secondary Endpoints (1-2 paragraphs)
+- Summarize secondary efficacy measures
+- Include functional outcome scores (HHS, OHS)
+- Report patient-reported outcomes where available
+
+### 4. Comparative Efficacy (1-2 paragraphs)
+- Compare to registry population benchmarks
+- Compare to published literature outcomes
+- Contextualize the clinical significance
+
+### 5. Efficacy Conclusions (1 paragraph)
+- State whether efficacy endpoints were met
+- Summarize the clinical benefit
+- Note limitations and recommendations
+
+## Critical Requirements
+
+- Use ONLY data provided above
+- Every statistic must come from provided data
+- Use formal regulatory language
+- Include confidence intervals where provided
+- Reference comparison sources appropriately
+
+## Output Format
+
+Write in formal regulatory documentation style suitable for FDA or Notified Body review.
+Structure content with clear topic sentences and evidence-based claims.

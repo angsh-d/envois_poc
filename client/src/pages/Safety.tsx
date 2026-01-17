@@ -25,17 +25,17 @@ function RateBar({ rate, threshold, isSignal }: { rate: number; threshold: numbe
   const maxValue = Math.max(rate, threshold) * 1.2
   const ratePercent = (rate / maxValue) * 100
   const thresholdPercent = (threshold / maxValue) * 100
-  
+
   return (
     <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden w-24">
-      <div 
+      <div
         className={`absolute h-full rounded-full transition-all duration-500 ${
-          isSignal ? 'bg-red-400' : 'bg-emerald-400'
+          isSignal ? 'bg-gray-700' : 'bg-gray-400'
         }`}
         style={{ width: `${ratePercent}%` }}
       />
-      <div 
-        className="absolute h-full w-0.5 bg-gray-400"
+      <div
+        className="absolute h-full w-0.5 bg-gray-500"
         style={{ left: `${thresholdPercent}%` }}
       />
     </div>
@@ -156,12 +156,12 @@ export default function Safety() {
                 
                 return (
                   <React.Fragment key={i}>
-                    <tr 
+                    <tr
                       className={`transition-all duration-200 cursor-pointer ${
-                        isExpanded 
-                          ? 'bg-blue-50/50' 
-                          : metric.signal 
-                            ? 'hover:bg-red-50/30' 
+                        isExpanded
+                          ? 'bg-gray-100/50'
+                          : metric.signal
+                            ? 'hover:bg-gray-100/30'
                             : 'hover:bg-gray-50'
                       }`}
                       onClick={() => setExpandedMetric(isExpanded ? null : metric.metric)}
@@ -169,19 +169,19 @@ export default function Safety() {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${
-                            metric.signal 
-                              ? metric.signal_level === 'high' 
-                                ? 'bg-red-500 animate-pulse' 
-                                : 'bg-amber-500'
-                              : 'bg-emerald-500'
+                            metric.signal
+                              ? metric.signal_level === 'high'
+                                ? 'bg-gray-800 animate-pulse'
+                                : 'bg-gray-500'
+                              : 'bg-gray-400'
                           }`} />
                           <div>
                             <span className="font-medium text-gray-900">{formatMetricName(metric.metric)}</span>
                             {metric.signal_level && (
                               <span className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
-                                metric.signal_level === 'high' 
-                                  ? 'bg-red-100 text-red-700' 
-                                  : 'bg-amber-100 text-amber-700'
+                                metric.signal_level === 'high'
+                                  ? 'bg-gray-800 text-white'
+                                  : 'bg-gray-200 text-gray-700'
                               }`}>
                                 {metric.signal_level.toUpperCase()}
                               </span>
@@ -199,7 +199,7 @@ export default function Safety() {
                         <div className="flex flex-col items-center gap-1">
                           <div className="flex items-center gap-3">
                             <div className="flex flex-col items-center">
-                              <span className={`text-lg font-bold ${metric.signal ? 'text-red-600' : 'text-emerald-600'}`}>
+                              <span className={`text-lg font-bold ${metric.signal ? 'text-gray-800' : 'text-gray-600'}`}>
                                 {(metric.rate * 100).toFixed(1)}%
                               </span>
                               {metric.ci_lower !== undefined && metric.ci_upper !== undefined && (
@@ -226,9 +226,9 @@ export default function Safety() {
                       </td>
                       <td className="py-4 px-4 text-center">
                         <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
-                          metric.signal 
-                            ? 'bg-red-100 text-red-700' 
-                            : 'bg-emerald-100 text-emerald-700'
+                          metric.signal
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-gray-200 text-gray-700'
                         }`}>
                           {metric.signal ? (
                             <>
@@ -250,8 +250,8 @@ export default function Safety() {
                             setExpandedMetric(isExpanded ? null : metric.metric)
                           }}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-                            isExpanded 
-                              ? 'bg-blue-600 text-white shadow-sm' 
+                            isExpanded
+                              ? 'bg-gray-800 text-white shadow-sm'
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
@@ -264,17 +264,17 @@ export default function Safety() {
                   {/* Expanded Detail Row */}
                   {isExpanded && (
                     <tr className="animate-fade-in">
-                      <td colSpan={5} className="bg-gradient-to-b from-blue-50/50 to-gray-50 px-6 py-5">
+                      <td colSpan={5} className="bg-gradient-to-b from-gray-100/50 to-gray-50 px-6 py-5">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                           {/* Provenance Panel */}
-                          <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
+                          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
-                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <Database className="w-4 h-4 text-blue-600" />
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Database className="w-4 h-4 text-gray-600" />
                               </div>
                               <div>
                                 <h4 className="font-semibold text-gray-900 text-sm">Data Provenance</h4>
-                                <p className="text-xs text-blue-600">Full source transparency</p>
+                                <p className="text-xs text-gray-600">Full source transparency</p>
                               </div>
                             </div>
                             {provenance ? (
@@ -288,15 +288,15 @@ export default function Safety() {
                                   <p className="text-gray-800 font-mono bg-white px-2 py-1 rounded border border-gray-200">{provenance.calculation}</p>
                                 </div>
                                 {provenance.confidence_interval && (
-                                  <div className="bg-emerald-50 rounded-lg p-2.5">
-                                    <p className="text-emerald-700 font-semibold mb-1">Statistical Uncertainty</p>
-                                    <p className="text-emerald-800 font-mono text-xs">{provenance.confidence_interval}</p>
+                                  <div className="bg-gray-100 rounded-lg p-2.5">
+                                    <p className="text-gray-700 font-semibold mb-1">Statistical Uncertainty</p>
+                                    <p className="text-gray-800 font-mono text-xs">{provenance.confidence_interval}</p>
                                   </div>
                                 )}
                                 {provenance.signal_classification && (
-                                  <div className="bg-amber-50 rounded-lg p-2.5">
-                                    <p className="text-amber-700 font-semibold mb-1">Signal Classification</p>
-                                    <p className="text-amber-800 text-xs">{provenance.signal_classification}</p>
+                                  <div className="bg-gray-100 rounded-lg p-2.5">
+                                    <p className="text-gray-700 font-semibold mb-1">Signal Classification</p>
+                                    <p className="text-gray-800 text-xs">{provenance.signal_classification}</p>
                                   </div>
                                 )}
                               </div>
@@ -308,12 +308,12 @@ export default function Safety() {
                           {/* Affected Patients */}
                           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                             <div className="flex items-center gap-2 mb-4">
-                              <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
-                                <Users className="w-4 h-4 text-rose-600" />
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Users className="w-4 h-4 text-gray-600" />
                               </div>
                               <div>
                                 <h4 className="font-semibold text-gray-900 text-sm">Affected Patients</h4>
-                                <p className="text-xs text-rose-600">
+                                <p className="text-xs text-gray-600">
                                   {affectedPatients.length} event{affectedPatients.length !== 1 ? 's' : ''} ({new Set(affectedPatients.map(p => p.patient_id)).size} patient{new Set(affectedPatients.map(p => p.patient_id)).size !== 1 ? 's' : ''})
                                 </p>
                               </div>
@@ -334,17 +334,17 @@ export default function Safety() {
                                     {patient.demographics && (
                                       <div className="flex flex-wrap gap-2 mt-2">
                                         {patient.demographics.gender && (
-                                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
                                             {patient.demographics.gender}
                                           </span>
                                         )}
                                         {patient.demographics.age && (
-                                          <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
+                                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
                                             Age {patient.demographics.age}
                                           </span>
                                         )}
                                         {patient.demographics.bmi && (
-                                          <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+                                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
                                             BMI {patient.demographics.bmi.toFixed(1)}
                                           </span>
                                         )}
@@ -361,8 +361,8 @@ export default function Safety() {
                           {/* Literature Citations */}
                           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                             <div className="flex items-center gap-2 mb-3">
-                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <BookOpen className="w-4 h-4 text-purple-600" />
+                              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <BookOpen className="w-4 h-4 text-gray-600" />
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-1">
@@ -371,20 +371,20 @@ export default function Safety() {
                                     <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
                                     <span className="absolute bottom-full left-0 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-50 leading-relaxed shadow-lg">
                                       <span className="font-medium text-gray-900">Comparison Method:</span><br/>
-                                      <span className="text-emerald-600">● Green</span>: Study rate ≤ literature rate (at or below benchmark)<br/>
-                                      <span className="text-amber-600">● Amber</span>: Study rate &gt; literature rate (exceeds benchmark)
+                                      <span className="text-gray-400">● Light</span>: Study rate ≤ literature rate (at or below benchmark)<br/>
+                                      <span className="text-gray-700">● Dark</span>: Study rate &gt; literature rate (exceeds benchmark)
                                     </span>
                                   </span>
                                 </div>
-                                <p className="text-xs text-purple-600">{citations.length} publications</p>
+                                <p className="text-xs text-gray-600">{citations.length} publications</p>
                               </div>
                             </div>
                             {citations.length > 0 ? (
                               <div className="space-y-2.5 max-h-64 overflow-y-auto">
                                 {citations.map((citation, idx) => (
-                                  <div key={idx} className="p-3 bg-gradient-to-r from-purple-50 to-gray-50 rounded-lg border border-purple-100">
+                                  <div key={idx} className="p-3 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg border border-gray-200">
                                     <p className="font-medium text-gray-900 text-sm leading-tight">{citation.title}</p>
-                                    <p className="text-purple-600 text-xs mt-1">{citation.journal} ({citation.year})</p>
+                                    <p className="text-gray-600 text-xs mt-1">{citation.journal} ({citation.year})</p>
                                     <div className="flex flex-wrap items-center gap-2 mt-2">
                                       {citation.n_patients && (
                                         <span className="text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200 text-gray-600">
@@ -394,8 +394,8 @@ export default function Safety() {
                                       {citation.reported_rate != null && citation.reported_rate > 0 ? (
                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                           metric.rate <= citation.reported_rate
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : 'bg-amber-100 text-amber-700'
+                                            ? 'bg-gray-200 text-gray-600'
+                                            : 'bg-gray-700 text-white'
                                         }`}>
                                           {(citation.reported_rate * 100).toFixed(1)}% rate
                                         </span>
@@ -406,12 +406,12 @@ export default function Safety() {
                                       )}
                                     </div>
                                     {/* Source provenance and DOI link */}
-                                    <div className="mt-2 pt-2 border-t border-purple-100">
+                                    <div className="mt-2 pt-2 border-t border-gray-200">
                                       {citation.local_source && (
                                         <>
                                           <p className="text-xs text-gray-500">
-                                            <span className="font-medium text-purple-700">Local:</span>{' '}
-                                            <span className="font-mono text-purple-600">{citation.local_source}</span>
+                                            <span className="font-medium text-gray-700">Local:</span>{' '}
+                                            <span className="font-mono text-gray-600">{citation.local_source}</span>
                                           </p>
                                           {citation.provenance?.page && (
                                             <p className="text-xs text-gray-500 mt-0.5">
@@ -448,14 +448,14 @@ export default function Safety() {
 
                         {/* Recommended Action */}
                         {metric.recommended_action && (
-                          <div className="mt-5 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+                          <div className="mt-5 p-4 bg-gradient-to-r from-gray-100 to-gray-50 border border-gray-300 rounded-xl">
                             <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                              <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <AlertTriangle className="w-4 h-4 text-gray-600" />
                               </div>
                               <div>
-                                <span className="font-semibold text-amber-900 text-sm">Recommended Action</span>
-                                <p className="text-amber-800 text-sm mt-1 leading-relaxed">{metric.recommended_action}</p>
+                                <span className="font-semibold text-gray-900 text-sm">Recommended Action</span>
+                                <p className="text-gray-700 text-sm mt-1 leading-relaxed">{metric.recommended_action}</p>
                               </div>
                             </div>
                           </div>
@@ -479,8 +479,8 @@ export default function Safety() {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-gray-600" />
               </div>
               <div className="text-left">
                 <h3 className="font-semibold text-gray-800">Other Monitored Metrics</h3>
@@ -506,7 +506,7 @@ export default function Safety() {
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <div className="w-2 h-2 rounded-full bg-gray-400" />
                           <span className="font-medium text-gray-900">{formatMetricName(metric.metric)}</span>
                         </div>
                       </td>
@@ -525,7 +525,7 @@ export default function Safety() {
                         </div>
                       </td>
                       <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700">
                           <CheckCircle className="w-3.5 h-3.5" />
                           Within Threshold
                         </span>
@@ -543,9 +543,9 @@ export default function Safety() {
       <Card>
         <div className="flex items-start gap-4">
           {data.n_signals === 0 ? (
-            <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
+            <CheckCircle className="w-6 h-6 text-gray-500 flex-shrink-0" />
           ) : (
-            <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0" />
+            <AlertTriangle className="w-6 h-6 text-gray-600 flex-shrink-0" />
           )}
           <div>
             <h3 className="font-semibold text-gray-800">
@@ -566,7 +566,7 @@ export default function Safety() {
         <div className="grid grid-cols-2 gap-3 mt-4">
           {data.sources.map((source, i) => (
             <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <Database className="w-4 h-4 text-blue-500" />
+              <Database className="w-4 h-4 text-gray-500" />
               <div>
                 <p className="text-sm font-medium text-gray-700">{source.type}</p>
                 <p className="text-xs text-gray-500">{source.reference}</p>

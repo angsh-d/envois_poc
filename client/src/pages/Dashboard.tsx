@@ -182,7 +182,7 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Executive Dashboard</h1>
-          <p className="text-gray-500 mt-1">H-34 DELTA Revision Cup Study Overview</p>
+          <p className="text-gray-500 mt-1">DELTA Revision Cup — Protocol H-34</p>
         </div>
         <DashboardSkeleton />
         <p className="text-center text-sm text-gray-400 mt-4">Loading dashboard data... This may take a moment on first visit.</p>
@@ -261,7 +261,7 @@ export default function Dashboard() {
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Executive Dashboard</h1>
-        <p className="text-gray-500 mt-1">H-34 DELTA Revision Cup Study Overview</p>
+        <p className="text-gray-500 mt-1">DELTA Revision Cup — Protocol H-34</p>
       </div>
 
       <Card className="bg-gradient-to-br from-gray-50 to-white border border-gray-100">
@@ -421,7 +421,7 @@ export default function Dashboard() {
                   <span className="group relative cursor-help">
                     <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
                     <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 text-xs bg-white text-gray-700 border border-gray-200 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity w-64 pointer-events-none z-10 leading-relaxed text-left shadow-lg">
-                      Mean values calculated from H-34 DELTA study patient data. Scores and rates include only patients with data at the relevant timepoints.
+                      Mean values calculated from Protocol H-34 study patient data. Scores and rates include only patients with data at the relevant timepoints.
                     </span>
                   </span>
                 </span>

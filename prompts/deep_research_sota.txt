@@ -1,0 +1,389 @@
+You are a medical research analyst creating a State of the Art report for a medical device product.
+
+PRODUCT CONTEXT:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Technologies: {technologies}
+
+LITERATURE BASE:
+- Publications analyzed: {publication_count}
+- Key publications:
+{key_publications}
+
+REGISTRY DATA:
+- Registries consulted: {registries}
+
+TASK: Generate a comprehensive State of the Art report synthesizing current clinical knowledge, best practices, and emerging trends.
+
+Provide your response as a JSON object:
+{{
+    "executive_summary": "A 2-3 paragraph summary of the current state of the art and key findings",
+    "clinical_outcomes": {{
+        "survival_rates": {{
+            "short_term": "1-2 year outcomes",
+            "medium_term": "5 year outcomes",
+            "long_term": "10+ year outcomes",
+            "benchmarks": ["Key benchmark values"]
+        }},
+        "revision_rates": {{
+            "overall": "Overall revision rate",
+            "by_indication": {{"indication": "rate"}},
+            "risk_factors": ["Factors associated with higher revision"]
+        }},
+        "functional_outcomes": {{
+            "scores_used": ["HHS", "OHS", "WOMAC", "etc"],
+            "typical_improvements": "Expected improvement ranges"
+        }}
+    }},
+    "safety_profile": {{
+        "common_complications": ["List with incidence rates"],
+        "serious_adverse_events": ["List with incidence rates"],
+        "risk_mitigation": ["Best practices for risk reduction"]
+    }},
+    "design_innovations": [
+        {{
+            "innovation": "Description of design innovation",
+            "clinical_impact": "How it affects outcomes",
+            "evidence_level": "strong/moderate/emerging"
+        }}
+    ],
+    "surgical_techniques": {{
+        "standard_approaches": ["Current standard techniques"],
+        "emerging_techniques": ["New/evolving techniques"],
+        "success_factors": ["Factors associated with better outcomes"]
+    }},
+    "patient_selection": {{
+        "ideal_candidates": ["Characteristics of ideal patients"],
+        "contraindications": ["Relative and absolute contraindications"],
+        "special_populations": ["Considerations for specific populations"]
+    }},
+    "outcome_predictors": [
+        {{
+            "factor": "Predictor name",
+            "direction": "positive/negative",
+            "evidence_strength": "strong/moderate/weak",
+            "clinical_implications": "How to use in practice"
+        }}
+    ],
+    "unmet_needs": [
+        {{
+            "need": "Description of unmet need",
+            "current_approaches": "How it's currently addressed",
+            "opportunity": "Opportunity for improvement"
+        }}
+    ],
+    "future_directions": [
+        {{
+            "direction": "Emerging trend or technology",
+            "timeline": "Expected timeline for adoption",
+            "potential_impact": "Potential impact on care"
+        }}
+    ],
+    "key_references": [
+        {{
+            "citation": "Brief citation",
+            "contribution": "Key contribution of this reference"
+        }}
+    ]
+}}
+
+## FEW-SHOT EXAMPLES
+
+### Example 1: Trabecular Titanium Revision Cup State of the Art
+INPUT:
+- Product Name: DELTA TT Revision Cup
+- Category: Hip Reconstruction
+- Indication: Revision THA
+- Technologies: Trabecular Titanium, Porous Coating, Uncemented
+- Publications analyzed: 47
+- Key publications: Registry analyses, trabecular titanium outcomes, revision THA risk factors
+- Registries consulted: AOANJRR, NJR, SHAR, DHR, NAR
+
+OUTPUT:
+{{
+    "executive_summary": "Revision total hip arthroplasty outcomes have improved substantially over the past decade, driven by advances in porous metal technology, modular reconstruction systems, and improved surgical techniques. Current literature demonstrates 5-year survivorship of 90-95% for revision acetabular components, with highly porous titanium and tantalum structures showing superior bone ingrowth and initial stability.\n\nThe state of the art in revision THA emphasizes: (1) accurate bone defect classification using Paprosky or AAOS systems, (2) maximizing host bone-implant contact through component positioning, and (3) leveraging porous metal technology for biological fixation. Patient selection and risk factor modification remain critical to optimizing outcomes.\n\nKey knowledge gaps include long-term (10+ year) outcomes for trabecular titanium specifically, comparative effectiveness studies between porous metal technologies, and optimal strategies for Paprosky Type IIIB defects. These gaps represent opportunities for DELTA TT evidence development.",
+    "clinical_outcomes": {{
+        "survival_rates": {{
+            "short_term": "1-2 year survivorship: 96-98% for porous metal cups (AOANJRR). Aseptic loosening rates <2% at 2 years.",
+            "medium_term": "5 year survivorship: 90-95% (NJR, SHAR). Higher for primary aseptic loosening indication vs infection.",
+            "long_term": "10+ year survivorship: 85-92% (limited data for newer porous metals). Trabecular Metal longest track record at 10+ years.",
+            "benchmarks": ["AOANJRR 5-year all-cause revision: 7.8%", "NJR 5-year revision for aseptic loosening: 4.2%", "SHAR 10-year survival: 89.3%"]
+        }},
+        "revision_rates": {{
+            "overall": "5-year all-cause revision: 5-10% depending on indication, defect severity, and fixation method",
+            "by_indication": {{"aseptic_loosening": "4-6%", "infection": "8-15%", "instability": "3-5%", "periprosthetic_fracture": "5-8%"}},
+            "risk_factors": ["Paprosky Type III defects", "Prior multiple revisions", "BMI >35", "Male sex", "Age <55", "Infection indication", "Deficient bone stock"]
+        }},
+        "functional_outcomes": {{
+            "scores_used": ["Harris Hip Score (HHS)", "Oxford Hip Score (OHS)", "WOMAC", "SF-36/SF-12", "EQ-5D"],
+            "typical_improvements": "HHS improvement 25-35 points from preoperative baseline. OHS improvement 15-20 points. 70-85% of patients achieve MCID at 2 years."
+        }}
+    }},
+    "safety_profile": {{
+        "common_complications": ["Dislocation (3-8%)", "Periprosthetic fracture (2-4%)", "Wound complications (3-5%)", "Deep vein thrombosis (1-2%)", "Heterotopic ossification (5-15%)"],
+        "serious_adverse_events": ["Deep infection requiring reoperation (2-5%)", "Pulmonary embolism (<1%)", "Neurovascular injury (<1%)", "Mortality (30-day: 0.5-1.5%)"],
+        "risk_mitigation": ["Extended antibiotic prophylaxis", "Optimal component positioning", "Constrained liner consideration for instability risk", "DVT prophylaxis protocol", "Careful soft tissue handling"]
+    }},
+    "design_innovations": [
+        {{
+            "innovation": "Trabecular titanium/tantalum porous structures",
+            "clinical_impact": "Enables cementless fixation in revision with compromised bone, mimics cancellous bone structure for ingrowth",
+            "evidence_level": "strong"
+        }},
+        {{
+            "innovation": "Modular augment systems",
+            "clinical_impact": "Addresses severe bone defects without structural allografts, reproducible reconstruction",
+            "evidence_level": "strong"
+        }},
+        {{
+            "innovation": "3D-printed patient-specific implants",
+            "clinical_impact": "Emerging option for complex Paprosky IIIB defects, early case series show promise",
+            "evidence_level": "emerging"
+        }},
+        {{
+            "innovation": "Dual mobility articulation in revision",
+            "clinical_impact": "Reduces dislocation risk in revision setting, growing adoption for instability indication",
+            "evidence_level": "moderate"
+        }}
+    ],
+    "surgical_techniques": {{
+        "standard_approaches": ["Posterior approach (most common)", "Direct lateral approach", "Anterolateral approach", "Extended trochanteric osteotomy for component extraction"],
+        "emerging_techniques": ["Anterior approach for revision (select cases)", "Cup-cage constructs for discontinuity", "Robotic-assisted revision THA"],
+        "success_factors": ["Accurate defect classification", "Maximizing host bone contact (>50%)", "Peripheral rim fit for stability", "Appropriate use of augments", "Surgeon experience (volume-outcome relationship)"]
+    }},
+    "patient_selection": {{
+        "ideal_candidates": ["Failed primary THA with adequate bone stock (Paprosky I-IIA)", "Good general health status", "BMI <35", "Non-smoker", "Compliant with rehabilitation", "No active infection"],
+        "contraindications": ["Active periprosthetic joint infection (absolute)", "Inadequate soft tissue coverage", "Severe medical comorbidities precluding surgery", "Non-ambulatory patient with limited pain"],
+        "special_populations": ["Young active patients: emphasize long-term fixation", "Elderly frail patients: consider cemented options, dual mobility", "Immunocompromised: enhanced infection surveillance", "Prior radiation: impaired bone ingrowth potential"]
+    }},
+    "outcome_predictors": [
+        {{
+            "factor": "Bone defect severity (Paprosky classification)",
+            "direction": "negative",
+            "evidence_strength": "strong",
+            "clinical_implications": "Type III defects associated with 2-3x higher failure rates. Preoperative CT for accurate classification."
+        }},
+        {{
+            "factor": "Indication for revision",
+            "direction": "variable",
+            "evidence_strength": "strong",
+            "clinical_implications": "Infection worst prognosis. Aseptic loosening best outcomes. Instability intermediate."
+        }},
+        {{
+            "factor": "Surgeon and hospital volume",
+            "direction": "positive",
+            "evidence_strength": "moderate",
+            "clinical_implications": "Higher volume centers show better outcomes. Complex revisions should be referred to specialized centers."
+        }},
+        {{
+            "factor": "Patient BMI",
+            "direction": "negative",
+            "evidence_strength": "moderate",
+            "clinical_implications": "BMI >35 associated with increased complications. Preoperative optimization when possible."
+        }}
+    ],
+    "unmet_needs": [
+        {{
+            "need": "Long-term trabecular titanium data",
+            "current_approaches": "Extrapolation from trabecular tantalum data, mid-term titanium studies",
+            "opportunity": "Targeted 10-year registry analysis, prospective follow-up studies for DELTA TT"
+        }},
+        {{
+            "need": "Optimal management of Paprosky IIIB discontinuity",
+            "current_approaches": "Cup-cage constructs, structural allografts, custom implants",
+            "opportunity": "Standardized classification, comparative effectiveness research, custom 3D-printed solutions"
+        }},
+        {{
+            "need": "Predictive risk models for revision failure",
+            "current_approaches": "Individual risk factor assessment, surgeon judgment",
+            "opportunity": "Validated ML-based risk calculators incorporating patient, implant, and surgical factors"
+        }}
+    ],
+    "future_directions": [
+        {{
+            "direction": "Personalized 3D-printed implants",
+            "timeline": "3-5 years for broader adoption",
+            "potential_impact": "Improved fit in complex defects, reduced operative time, better reproducibility"
+        }},
+        {{
+            "direction": "Smart implants with embedded sensors",
+            "timeline": "5-10 years",
+            "potential_impact": "Real-time monitoring of implant stability, early loosening detection"
+        }},
+        {{
+            "direction": "Biologic augmentation (stem cells, growth factors)",
+            "timeline": "5-10 years for clinical translation",
+            "potential_impact": "Enhanced bone ingrowth, particularly in compromised host bone"
+        }}
+    ],
+    "key_references": [
+        {{
+            "citation": "AOANJRR Annual Report 2023",
+            "contribution": "Largest revision THA dataset globally, survival benchmarks by implant type"
+        }},
+        {{
+            "citation": "Abram et al. JBJS 2022 - NJR analysis of porous metal cups",
+            "contribution": "Registry-level comparison of trabecular metal vs standard porous coating in revision"
+        }},
+        {{
+            "citation": "Wegrzyn et al. CORR 2023 - Trabecular titanium mid-term outcomes",
+            "contribution": "5-year outcomes for trabecular titanium cups with functional outcome data"
+        }},
+        {{
+            "citation": "Paprosky Classification Update - JAAOS 2020",
+            "contribution": "Refined bone defect classification guiding surgical planning and implant selection"
+        }}
+    ]
+}}
+
+### Example 2: Dual Mobility Hip System State of the Art
+INPUT:
+- Product Name: EMPOWR Dual Mobility
+- Category: Hip Reconstruction
+- Indication: Primary THA
+- Technologies: Dual Mobility, Highly Crosslinked PE
+- Publications analyzed: 83
+- Key publications: Dual mobility meta-analyses, dislocation studies, bearing wear research
+- Registries consulted: NJR, AJRR, DHR, French Registry
+
+OUTPUT:
+{{
+    "executive_summary": "Dual mobility hip arthroplasty has evolved from a niche technology for revision and high-risk patients to increasingly mainstream adoption in primary THA. Meta-analyses consistently demonstrate 3-5 fold reduction in dislocation rates compared to fixed bearing constructs, with overall dislocation rates <1% in contemporary series.\n\nThe current state of the art emphasizes proper patient selection (high-risk populations benefiting most), optimal component sizing (outer head diameter maximization), and awareness of dual mobility-specific complications (intraprosthetic dislocation). Bearing longevity data is reassuring with highly crosslinked polyethylene, though 15+ year data remains limited.\n\nKey debates in the field include: (1) expansion of indications to all primary THA vs targeted high-risk use, (2) comparative effectiveness of different dual mobility designs, and (3) long-term bearing performance in younger, active patients. These represent evidence generation opportunities for EMPOWR.",
+    "clinical_outcomes": {{
+        "survival_rates": {{
+            "short_term": "2-year survivorship: 98-99% for dual mobility in primary THA. Superior to fixed bearing in dislocation-prone populations.",
+            "medium_term": "5-year survivorship: 96-98% (NJR, French Registry). Comparable to fixed bearing for non-dislocation failures.",
+            "long_term": "10-year survivorship: 92-95% (limited data for modern designs). French registry shows sustained benefit.",
+            "benchmarks": ["NJR 5-year revision rate: 2.1%", "French Registry 10-year survival: 94%", "Meta-analysis dislocation rate: 0.5% vs 2.5% fixed bearing"]
+        }},
+        "revision_rates": {{
+            "overall": "5-year all-cause revision: 2-4%. Dislocation revision near zero. Non-dislocation revisions similar to fixed bearing.",
+            "by_indication": {{"primary_high_risk": "2-3%", "primary_low_risk": "3-4%", "revision_for_instability": "3-5%", "conversion_from_hemi": "4-6%"}},
+            "risk_factors": ["Prior dislocation history", "Neuromuscular disease", "Cognitive impairment", "Abductor deficiency", "Inadequate component positioning"]
+        }},
+        "functional_outcomes": {{
+            "scores_used": ["HOOS", "FJS-12", "Harris Hip Score", "UCLA Activity Scale", "EQ-5D"],
+            "typical_improvements": "Functional outcomes comparable to fixed bearing. HOOS improvement 30-40 points. High patient satisfaction driven by stability confidence."
+        }}
+    }},
+    "safety_profile": {{
+        "common_complications": ["Intraprosthetic dislocation (0.2-1%)", "Standard THA complications (infection, DVT)", "Psoas impingement (1-2%)", "Leg length discrepancy"],
+        "serious_adverse_events": ["IPD requiring revision (<1%)", "Deep infection (1-2%)", "Periprosthetic fracture (1%)", "Liner dissociation (rare with modern designs)"],
+        "risk_mitigation": ["Adequate retentive force verification", "Optimal head-neck ratio", "Surgeon training on IPD recognition", "Appropriate sizing (larger outer diameter reduces IPD risk)"]
+    }},
+    "design_innovations": [
+        {{
+            "innovation": "Highly crosslinked vitamin E-stabilized polyethylene",
+            "clinical_impact": "Reduced wear rates, maintained mechanical properties, potential for improved longevity",
+            "evidence_level": "moderate"
+        }},
+        {{
+            "innovation": "Enhanced retentive mechanisms",
+            "clinical_impact": "Reduced intraprosthetic dislocation risk while maintaining reduction ease",
+            "evidence_level": "moderate"
+        }},
+        {{
+            "innovation": "Modular dual mobility systems",
+            "clinical_impact": "Enables use with existing stems, expands indications to revision setting",
+            "evidence_level": "strong"
+        }},
+        {{
+            "innovation": "Larger outer diameter range",
+            "clinical_impact": "Increased jump distance, reduced dislocation and IPD risk",
+            "evidence_level": "moderate"
+        }}
+    ],
+    "surgical_techniques": {{
+        "standard_approaches": ["Posterior approach (most studied)", "Direct anterior approach (growing use)", "Anterolateral approach"],
+        "emerging_techniques": ["Anterior approach dual mobility", "Dual mobility with short stems", "Computer-navigated positioning"],
+        "success_factors": ["Adequate combined anteversion (30-40°)", "Optimized leg length", "Proper sizing (fill socket, maximize outer head)", "Secure retinacular capture verification", "Surgeon experience with dual mobility mechanics"]
+    }},
+    "patient_selection": {{
+        "ideal_candidates": ["High dislocation risk: age >75, cognitive impairment, neuromuscular disease", "Prior hip surgery/dislocation", "Revision for instability", "Abductor insufficiency"],
+        "contraindications": ["Young highly active patients (relative - bearing longevity concerns)", "Metal hypersensitivity", "Very small acetabulum precluding adequate outer head size"],
+        "special_populations": ["Elderly/frail: excellent indication due to dislocation risk", "Parkinson's/dementia: strong indication, major dislocation risk factor", "Prior dislocation: appropriate for recurrent instability", "Young active: consider bearing longevity, may prefer fixed bearing"]
+    }},
+    "outcome_predictors": [
+        {{
+            "factor": "Patient age and cognitive status",
+            "direction": "positive benefit in elderly/impaired",
+            "evidence_strength": "strong",
+            "clinical_implications": "Dual mobility benefit most pronounced in older patients with cognitive impairment."
+        }},
+        {{
+            "factor": "Outer head diameter",
+            "direction": "positive",
+            "evidence_strength": "moderate",
+            "clinical_implications": "Larger outer heads reduce both dislocation and IPD. Size optimization critical."
+        }},
+        {{
+            "factor": "Surgical approach",
+            "direction": "variable",
+            "evidence_strength": "moderate",
+            "clinical_implications": "Posterior approach patients benefit most from dual mobility. Anterior approach inherently more stable."
+        }},
+        {{
+            "factor": "Surgeon volume/experience",
+            "direction": "positive",
+            "evidence_strength": "moderate",
+            "clinical_implications": "Learning curve for optimal sizing and retentive force assessment."
+        }}
+    ],
+    "unmet_needs": [
+        {{
+            "need": "15+ year bearing performance data",
+            "current_approaches": "Extrapolation from HXLPE fixed bearing data, early dual mobility cohorts",
+            "opportunity": "Long-term registry follow-up, EMPOWR prospective monitoring"
+        }},
+        {{
+            "need": "Head-to-head dual mobility design comparison",
+            "current_approaches": "Surgeon preference, limited comparative data",
+            "opportunity": "Registry sub-analysis by design features, comparative effectiveness studies"
+        }},
+        {{
+            "need": "Optimal indications expansion clarity",
+            "current_approaches": "Variable surgeon practice, evolving guidelines",
+            "opportunity": "Health economics analysis, patient preference studies, risk-stratified adoption guidelines"
+        }}
+    ],
+    "future_directions": [
+        {{
+            "direction": "Universal dual mobility adoption debate",
+            "timeline": "Ongoing (5-10 years for resolution)",
+            "potential_impact": "Potential transformation of primary THA to predominantly dual mobility"
+        }},
+        {{
+            "direction": "Next-generation bearing materials",
+            "timeline": "5-10 years",
+            "potential_impact": "Enhanced longevity enabling broader adoption in younger patients"
+        }},
+        {{
+            "direction": "Activity monitoring and outcome prediction",
+            "timeline": "3-5 years",
+            "potential_impact": "Personalized patient selection based on activity profiles and risk factors"
+        }}
+    ],
+    "key_references": [
+        {{
+            "citation": "Chalmers et al. JBJS 2023 - Dual Mobility Meta-Analysis",
+            "contribution": "Comprehensive meta-analysis confirming dislocation reduction, quantifying IPD risk"
+        }},
+        {{
+            "citation": "NJR Annual Report 2023 - Dual Mobility Section",
+            "contribution": "Population-level dual mobility outcomes, adoption trends"
+        }},
+        {{
+            "citation": "Blakeney et al. BJJ 2022 - Dual Mobility vs Large Head",
+            "contribution": "Direct comparison of stability solutions, informing patient selection"
+        }},
+        {{
+            "citation": "Darrith et al. JAAOS 2021 - Expanding Dual Mobility Indications",
+            "contribution": "Guidance on appropriate patient selection for dual mobility"
+        }}
+    ]
+}}
+
+## GUIDELINES
+
+Focus on evidence-based insights that can inform clinical messaging and regulatory strategy.

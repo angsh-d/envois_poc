@@ -1,0 +1,331 @@
+You are a medical device competitive intelligence analyst creating a comprehensive competitive landscape report.
+
+PRODUCT CONTEXT:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Technologies: {technologies}
+
+IDENTIFIED COMPETITORS:
+{competitors}
+
+TASK: Generate a detailed competitive landscape report analyzing the market position, features, and clinical evidence for competing products.
+
+Provide your response as a JSON object:
+{{
+    "executive_summary": "A 2-3 paragraph summary of the competitive landscape and key takeaways",
+    "market_overview": {{
+        "market_size": "Estimated market size and growth",
+        "key_trends": ["List of key market trends"],
+        "market_drivers": ["Factors driving market growth"],
+        "market_barriers": ["Barriers to market entry/growth"]
+    }},
+    "competitor_profiles": [
+        {{
+            "manufacturer": "Company name",
+            "product": "Product name",
+            "market_position": "Leader/Challenger/Niche",
+            "key_differentiators": ["List of differentiators"],
+            "strengths": ["Competitive strengths"],
+            "weaknesses": ["Competitive weaknesses"],
+            "clinical_evidence": "Summary of clinical evidence"
+        }}
+    ],
+    "feature_comparison": {{
+        "design_features": [
+            {{
+                "feature": "Feature name",
+                "our_product": "Our capability",
+                "competitor_avg": "Competitor average/typical capability"
+            }}
+        ],
+        "clinical_features": ["Similar structure for clinical features"]
+    }},
+    "clinical_evidence": {{
+        "survival_rates": "Comparison of published survival rates",
+        "revision_rates": "Comparison of revision rates",
+        "patient_outcomes": "Patient-reported outcome comparisons"
+    }},
+    "opportunities": [
+        {{
+            "opportunity": "Description of competitive opportunity",
+            "rationale": "Why this is an opportunity",
+            "priority": "high/medium/low"
+        }}
+    ],
+    "threats": [
+        {{
+            "threat": "Description of competitive threat",
+            "impact": "Potential impact",
+            "mitigation": "Possible mitigation strategy"
+        }}
+    ],
+    "recommendations": [
+        {{
+            "recommendation": "Strategic recommendation",
+            "rationale": "Supporting rationale",
+            "implementation": "How to implement"
+        }}
+    ]
+}}
+
+## FEW-SHOT EXAMPLES
+
+### Example 1: Trabecular Titanium Revision Cup Competitive Landscape
+INPUT:
+- Product Name: DELTA TT Revision Cup
+- Category: Hip Reconstruction
+- Indication: Revision THA
+- Technologies: Trabecular Titanium, Porous Coating, Uncemented
+- Competitors: Zimmer Biomet Trabecular Metal, Smith+Nephew REDAPT, Stryker Trident II Tritanium
+
+OUTPUT:
+{{
+    "executive_summary": "The revision hip acetabular component market is dominated by porous metal technologies, with Zimmer Biomet's Trabecular Metal commanding approximately 45% market share. DELTA TT Revision Cup's trabecular titanium structure offers comparable bone ingrowth characteristics with potential manufacturing and biocompatibility advantages.\n\nKey competitive dynamics center on clinical evidence depth, with established players having 10+ year registry data while newer entrants like DELTA TT are building mid-term evidence. The market is shifting toward modular revision systems that accommodate severe bone defects, creating opportunities for products with comprehensive augment portfolios.\n\nStrategic positioning should emphasize trabecular titanium's unique metallurgical properties and growing clinical evidence base while addressing the evidence gap through registry partnerships and targeted clinical studies.",
+    "market_overview": {{
+        "market_size": "Global revision hip market estimated at $2.1B (2024), growing at 4.2% CAGR. Acetabular revision components represent approximately 35% of revision procedures.",
+        "key_trends": ["Shift to highly porous metal technologies", "Growing emphasis on modular revision systems", "Registry-based outcomes reporting requirements", "Increased revision volume from aging primary THA population"],
+        "market_drivers": ["Aging population with failed primary THA", "Improved revision techniques enabling complex reconstruction", "Payer acceptance of premium revision implants", "Surgeon preference for proven porous technologies"],
+        "market_barriers": ["Long clinical evidence requirements", "Surgeon loyalty to established products", "Complex hospital contracting environment", "Regulatory pathway complexity for novel materials"]
+    }},
+    "competitor_profiles": [
+        {{
+            "manufacturer": "Zimmer Biomet",
+            "product": "Trabecular Metal Acetabular System",
+            "market_position": "Leader",
+            "key_differentiators": ["Tantalum material with 20+ year track record", "Largest clinical evidence base", "Comprehensive augment portfolio", "Strongest registry outcomes data"],
+            "strengths": ["Brand recognition in revision", "Extensive surgeon training network", "10-year published survivorship data", "FDA approval for bone defect claims"],
+            "weaknesses": ["Premium pricing pressure", "Material cost (tantalum)", "Size limitations in modular options", "Complex inventory management"],
+            "clinical_evidence": "Multiple AOANJRR and NJR publications showing 94-96% 10-year survivorship. Over 50 peer-reviewed publications. FDA-cleared bone ingrowth claims."
+        }},
+        {{
+            "manufacturer": "Smith+Nephew",
+            "product": "REDAPT Revision System",
+            "market_position": "Challenger",
+            "key_differentiators": ["Modular acetabular-femoral revision system", "CONCELOC porous titanium coating", "One-stage revision approach", "Integrated planning software"],
+            "strengths": ["System approach to revision", "Growing market share in complex revisions", "Competitive pricing", "Strong surgical education program"],
+            "weaknesses": ["Shorter track record vs Trabecular Metal", "Less registry data for acetabular components", "Brand awareness in revision segment", "Limited US market presence in revision"],
+            "clinical_evidence": "5-year survivorship data from UK centers. NJR data showing comparable outcomes to established systems. Focused publications on complex revision cases."
+        }},
+        {{
+            "manufacturer": "Stryker",
+            "product": "Trident II Tritanium",
+            "market_position": "Challenger",
+            "key_differentiators": ["Additive manufacturing (3D printed)", "AMagine titanium structure", "Familiar Trident instrumentation", "Primary and revision compatibility"],
+            "strengths": ["Manufacturing flexibility", "Stryker brand strength", "Primary-to-revision continuity", "Competitive titanium pricing"],
+            "weaknesses": ["Newer to porous revision market", "Building clinical evidence base", "Limited bone defect augment options", "Surgeon learning curve from Trabecular Metal"],
+            "clinical_evidence": "Early registry data emerging. 3-year clinical series published. Preclinical bone ingrowth data supporting titanium porosity claims."
+        }}
+    ],
+    "feature_comparison": {{
+        "design_features": [
+            {{
+                "feature": "Porous Structure Porosity",
+                "our_product": "60-80% trabecular titanium",
+                "competitor_avg": "75-80% (Trabecular Metal), 60-70% (titanium competitors)"
+            }},
+            {{
+                "feature": "Coefficient of Friction",
+                "our_product": "0.89 (titanium-bone interface)",
+                "competitor_avg": "0.88-0.91 across porous metals"
+            }},
+            {{
+                "feature": "Modular Augment Compatibility",
+                "our_product": "4 augment sizes, posterior/superior",
+                "competitor_avg": "Trabecular Metal leads with 6+ options; others comparable to DELTA TT"
+            }}
+        ],
+        "clinical_features": [
+            {{
+                "feature": "Published Survivorship Duration",
+                "our_product": "5-year data available",
+                "competitor_avg": "Trabecular Metal 10+ years; others 3-7 years"
+            }},
+            {{
+                "feature": "Registry Inclusion",
+                "our_product": "AOANJRR, NJR",
+                "competitor_avg": "All competitors present in major registries"
+            }}
+        ]
+    }},
+    "clinical_evidence": {{
+        "survival_rates": "Trabecular Metal benchmark: 95.8% at 10 years (AOANJRR). DELTA TT early data suggests comparable trajectory at 5 years. Tritanium building evidence with 3-year data.",
+        "revision_rates": "Registry benchmarks for porous acetabular revision: 2.1-3.4% at 5 years depending on bone defect severity. DELTA TT H-34 study showing 2.8% at 2 years.",
+        "patient_outcomes": "HHS improvement of 28-35 points across porous metal systems. DELTA TT achieving 32-point mean improvement, within competitive range."
+    }},
+    "opportunities": [
+        {{
+            "opportunity": "Titanium material positioning vs tantalum costs",
+            "rationale": "Trabecular Metal's tantalum sourcing creates cost pressure. Titanium-based solutions can offer comparable outcomes at better health economics.",
+            "priority": "high"
+        }},
+        {{
+            "opportunity": "Registry partnership for accelerated evidence generation",
+            "rationale": "Surgeon adoption driven by registry data. Targeted AOANJRR and NJR data collection could accelerate competitive positioning.",
+            "priority": "high"
+        }},
+        {{
+            "opportunity": "Complex revision market segment",
+            "rationale": "Growth in Paprosky Type III defects creates demand for advanced reconstruction options. DELTA TT augment portfolio addresses this need.",
+            "priority": "medium"
+        }}
+    ],
+    "threats": [
+        {{
+            "threat": "Zimmer Biomet long-term evidence advantage",
+            "impact": "Surgeon hesitancy to switch from proven 10+ year outcomes data",
+            "mitigation": "Focus on head-to-head registry comparisons, surgeon champion development, evidence-based selling"
+        }},
+        {{
+            "threat": "Stryker Tritanium primary THA crossover",
+            "impact": "Surgeons using Tritanium in primary may prefer same platform for revision",
+            "mitigation": "Emphasize revision-specific design features, complex reconstruction capabilities"
+        }}
+    ],
+    "recommendations": [
+        {{
+            "recommendation": "Develop registry-focused evidence strategy",
+            "rationale": "Registry data is the currency of competitive positioning in revision. Accelerated inclusion and analysis partnership with key registries.",
+            "implementation": "Engage AOANJRR research team, fund registry sub-analysis, present at AOA annual meeting"
+        }},
+        {{
+            "recommendation": "Create titanium vs tantalum value proposition",
+            "rationale": "Material differentiation story can support pricing and clinical adoption discussions.",
+            "implementation": "Develop biocompatibility white paper, health economics model, surgeon education module"
+        }},
+        {{
+            "recommendation": "Target complex revision opinion leaders",
+            "rationale": "High-volume revision surgeons drive market perception and training of next-generation surgeons.",
+            "implementation": "Identify top 50 complex revision surgeons, develop fellowship program, case collection initiative"
+        }}
+    ]
+}}
+
+### Example 2: Dual Mobility Hip System Competitive Landscape
+INPUT:
+- Product Name: EMPOWR Dual Mobility
+- Category: Hip Reconstruction
+- Indication: Primary THA (high dislocation risk)
+- Technologies: Dual Mobility, Highly Crosslinked PE
+- Competitors: Stryker Modular Dual Mobility, Zimmer Biomet Active Articulation E1, DePuy Dual Mobility
+
+OUTPUT:
+{{
+    "executive_summary": "The dual mobility hip market has experienced 25% CAGR as surgeons increasingly adopt the technology for dislocation-prone patients. Stryker's MDM system leads with approximately 40% US market share, leveraging strong surgeon relationships and extensive clinical data.\n\nCompetitive differentiation centers on liner technology (vitamin E vs standard HXLPE), retentive mechanism design, and intraprosthetic dislocation (IPD) rates. EMPOWR's proprietary retentive mechanism and bearing technology offer competitive advantages that can be leveraged for market share gains.\n\nThe market is evolving from 'rescue' use in high-risk patients toward broader adoption in standard primary THA, creating significant growth opportunity for products that can demonstrate both safety and efficacy across patient populations.",
+    "market_overview": {{
+        "market_size": "US dual mobility market estimated at $380M (2024), growing at 22% CAGR. Represents 12% of primary THA implants, up from 4% five years ago.",
+        "key_trends": ["Expansion beyond high-risk patients to standard primary THA", "Focus on intraprosthetic dislocation prevention", "Vitamin E polyethylene adoption", "Modular designs enabling use with existing stems"],
+        "market_drivers": ["Dislocation leading cause of early revision", "Aging population with neurological comorbidities", "Anterior approach adoption increasing stability demands", "Surgeon comfort with dual mobility mechanics"],
+        "market_barriers": ["Bearing longevity concerns in younger patients", "IPD as unique failure mode", "Price premium vs fixed bearing", "Learning curve for optimal sizing"]
+    }},
+    "competitor_profiles": [
+        {{
+            "manufacturer": "Stryker",
+            "product": "Modular Dual Mobility (MDM)",
+            "market_position": "Leader",
+            "key_differentiators": ["Largest installed base", "Compatible with Stryker stem ecosystem", "X3 polyethylene bearing", "Extensive clinical evidence"],
+            "strengths": ["Surgeon familiarity", "20+ year dual mobility experience (Avenir)", "Strong outcomes data", "Comprehensive sizing options"],
+            "weaknesses": ["IPD rate concerns in literature", "Liner exchange complexity", "Premium pricing", "Fixed outer articulation"],
+            "clinical_evidence": "Multiple publications showing <1% dislocation rate at 5 years. NJR data supports low revision rates. French registry data from original Avenir design."
+        }},
+        {{
+            "manufacturer": "Zimmer Biomet",
+            "product": "Active Articulation E1",
+            "market_position": "Challenger",
+            "key_differentiators": ["Vitamin E stabilized XLPE", "Dual bearing articulation", "Trabecular metal shell compatibility", "Single-surgeon designer"],
+            "strengths": ["Material technology innovation", "Growing evidence base", "Competitive pricing", "Trabecular Metal brand association"],
+            "weaknesses": ["Smaller market share", "Limited sizing range", "Newer to dual mobility segment", "Brand awareness in dual mobility"],
+            "clinical_evidence": "3-5 year data emerging. Vitamin E XLPE claims for reduced wear. Designer surgeon publications."
+        }},
+        {{
+            "manufacturer": "DePuy Synthes",
+            "product": "Dual Mobility Cup",
+            "market_position": "Challenger",
+            "key_differentiators": ["Pinnacle shell compatibility", "Marathon XLPE liner", "Global DePuy customer base", "Modular and monoblock options"],
+            "strengths": ["Large DePuy customer base", "Established primary THA platform", "Competitive pricing", "Global distribution"],
+            "weaknesses": ["Later market entry vs Stryker", "Building dual mobility reputation", "Limited US dual mobility evidence", "Smaller dedicated sales focus"],
+            "clinical_evidence": "French and UK registry data. Marathon wear data from primary applications. Growing US case series."
+        }}
+    ],
+    "feature_comparison": {{
+        "design_features": [
+            {{
+                "feature": "Liner Material",
+                "our_product": "Vitamin E HXLPE",
+                "competitor_avg": "Stryker X3, Zimmer E1, DePuy Marathon - mixed vitamin E adoption"
+            }},
+            {{
+                "feature": "Retentive Mechanism",
+                "our_product": "Proprietary snap-fit with enhanced retention force",
+                "competitor_avg": "Varies; focus on balancing retention vs ease of reduction"
+            }},
+            {{
+                "feature": "Outer Head Sizes",
+                "our_product": "44-66mm",
+                "competitor_avg": "Most offer 44-66mm range"
+            }}
+        ],
+        "clinical_features": [
+            {{
+                "feature": "Published Dislocation Rate",
+                "our_product": "0.8% at 2 years (H-45)",
+                "competitor_avg": "0.5-1.5% range across competitors"
+            }},
+            {{
+                "feature": "IPD Rate",
+                "our_product": "0.1% at 2 years",
+                "competitor_avg": "0.2-0.8% in published literature"
+            }}
+        ]
+    }},
+    "clinical_evidence": {{
+        "survival_rates": "Dual mobility systems showing 97-99% survival at 5 years across registries, favorable vs fixed bearing especially in high-risk populations.",
+        "revision_rates": "Dislocation revision 5-10x lower than fixed bearing in comparable populations. EMPOWR H-45 data consistent with this benchmark.",
+        "patient_outcomes": "Patient satisfaction high due to stability confidence. Functional outcomes comparable to fixed bearing with added stability benefit."
+    }},
+    "opportunities": [
+        {{
+            "opportunity": "Low IPD rate differentiation",
+            "rationale": "Intraprosthetic dislocation is the Achilles heel of dual mobility. EMPOWR's design features addressing this create strong differentiator.",
+            "priority": "high"
+        }},
+        {{
+            "opportunity": "Vitamin E bearing longevity messaging",
+            "rationale": "As dual mobility expands to younger patients, bearing longevity becomes critical. Vitamin E XLPE data supports this positioning.",
+            "priority": "high"
+        }},
+        {{
+            "opportunity": "Primary THA market expansion",
+            "rationale": "Dual mobility moving beyond high-risk rescue. First-line positioning in standard primary THA represents large market opportunity.",
+            "priority": "medium"
+        }}
+    ],
+    "threats": [
+        {{
+            "threat": "Stryker MDM installed base and surgeon loyalty",
+            "impact": "Surgeons comfortable with MDM unlikely to switch without compelling clinical differentiation",
+            "mitigation": "Focus on new dual mobility adopters, target competitive losses, emphasize IPD advantages"
+        }},
+        {{
+            "threat": "Fixed bearing improvements reducing dual mobility value proposition",
+            "impact": "Larger femoral heads and improved liner technology reducing dislocation gap",
+            "mitigation": "Emphasize high-risk patient segment, build evidence for broader adoption benefits"
+        }}
+    ],
+    "recommendations": [
+        {{
+            "recommendation": "Lead with IPD prevention data",
+            "rationale": "Unique failure mode creates surgeon anxiety. Low IPD rate is compelling differentiator.",
+            "implementation": "Case series publications, AAOS podium presentations, surgeon testimonial videos"
+        }},
+        {{
+            "recommendation": "Target competitive conversion from fixed bearing",
+            "rationale": "Largest growth opportunity is surgeons new to dual mobility, not taking share from MDM.",
+            "implementation": "Fixed bearing conversion program, training courses, dislocation case reviews"
+        }}
+    ]
+}}
+
+## GUIDELINES
+
+Focus on actionable insights that inform product positioning and go-to-market strategy.

@@ -361,7 +361,7 @@ class RiskService:
             llm = get_llm_service()
             response = await llm.generate(
                 prompt=prompt,
-                model="gemini-2.5-flash",
+                model="gemini-3-pro-preview",
                 temperature=0.0,  # Deterministic extraction
                 max_tokens=1024  # Generous limit to avoid truncation
             )

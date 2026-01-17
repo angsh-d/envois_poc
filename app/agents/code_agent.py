@@ -4,7 +4,7 @@ Code Generation Agent for Clinical Intelligence Platform.
 Specialized agent that generates R, Python, SQL, and C code for ad-hoc queries,
 with deep understanding of:
 - Clinical domain language (Kaplan-Meier, HHS, revision rates, etc.)
-- H-34 DELTA study data model and database schema
+- DELTA Revision Cup study data model and database schema
 - Statistical methodologies for clinical research
 """
 import logging
@@ -65,7 +65,7 @@ class CodeGenerationResult:
 
 # Complete database schema for the H-34 study
 DATABASE_SCHEMA = """
--- H-34 DELTA Revision Cup Study Database Schema
+-- DELTA Revision Cup Study Database Schema (Protocol H-34)
 
 -- Core patient demographics and enrollment
 CREATE TABLE study_patients (
@@ -106,7 +106,7 @@ CREATE TABLE study_surgeries (
     intraoperative_complications TEXT,
     stem_type VARCHAR,
     stem_size VARCHAR,
-    cup_type VARCHAR,                 -- H-34 DELTA Revision Cup
+    cup_type VARCHAR,                 -- DELTA Revision Cup
     cup_diameter DOUBLE PRECISION,    -- mm
     cup_liner_material VARCHAR,       -- 'Ceramic', 'Polyethylene'
     head_type VARCHAR,
@@ -274,10 +274,10 @@ CREATE TABLE protocol_endpoints (
 
 # Domain knowledge for clinical research
 DOMAIN_KNOWLEDGE = """
-## Clinical Research Domain Knowledge for H-34 DELTA Study
+## Clinical Research Domain Knowledge for DELTA Revision Cup Study (Protocol H-34)
 
 ### Study Overview
-- H-34 DELTA Revision Cup is a post-market clinical study
+- DELTA Revision Cup is a post-market clinical study
 - Multi-center prospective study of revision total hip arthroplasty (THA)
 - Current data: 37 enrolled patients, 2 revisions (5.4% revision rate)
 - Primary endpoint: 2-year revision rate vs FDA 510(k) benchmark (≤10%)
@@ -380,7 +380,7 @@ plt.figure(figsize=(10, 6))
 kmf.plot_survival_function()
 plt.xlabel('Days from Surgery')
 plt.ylabel('Survival Probability')
-plt.title('Kaplan-Meier Survival Curve - H-34 DELTA Study')
+plt.title('Kaplan-Meier Survival Curve - DELTA Revision Cup (Protocol H-34)')
 ''',
 
     "r_kaplan_meier": '''
@@ -401,7 +401,7 @@ ggsurvplot(
   conf.int = TRUE,
   xlab = "Days from Surgery",
   ylab = "Survival Probability",
-  title = "Kaplan-Meier Survival Curve - H-34 DELTA Study",
+  title = "Kaplan-Meier Survival Curve - DELTA Revision Cup (Protocol H-34)",
   ggtheme = theme_minimal()
 )
 ''',
@@ -621,7 +621,7 @@ class CodeAgent:
         elif language == CodeLanguage.R:
             db_connection = CODE_TEMPLATES["r_db_connection"]
         
-        prompt = f"""You are an expert clinical research programmer generating {language.value.upper()} code for the H-34 DELTA Revision Cup post-market study.
+        prompt = f"""You are an expert clinical research programmer generating {language.value.upper()} code for the DELTA Revision Cup post-market study (Protocol H-34).
 
 ## User Request
 {request}

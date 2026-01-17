@@ -28,11 +28,11 @@ class CacheService:
     
     Features:
     - Startup precomputation (warmers)
-    - Background refresh every 15 minutes
+    - Background refresh every 4 hours
     - Stale-while-revalidate pattern
     """
     
-    def __init__(self, ttl_minutes: int = 30):
+    def __init__(self, ttl_minutes: int = 2880):  # 48 hours default
         self._cache: Dict[str, CacheEntry] = {}
         self._lock = asyncio.Lock()
         self._ttl = timedelta(minutes=ttl_minutes)
@@ -125,7 +125,7 @@ def get_cache_service() -> CacheService:
     """Get the global cache service instance."""
     global _cache_service
     if _cache_service is None:
-        _cache_service = CacheService(ttl_minutes=30)
+        _cache_service = CacheService(ttl_minutes=2880)  # 48 hours
     return _cache_service
 
 
@@ -230,7 +230,7 @@ async def warmup_cache() -> None:
         cache._is_warming = False
 
 
-async def start_background_refresh(interval_minutes: int = 15) -> asyncio.Task:
+async def start_background_refresh(interval_minutes: int = 240) -> asyncio.Task:  # 4 hours
     """
     Start background task to periodically refresh cache.
     

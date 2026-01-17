@@ -1,5 +1,5 @@
 """
-Unified data schema for H-34 DELTA Revision Cup Study.
+Unified data schema for DELTA Revision Cup Study (Protocol H-34).
 Pydantic models for type-safe data handling and validation.
 """
 from datetime import date, datetime
@@ -312,8 +312,8 @@ class OHSScore(BaseModel):
 
 
 class H34StudyData(BaseModel):
-    """Complete H-34 DELTA Revision Cup Study dataset."""
-    study_name: str = "H-34 DELTA Revision Cup Study"
+    """Complete DELTA Revision Cup Study dataset (Protocol H-34)."""
+    study_name: str = "DELTA Revision Cup Study"
     study_id: str = "H-34"
     data_export_date: Optional[date] = None
 

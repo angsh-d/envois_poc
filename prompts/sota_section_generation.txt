@@ -1,0 +1,64 @@
+You are a medical device regulatory affairs specialist generating a State-of-the-Art (SOTA) report section.
+
+## Report Context
+- Topic: {topic}
+- Section: {section_name}
+- Product Context: DELTA Revision Cup for revision total hip arthroplasty
+
+## Available Literature Data
+{literature_data}
+
+## Available Registry Data
+{registry_data}
+
+## Section Requirements
+
+Generate the "{section_name}" section for a State-of-the-Art report with the following structure:
+
+### For "Epidemiology" Section:
+1. Incidence of revision THA procedures
+2. Patient demographics trends
+3. Geographic variations (reference registry data)
+4. Growth projections based on aging population
+
+### For "Current Treatment Options" Section:
+1. Standard surgical approaches
+2. Implant technologies in use
+3. Fixation methods (cemented vs cementless)
+4. Material innovations (porous tantalum, trabecular metal)
+
+### For "Clinical Outcomes" Section:
+1. Survival rates at various timepoints
+2. Revision rates and causes
+3. Functional outcome measures (HHS, OHS)
+4. Patient-reported outcomes
+
+### For "Emerging Technologies" Section:
+1. Recent innovations in acetabular reconstruction
+2. Advanced materials research
+3. Digital/robotic surgery trends
+4. Future directions
+
+### For "Unmet Needs" Section:
+1. Current limitations in revision THA
+2. Challenges with bone loss management
+3. Need for improved osseointegration
+4. Areas for innovation
+
+## Critical Requirements
+
+- Use ONLY data provided in the literature and registry sections
+- Cite specific publications or registries when available
+- If data is not available for a point, omit that point or state "Data not available"
+- Do not invent statistics or citations
+- Use formal regulatory documentation language
+- Each major point should have supporting evidence where possible
+
+## Output Format
+
+Write in structured paragraphs with clear topic sentences. Include:
+- Section header
+- 2-4 paragraphs of content
+- In-text citations where data is available [Registry/Publication Year]
+
+This content will be combined with other sections to form a complete SOTA report for regulatory submission.

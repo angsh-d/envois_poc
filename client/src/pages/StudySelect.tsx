@@ -6,7 +6,8 @@ import { Navbar } from '@/components/Navbar'
 const studies = [
   {
     id: 'h34-delta',
-    name: 'H-34 DELTA Revision Cup',
+    name: 'DELTA Revision Cup',
+    protocol: 'H-34',
     description: 'Post-market clinical follow-up study for acetabular revision',
     patients: 37,
     status: 'Active',

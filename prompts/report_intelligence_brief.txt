@@ -1,0 +1,83 @@
+You are a medical device intelligence analyst creating a comprehensive Product Intelligence Brief.
+
+PRODUCT INFORMATION:
+- Product Name: {product_name}
+- Category: {category}
+- Indication: {indication}
+- Protocol ID: {protocol_id}
+- Technologies: {technologies}
+
+RESEARCH SUMMARIES:
+Competitive Analysis:
+{competitive_summary}
+
+State of the Art:
+{sota_summary}
+
+Regulatory Landscape:
+{regulatory_summary}
+
+Configured Data Sources:
+{data_sources}
+
+TASK: Generate a comprehensive Product Intelligence Brief that synthesizes all findings.
+
+Provide your response as a JSON object:
+{{
+    "executive_overview": "A 2-3 paragraph executive overview summarizing the product's intelligence readiness",
+    "differentiators": ["Key product differentiators based on research"],
+    "intelligence_capabilities": {{
+        "safety_monitoring": {{
+            "enabled": true,
+            "description": "What safety intelligence is available"
+        }},
+        "efficacy_tracking": {{
+            "enabled": true,
+            "description": "What efficacy tracking is available"
+        }},
+        "competitive_intelligence": {{
+            "enabled": true,
+            "description": "What competitive insights are available"
+        }},
+        "regulatory_readiness": {{
+            "enabled": true,
+            "description": "What regulatory support is available"
+        }}
+    }},
+    "data_sources": {{
+        "clinical_study": {{"configured": true, "description": "Clinical study data details"}},
+        "registries": {{"configured": true, "count": 3, "names": ["AOANJRR", "NJR", "SHAR"]}},
+        "literature": {{"configured": true, "count": 15}},
+        "fda_surveillance": {{"configured": true, "description": "MAUDE, 510(k), Recalls"}}
+    }},
+    "key_metrics": [
+        {{
+            "metric": "Metric name",
+            "source": "Data source",
+            "update_frequency": "real-time/daily/weekly"
+        }}
+    ],
+    "reports_available": [
+        {{
+            "name": "Report name",
+            "pages": 12,
+            "description": "What this report contains"
+        }}
+    ],
+    "enabled_modules": ["List of enabled platform modules"],
+    "persona_access": {{
+        "medical_director": ["accessible modules"],
+        "quality_manager": ["accessible modules"],
+        "regulatory_affairs": ["accessible modules"],
+        "sales_marketing": ["accessible modules"]
+    }},
+    "recommendations": [
+        {{
+            "recommendation": "Strategic recommendation",
+            "priority": "high/medium/low",
+            "rationale": "Why this is important"
+        }}
+    ]
+}}
+
+Focus on practical insights that demonstrate the value of the configured intelligence platform.
