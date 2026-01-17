@@ -296,13 +296,13 @@ export default function ProductConfig() {
     dispatch({ type: 'SET_DISCOVERY_PROGRESS', progress: progressHook.overallProgress, agents })
   }, [state.phase, progressHook.overallProgress, progressHook.agentUpdates])
 
-  // Handle SSE completion
+  // Handle SSE phase transition - when backend moves to recommendations, frontend should follow
   useEffect(() => {
-    if (progressHook.isComplete && state.sessionId && state.phase === 'discovery') {
-      // Discovery complete - move to recommendations phase
+    if (progressHook.phase === 'recommendations' && state.sessionId && state.phase === 'discovery') {
+      // Discovery complete on backend - move to recommendations phase
       generateRecommendationsPhase(state.sessionId)
     }
-  }, [progressHook.isComplete, state.sessionId, state.phase])
+  }, [progressHook.phase, state.sessionId, state.phase])
 
   // Auto-scroll chat
   useEffect(() => {
